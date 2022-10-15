@@ -284,12 +284,12 @@ print_result(ULONG value)
         }
       else
         {
-          (void)printf(STR4, (long)value, (long)value, (long)value);
+          (void)printf(STR4, (unsigned long)value, (long)value, (long)value);
         }
     }
   else if ((ULONG)value <= (ULONG)ULONG_MAX) //-V547
     {
-      (void)printf(STR5, (long)value, (long)value);
+      (void)printf(STR5, (unsigned long)value, (long)value);
     }
   else
     {
@@ -683,7 +683,7 @@ equality_expr(char **str)
         {
           sum = ( sum == val );
         }
-      else if (op == BANG)
+      else if (op == BANG) //-V547
         {
           sum = ( sum != val );
         }
@@ -793,7 +793,7 @@ add_expression(char **str)
         {
           sum += val;
         }
-      else if (op == MINUS)
+      else if (op == MINUS) //-V547
         {
           sum -= val;
         }
@@ -822,7 +822,7 @@ term(char **str)
       && **str != BANG && **str != NEGATIVE && **str != TWIDDLE //-V560
       && **str != RPAREN && **str != LESS_THAN && **str != GREATER_THAN
       && **str != SEMI_COLON && strncmp(*str, "<<", 2) != 0
-      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0')
+      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0') //-V526
     {
       (void)fprintf(stderr, "Parsing stopped: unknown operator %s\n", *str);
       return sum;
@@ -850,7 +850,7 @@ term(char **str)
               sum /= val;
             }
         }
-      else if (op == MODULO)
+      else if (op == MODULO) //-V547
         {
           if (val == 0)
             {
@@ -986,7 +986,7 @@ get_value(char **str)
               *str += 1;
             }
         }
-      else if (**str != '\0')
+      else if (**str != '\0') //-V547
         {
           *str += 1;
         }

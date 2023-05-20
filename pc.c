@@ -15,8 +15,8 @@
  * Copyright (c) 2009 Oliver Tappe <zooey@hirschkaefer.de>
  * Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
  * Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
- * Copyright (c) 2022 Jeffrey H. Johnson <trnsz@pobox.com>
- * Copyright (c) 2022 The DPS8M Development Team
+ * Copyright (c) 2022-2023 Jeffrey H. Johnson <trnsz@pobox.com>
+ * Copyright (c) 2022-2023 The DPS8M Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -117,14 +117,19 @@
  *      dbg@be.com (though this was written while I was at sgi)
  */
 
-#include <ctype.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <ctype.h>   /* for isalnum, isalpha, isdigit, isprint, isspace ... */
+#include <limits.h>  /* for LONG_MIN, ULONG_MAX ...                         */
+#include <stdio.h>   /* for fprintf, NULL, printf, stderr, fgets, stdin ... */
+#include <stdlib.h>  /* for free, malloc, _Exit, abort, rand, realloc,      */
+                     /*     strtoull ...                                    */
+#include <string.h>  /* for strncmp, strlen, strcmp, strdup, strncat ...    */
+#include <time.h>    /* for time ...                                        */
 
-#include "lex.h"
+#include "lex.h"     /* for EQUAL, PLUS, AND, OR, BANG, DIVISION, MINUS,    */
+                     /*     MODULO, NEGATIVE, TIMES, GREATER_THAN,          */
+                     /*     LESS_THAN, SINGLE_QUOTE, XOR, SHIFT_L, SHIFT_R, */
+                     /*     TWIDDLE, RPAREN, SEMI_COLON, LPAREN, NOTHING,   */
+                     /*     USE_LAST_RESULT ...                             */
 
 /*
  * You should #define USE_LONG_LONG if your compiler supports the long long

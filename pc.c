@@ -125,11 +125,29 @@
 #include <string.h>  /* for strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>    /* for time ...                                        */
 
-#include "lex.h"     /* for EQUAL, PLUS, AND, OR, BANG, DIVISION, MINUS,    */
-                     /*     MODULO, NEGATIVE, TIMES, GREATER_THAN,          */
-                     /*     LESS_THAN, SINGLE_QUOTE, XOR, SHIFT_L, SHIFT_R, */
-                     /*     TWIDDLE, RPAREN, SEMI_COLON, LPAREN, NOTHING,   */
-                     /*     USE_LAST_RESULT ...                             */
+#define AND             '&'
+#define BANG            '!'
+#define COMMA           ','
+#define DIVISION        '/'
+#define EQUAL           '='
+#define GREATER_THAN    '>'
+#define LESS_THAN       '<'
+#define LPAREN          '('
+#define MINUS           '-'
+#define MODULO          '%'
+#define NEGATIVE        '-'
+#define NOTHING         '\0'
+#define OR              '|'
+#define PLUS            '+'
+#define RPAREN          ')'
+#define SEMI_COLON      ';'
+#define SHIFT_L         '<'
+#define SHIFT_R         '>'
+#define SINGLE_QUOTE    '\''
+#define TIMES           '*'
+#define TWIDDLE         '~'
+#define USE_LAST_RESULT '.'
+#define XOR             '^'
 
 /*
  * You should #define USE_LONG_LONG if your compiler supports the long long

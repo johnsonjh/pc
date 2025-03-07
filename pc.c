@@ -16,7 +16,7 @@
  * Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
  * Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
  * Copyright (c) 2022-2023 Jeffrey H. Johnson <trnsz@pobox.com>
- * Copyright (c) 2022-2023 The DPS8M Development Team
+ * Copyright (c) 2022-2025 The DPS8M Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -117,6 +117,11 @@
  *      dbg@be.com (though this was written while I was at sgi)
  */
 
+#if defined(__MVS__)
+# undef _ALL_SOURCE
+# define _ALL_SOURCE
+#endif
+
 #include <ctype.h>   /* for isalnum, isalpha, isdigit, isprint, isspace ... */
 #include <limits.h>  /* for LONG_MIN, ULONG_MAX ...                         */
 #include <stdio.h>   /* for fprintf, NULL, printf, stderr, fgets, stdin ... */
@@ -124,6 +129,11 @@
                      /*     strtoull ...                                    */
 #include <string.h>  /* for strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>    /* for time ...                                        */
+
+#if defined(__MVS__) && !defined(__clang_version__)
+# undef inline
+# define inline
+#endif
 
 #define AND             '&'
 #define BANG            '!'

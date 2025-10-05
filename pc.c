@@ -125,7 +125,7 @@
 #include <ctype.h>   /* for isalnum, isalpha, isdigit, isprint, isspace ... */
 #include <limits.h>  /* for LONG_MIN, ULONG_MAX ...                         */
 #include <stdio.h>   /* for fprintf, NULL, printf, stderr, fgets, stdin ... */
-#include <stdlib.h>  /* for free, malloc, _Exit, abort, rand, realloc,      */
+#include <stdlib.h>  /* for free, malloc, exit, abort, rand, realloc,       */
                      /*     strtoull ...                                    */
 #include <string.h>  /* for strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>    /* for time ...                                        */
@@ -165,7 +165,9 @@
  * Otherwise just comment out the #define and pc will use plain longs.
  */
 
-#define USE_LONG_LONG
+#if !defined(_CH_)
+# define USE_LONG_LONG
+#endif
 
 #ifdef USE_LONG_LONG
 # define LONG    long long
@@ -396,7 +398,7 @@ do_input(void)
       if (strlen(buff) >= 255)
         {
           (void)fprintf(stderr, "FATAL: Oversize input!\n");
-          _Exit(1);
+          exit(1);
         }
 
       if (buff[0] != '\0' && buff[strlen(buff) - 1] == '\n') //-V557

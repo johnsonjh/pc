@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  * scspell-id: db65bb93-4b7b-11ed-bd13-80ee73e9b8e7
  * Source: https://git.haiku-os.org/haiku/tree/src/bin/pc/
- * Version: 2019-07-21 (with local modifications)
+ * Version: 2019-07-21 (local modifications 2025-10-05)
  */
 
 /*
@@ -116,6 +116,8 @@
  *      Dominic Giampaolo
  *      dbg@be.com (though this was written while I was at sgi)
  */
+
+#define USE_XSTRTOULL
 
 #if defined(__MVS__)
 # undef _ALL_SOURCE

@@ -211,7 +211,28 @@ xstrtoull (const char *nptr, char **endptr, int base)
     {
       if (*p == '0')
         {
-          if ((p[1] == 'x' || p[1] == 'X'))
+          if ((p[1] == 'z' || p[1] == 'Z'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '9')
+                next = p[2] - '0';
+              else if (p[2] >= 'a' && p[2] <= 'z')
+                next = p[2] - 'a' + 10;
+              else if (p[2] >= 'A' && p[2] <= 'Z')
+                next = p[2] - 'A' + 10;
+              else
+                next = -1;
+
+              if (next >= 0 && next < 36)
+                {
+                  base = 36;
+                  p += 2;
+                }
+              else
+                base = 0;
+            }
+          else if ((p[1] == 'x' || p[1] == 'X'))
             {
               int next;
 
@@ -249,6 +270,23 @@ xstrtoull (const char *nptr, char **endptr, int base)
               else
                 base = 0;
             }
+          else if ((p[1] == 't' || p[1] == 'T'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '2')
+                next = p[2] - '0';
+              else
+                next = -1;
+
+              if (next >= 0 && next < 3)
+                {
+                  base = 3;
+                  p += 2;
+                }
+              else
+                base = 0;
+            }
 
           if (base == 0)
             {
@@ -271,6 +309,21 @@ xstrtoull (const char *nptr, char **endptr, int base)
             next = -1;
 
           if (next >= 0 && next < 2)
+            p += 2;
+        }
+    }
+  else if (base == 3)
+    {
+      if (p[0] == '0' && (p[1] == 't' || p[1] == 'T'))
+        {
+          int next;
+
+          if (p[2] >= '0' && p[2] <= '2')
+            next = p[2] - '0';
+          else
+            next = -1;
+
+          if (next >= 0 && next < 3)
             p += 2;
         }
     }
@@ -564,7 +617,7 @@ parse_args(int argc, char *argv[])
 
   for (i = 1, len = 0; i < argc; i++)
     {
-      len += strlen(argv[i]);
+      len += strlen(argv[i]) + 1;
     }
 
   len++;
@@ -576,9 +629,10 @@ parse_args(int argc, char *argv[])
     }
 
   buff[0] = '\0';
-  while (--argc > 0)
+  for (i = 1; i < argc; i++)
     {
-      (void)strncat(buff, *++argv, sizeof ( buff ) - strlen(buff) - 1);
+      (void)strncat(buff, argv[i], len - strlen(buff) - 1);
+      (void)strncat(buff, " ", len - strlen(buff) - 1);
     }
   value = parse_expression(buff);
 
@@ -1204,6 +1258,11 @@ get_value(char **str)
           if (**str == '\\') /* Escape the next char */
             {
               *str += 1;
+              if (!**str)
+                {
+                  (void)fprintf(stderr, "Invalid escape sequence.\n");
+                  return 0;
+                }
             }
 
           val <<= 8;

@@ -130,6 +130,10 @@
 #include <string.h>  /* for strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>    /* for time ...                                        */
 
+#if defined(_CH_)
+# include <errno.h>
+#endif
+
 #if defined(__MVS__) && !defined(__clang_version__)
 # undef inline
 # define inline
@@ -165,14 +169,171 @@
  * Otherwise just comment out the #define and pc will use plain longs.
  */
 
-#if !defined(_CH_)
-# define USE_LONG_LONG
+#define USE_LONG_LONG
+
+#if defined(_CH_)
+unsigned long long
+xstrtoull (const char *nptr, char **endptr, int base)
+{
+  const char *p = nptr;
+  unsigned long long result = 0;
+  int any = 0;
+  int neg = 0;
+
+  if ((base != 0 && (base < 2 || base > 36)))
+    {
+      if (endptr)
+        *endptr = (char *)nptr;
+
+      errno = EINVAL;
+
+      return 0;
+    }
+
+  while (*p && isspace((unsigned char)*p))
+    p++;
+
+  if (*p == '+' || *p == '-')
+    {
+      neg = (*p == '-');
+      p++;
+    }
+
+  if (base == 0)
+    {
+      if (*p == '0')
+        {
+          if ((p[1] == 'x' || p[1] == 'X'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '9')
+                next = p[2] - '0';
+              else if (p[2] >= 'a' && p[2] <= 'z')
+                next = p[2] - 'a' + 10;
+              else if (p[2] >= 'A' && p[2] <= 'Z')
+                next = p[2] - 'A' + 10;
+              else
+                next = -1;
+
+              if (next >= 0 && next < 16)
+                {
+                  base = 16;
+                  p += 2;
+                }
+              else
+                base = 0;
+            }
+
+          if (base == 0)
+            {
+              base = 8;
+              p++;
+            }
+        }
+      else
+        base = 10;
+    }
+  else if (base == 16)
+    {
+      if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X'))
+        {
+          int next;
+
+          if (p[2] >= '0' && p[2] <= '9')
+            next = p[2] - '0';
+          else if (p[2] >= 'a' && p[2] <= 'z')
+            next = p[2] - 'a' + 10;
+          else if (p[2] >= 'A' && p[2] <= 'Z')
+            next = p[2] - 'A' + 10;
+          else
+            next = -1;
+
+          if (next >= 0 && next < 16)
+            p += 2;
+        }
+    }
+
+  for (;; p++)
+    {
+      int d;
+      unsigned char c = (unsigned char)*p;
+
+      if (c >= '0' && c <= '9')
+        d = c - '0';
+      else if (c >= 'a' && c <= 'z')
+        d = c - 'a' + 10;
+      else if (c >= 'A' && c <= 'Z')
+        d = c - 'A' + 10;
+      else
+        break;
+
+      if (d >= base)
+        break;
+
+      any = 1;
+
+      if (result > ULLONG_MAX / (unsigned long long)base ||
+         (result == ULLONG_MAX / (unsigned long long)base &&
+         (unsigned long long)d > ULLONG_MAX % (unsigned long long)base))
+        {
+          errno = ERANGE;
+          p++;
+
+          while (*p)
+            {
+              c = (unsigned char)*p;
+
+              if (c >= '0' && c <= '9')
+                d = c - '0';
+              else if (c >= 'a' && c <= 'z')
+                d = c - 'a' + 10;
+              else if (c >= 'A' && c <= 'Z')
+                d = c - 'A' + 10;
+              else
+                break;
+
+              if (d >= base)
+                break;
+
+              p++;
+            }
+
+          if (endptr)
+            *endptr = (char *)p;
+
+          return ULLONG_MAX;
+        }
+
+      result = result * (unsigned long long)base + (unsigned long long)d;
+    }
+
+  if (!any)
+    {
+      if (endptr)
+        *endptr = (char *)nptr;
+
+      return 0;
+    }
+
+  if (neg)
+    result = (unsigned long long)(-(long long)result);
+
+  if (endptr)
+    *endptr = (char *)p;
+
+  return result;
+}
 #endif
 
 #ifdef USE_LONG_LONG
 # define LONG    long long
 # define ULONG   unsigned long long
-# define STRTOUL strtoull
+# if defined(_CH_)
+#  define STRTOUL xstrtoull
+# else
+#  define STRTOUL strtoull
+# endif
 # define STR1    "%20llu  0x%.16llx signed: %20lld"
 # define STR2    "%20llu  0x%.16llx"
 # define STR3    " char: "

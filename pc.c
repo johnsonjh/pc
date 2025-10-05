@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  * scspell-id: db65bb93-4b7b-11ed-bd13-80ee73e9b8e7
  * Source: https://git.haiku-os.org/haiku/tree/src/bin/pc/
- * Version: 2019-07-21
+ * Version: 2019-07-21 (with local modifications)
  */
 
 /*
@@ -15,7 +15,7 @@
  * Copyright (c) 2009 Oliver Tappe <zooey@hirschkaefer.de>
  * Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
  * Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
- * Copyright (c) 2022-2023 Jeffrey H. Johnson <trnsz@pobox.com>
+ * Copyright (c) 2022-2025 Jeffrey H. Johnson <trnsz@pobox.com>
  * Copyright (c) 2022-2025 The DPS8M Development Team
  *
  * Permission is hereby granted, free of charge, to any person
@@ -1007,23 +1007,6 @@ term(char **str)
   sum  = factor(str);
   *str = skipwhite(*str);
 
-  /*
-   * We're at the bottom of the parse.  At this point we either have
-   * an operator or we're through with this string.  Otherwise it's
-   * an error and we print a message.
-   */
-
-  if (**str != TIMES && **str != DIVISION && **str != MODULO && **str != PLUS
-      && **str != MINUS && **str != OR && **str != AND && **str != XOR
-      && **str != BANG && **str != NEGATIVE && **str != TWIDDLE //-V560
-      && **str != RPAREN && **str != LESS_THAN && **str != GREATER_THAN
-      && **str != SEMI_COLON && strncmp(*str, "<<", 2) != 0
-      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0') //-V526
-    {
-      (void)fprintf(stderr, "Parsing stopped: unknown operator %s\n", *str);
-      return sum;
-    }
-
   while (**str == TIMES || **str == DIVISION || **str == MODULO)
     {
       op   = **str;
@@ -1058,6 +1041,23 @@ term(char **str)
               sum %= val;
             }
         }
+    }
+
+  /*
+   * We're at the bottom of the parse.  At this point we either have
+   * an operator or we're through with this string.  Otherwise it's
+   * an error and we print a message.
+   */
+
+  if (**str != TIMES && **str != DIVISION && **str != MODULO && **str != PLUS
+      && **str != MINUS && **str != OR && **str != AND && **str != XOR
+      && **str != BANG && **str != NEGATIVE && **str != TWIDDLE //-V560
+      && **str != RPAREN && **str != LESS_THAN && **str != GREATER_THAN
+      && **str != SEMI_COLON && strncmp(*str, "<<", 2) != 0
+      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0') //-V526
+    {
+      (void)fprintf(stderr, "Parsing stopped: unknown operator %s\n", *str);
+      return sum;
     }
 
   return sum;

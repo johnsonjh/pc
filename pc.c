@@ -131,6 +131,12 @@
 #include <time.h>    /* for time ...                                        */
 
 #if defined(_CH_)
+# if !defined(USE_XSTRTOULL)
+#  define USE_XSTRTOULL
+# endif
+#endif
+
+#if defined(USE_XSTRTOULL)
 # include <errno.h>
 #endif
 
@@ -171,7 +177,7 @@
 
 #define USE_LONG_LONG
 
-#if defined(_CH_)
+#if defined(USE_XSTRTOULL)
 unsigned long long
 xstrtoull (const char *nptr, char **endptr, int base)
 {
@@ -224,6 +230,23 @@ xstrtoull (const char *nptr, char **endptr, int base)
               else
                 base = 0;
             }
+          else if ((p[1] == 'b' || p[1] == 'B'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '1')
+                next = p[2] - '0';
+              else
+                next = -1;
+
+              if (next >= 0 && next < 2)
+                {
+                  base = 2;
+                  p += 2;
+                }
+              else
+                base = 0;
+            }
 
           if (base == 0)
             {
@@ -233,6 +256,21 @@ xstrtoull (const char *nptr, char **endptr, int base)
         }
       else
         base = 10;
+    }
+  else if (base == 2)
+    {
+      if (p[0] == '0' && (p[1] == 'b' || p[1] == 'B'))
+        {
+          int next;
+
+          if (p[2] >= '0' && p[2] <= '1')
+            next = p[2] - '0';
+          else
+            next = -1;
+
+          if (next >= 0 && next < 2)
+            p += 2;
+        }
     }
   else if (base == 16)
     {
@@ -329,7 +367,7 @@ xstrtoull (const char *nptr, char **endptr, int base)
 #ifdef USE_LONG_LONG
 # define LONG    long long
 # define ULONG   unsigned long long
-# if defined(_CH_)
+# if defined(USE_XSTRTOULL)
 #  define STRTOUL xstrtoull
 # else
 #  define STRTOUL strtoull

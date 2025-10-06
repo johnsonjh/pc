@@ -144,7 +144,7 @@
 
 #if defined(__MVS__) && !defined(__clang_version__)
 # undef inline
-# define inline
+# define inline //-V1059
 #endif
 
 #define AND             '&'
@@ -224,13 +224,13 @@ xstrtoull (const char *nptr, char **endptr, int base)
               else
                 next = -1;
 
-              if (next >= 0 && next < 36)
+              if (next >= 0 && next < 36) //-V560
                 {
                   base = 36;
                   p += 2;
                 }
               else
-                base = 0;
+                base = 0; //-V1048
             }
           else if ((p[1] == 'x' || p[1] == 'X'))
             {
@@ -251,7 +251,7 @@ xstrtoull (const char *nptr, char **endptr, int base)
                   p += 2;
                 }
               else
-                base = 0;
+                base = 0; //-V1048
             }
           else if ((p[1] == 'b' || p[1] == 'B'))
             {
@@ -262,13 +262,13 @@ xstrtoull (const char *nptr, char **endptr, int base)
               else
                 next = -1;
 
-              if (next >= 0 && next < 2)
+              if (next >= 0 && next < 2) //-V560
                 {
                   base = 2;
                   p += 2;
                 }
               else
-                base = 0;
+                base = 0; //-V1048
             }
           else if ((p[1] == 't' || p[1] == 'T'))
             {
@@ -279,13 +279,13 @@ xstrtoull (const char *nptr, char **endptr, int base)
               else
                 next = -1;
 
-              if (next >= 0 && next < 3)
+              if (next >= 0 && next < 3) //-V560
                 {
                   base = 3;
                   p += 2;
                 }
               else
-                base = 0;
+                base = 0; //-V1048
             }
 
           if (base == 0)
@@ -308,7 +308,7 @@ xstrtoull (const char *nptr, char **endptr, int base)
           else
             next = -1;
 
-          if (next >= 0 && next < 2)
+          if (next >= 0 && next < 2) //-V560
             p += 2;
         }
     }
@@ -323,7 +323,7 @@ xstrtoull (const char *nptr, char **endptr, int base)
           else
             next = -1;
 
-          if (next >= 0 && next < 3)
+          if (next >= 0 && next < 3) //-V560
             p += 2;
         }
     }
@@ -1143,7 +1143,7 @@ term(char **str)
    * an error and we print a message.
    */
 
-  if (**str != TIMES && **str != DIVISION && **str != MODULO && **str != PLUS
+  if (**str != TIMES && **str != DIVISION && **str != MODULO && **str != PLUS //-V560
       && **str != MINUS && **str != OR && **str != AND && **str != XOR
       && **str != BANG && **str != NEGATIVE && **str != TWIDDLE //-V560
       && **str != RPAREN && **str != LESS_THAN && **str != GREATER_THAN

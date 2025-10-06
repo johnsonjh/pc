@@ -180,7 +180,7 @@
 #define USE_LONG_LONG
 
 #if defined(USE_XSTRTOULL)
-unsigned long long
+static unsigned long long
 xstrtoull (const char *nptr, char **endptr, int base)
 {
   const char *p = nptr;

@@ -1614,7 +1614,7 @@ get_value(char **str)
  * didn't find the variable.
  */
 
-static int (*external_var_lookup) (char *name, ULONG *val) = NULL;
+static int (*external_var_lookup) (char *name, ULONG *val) = (int (*)(char *, ULONG *))NULL;
 
 /*
  * This very ugly function declaration is for the function

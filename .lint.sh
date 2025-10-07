@@ -37,6 +37,17 @@ test "${ORSTLINT:?}" != "true" && printf '%s\n' "Oracle Lint..."
   -errsecurity=extended -errshort=full -fd \
   -erroff=E_SEC_STRNCPY_WARN,E_SEC_RAND_WARN pc.c
 
+case "$(uname -s 2>/dev/null || :)" in
+  NetBSD)
+    {
+      LINT="$(command -v /usr/bin/lint 2> /dev/null || printf '%s\n' true)"
+      test "${LINT:?}" !\ "true" && printf '%s\n' "NetBSD Lint..."
+      lint -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 | \
+        grep -v '^lint: cannot find llib-lc.ln$' || :
+    }; ;;
+   *) : ;;
+esac;
+
 CPPCHECK="$(command -v cppcheck 2> /dev/null || printf '%s\n' true)"
 test "${CPPCHECK:?}" != "true" && printf '%s\n' "Cppcheck..."
 "${CPPCHECK:?}" --inline-suppr --force --check-level=exhaustive \

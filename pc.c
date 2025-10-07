@@ -1166,9 +1166,9 @@ print_herald(void)
   char oshitbuf[6]; /* "-N" + NULL */
 
   /*LINTED: E_CONSTANT_CONDITION*/
-  if (PC_VERSION_OSHIT > 0)
+  if (PC_VERSION_OSHIT > 0) /*NOTREACHED*/ /* unreachable */
     (void)snprintf(oshitbuf, sizeof(oshitbuf), "-%d", PC_VERSION_OSHIT);
-  else
+  else /*NOTREACHED*/ /* unreachable */
     oshitbuf[0] = '\0';
 
   (void)fprintf(stdout, "%s %d.%d.%d%s%s%s%s ready.\n",

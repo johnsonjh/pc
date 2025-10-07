@@ -22,7 +22,7 @@ clean:
 	$(RM) ./pc
 
 distclean: clean
-	$(RM) -r ./a.out ./compile_commands.json ./core ./log.pvs ./pvsreport
+	$(RM) -r ./a.out ./ch.c ./compile_commands.json ./core ./log.pvs ./pvsreport
 	$(RM) -r ./pc.c.out.*
 
 lint:

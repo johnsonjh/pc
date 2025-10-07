@@ -13,6 +13,7 @@
 *~
 a.out
 *.bak
+ch.c
 compile_commands.json
 *.core
 core

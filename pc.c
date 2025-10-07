@@ -1,10 +1,8 @@
 /*
- * Haiku PC -- programmer's calculator
+ * pc: programmer's calculator (version 2025-10-07)
  * vim: set ts=2:sw=2:tw=0:ai:expandtab
  * SPDX-License-Identifier: MIT
  * scspell-id: db65bb93-4b7b-11ed-bd13-80ee73e9b8e7
- * Source: https://git.haiku-os.org/haiku/tree/src/bin/pc/
- * Version: 2019-07-21 (local modifications 2025-10-05)
  */
 
 /*
@@ -125,21 +123,19 @@
 #endif
 
 #include <ctype.h>   /* for isalnum, isalpha, isdigit, isprint, isspace ... */
+#include <errno.h>   /* for errno ...                                       */
 #include <limits.h>  /* for LONG_MIN, ULONG_MAX ...                         */
 #include <stdio.h>   /* for fprintf, NULL, printf, stderr, fgets, stdin ... */
 #include <stdlib.h>  /* for free, malloc, exit, abort, rand, realloc,       */
                      /*     strtoull ...                                    */
 #include <string.h>  /* for strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>    /* for time ...                                        */
+#include <unistd.h>  /* for getpid, getuid, getgid ...                      */
 
 #if defined(_CH_)
 # if !defined(USE_XSTRTOULL)
 #  define USE_XSTRTOULL
 # endif
-#endif
-
-#if defined(USE_XSTRTOULL)
-# include <errno.h>
 #endif
 
 #if defined(__MVS__) && !defined(__clang_version__)
@@ -291,7 +287,6 @@ xstrtoull (const char *nptr, char **endptr, int base)
           if (base == 0)
             {
               base = 8;
-              p++;
             }
         }
       else
@@ -523,6 +518,154 @@ special_vars(char *name, ULONG *val)
     {
       *val = 0x82969;
     }
+  else if (strcmp(name, "pid") == 0)
+    {
+      *val = (ULONG)getpid();
+    }
+  else if (strcmp(name, "uid") == 0)
+    {
+      *val = (ULONG)getuid();
+    }
+  else if (strcmp(name, "gid") == 0)
+    {
+      *val = (ULONG)getgid();
+    }
+  else if (strcmp(name, "errno") == 0)
+    {
+      *val = (ULONG)errno;
+    }
+  else if (strcmp(name, "ULLONG_MAX") == 0)
+    {
+      *val = (ULONG)ULLONG_MAX;
+    }
+  else if (strcmp(name, "LLONG_MAX") == 0)
+    {
+      *val = (ULONG)LLONG_MAX;
+    }
+  else if (strcmp(name, "LLONG_MIN") == 0)
+    {
+      *val = (ULONG)LLONG_MIN;
+    }
+  else if (strcmp(name, "LONG_MAX") == 0)
+    {
+      *val = (ULONG)LONG_MAX;
+    }
+  else if (strcmp(name, "LONG_MIN") == 0)
+    {
+      *val = (ULONG)LONG_MIN;
+    }
+  else if (strcmp(name, "INT_MAX") == 0)
+    {
+      *val = (ULONG)INT_MAX;
+    }
+  else if (strcmp(name, "INT_MIN") == 0)
+    {
+      *val = (ULONG)INT_MIN;
+    }
+  else if (strcmp(name, "ARG_MAX") == 0)
+    {
+      *val = (ULONG)sysconf(_SC_ARG_MAX);
+    }
+  else if (strcmp(name, "CHILD_MAX") == 0)
+    {
+      *val = (ULONG)sysconf(_SC_CHILD_MAX);
+    }
+  else if (strcmp(name, "OPEN_MAX") == 0)
+    {
+      *val = (ULONG)sysconf(_SC_OPEN_MAX);
+    }
+  else if (strcmp(name, "PATH_MAX") == 0)
+    {
+      *val = (ULONG)pathconf("/", _PC_PATH_MAX);
+    }
+  else if (strcmp(name, "NAME_MAX") == 0)
+    {
+      *val = (ULONG)pathconf(".", _PC_NAME_MAX);
+    }
+  else if (strcmp(name, "CHAR_BIT") == 0)
+    {
+      *val = (ULONG)CHAR_BIT;
+    }
+  else if (strcmp(name, "CHAR_MAX") == 0)
+    {
+      *val = (ULONG)CHAR_MAX;
+    }
+  else if (strcmp(name, "CHAR_MIN") == 0)
+    {
+      *val = (ULONG)CHAR_MIN;
+    }
+  else if (strcmp(name, "SCHAR_MAX") == 0)
+    {
+      *val = (ULONG)SCHAR_MAX;
+    }
+  else if (strcmp(name, "SCHAR_MIN") == 0)
+    {
+      *val = (ULONG)SCHAR_MIN;
+    }
+  else if (strcmp(name, "UCHAR_MAX") == 0)
+    {
+      *val = (ULONG)UCHAR_MAX;
+    }
+  else if (strcmp(name, "SHRT_MAX") == 0)
+    {
+      *val = (ULONG)SHRT_MAX;
+    }
+  else if (strcmp(name, "SHRT_MIN") == 0)
+    {
+      *val = (ULONG)SHRT_MIN;
+    }
+  else if (strcmp(name, "USHRT_MAX") == 0)
+    {
+      *val = (ULONG)USHRT_MAX;
+    }
+  else if (strcmp(name, "UINT_MAX") == 0)
+    {
+      *val = (ULONG)UINT_MAX;
+    }
+  else if (strcmp(name, "ULONG_MAX") == 0)
+    {
+      *val = (ULONG)ULONG_MAX;
+    }
+  else if (strcmp(name, "EOF") == 0)
+    {
+      *val = (ULONG)EOF;
+    }
+  else if (strcmp(name, "STDIN_FILENO") == 0)
+    {
+      *val = (ULONG)STDIN_FILENO;
+    }
+  else if (strcmp(name, "STDOUT_FILENO") == 0)
+    {
+      *val = (ULONG)STDOUT_FILENO;
+    }
+  else if (strcmp(name, "STDERR_FILENO") == 0)
+    {
+      *val = (ULONG)STDERR_FILENO;
+    }
+  else if (strcmp(name, "sizeof_char") == 0)
+    {
+      *val = (ULONG)sizeof(char);
+    }
+  else if (strcmp(name, "sizeof_short") == 0)
+    {
+      *val = (ULONG)sizeof(short);
+    }
+  else if (strcmp(name, "sizeof_int") == 0)
+    {
+      *val = (ULONG)sizeof(int);
+    }
+  else if (strcmp(name, "sizeof_long") == 0)
+    {
+      *val = (ULONG)sizeof(long);
+    }
+  else if (strcmp(name, "sizeof_ll") == 0)
+    {
+      *val = (ULONG)sizeof(long long);
+    }
+  else if (strcmp(name, "sizeof_void") == 0)
+    {
+      *val = (ULONG)sizeof(void *);
+    }
   else
     {
       return 0;
@@ -592,7 +735,7 @@ print_result(ULONG value)
   (void)printf(STR3);
   for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
     {
-      shift = (ULONG)i * 8LL;
+      shift = (ULONG)i * (long long)CHAR_BIT;
       ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
 
       if (isprint((int)ch))
@@ -800,10 +943,20 @@ do_assignment_operator(char **str, char *var_name)
 
   if (operator == PLUS)
     {
+      if (v->value > (ULONG)-1 - val)
+        {
+          errno = ERANGE;
+          (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
+        }
       v->value += val;
     }
   else if (operator == MINUS)
     {
+      if (val > v->value)
+        {
+          errno = ERANGE;
+          (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
+        }
       v->value -= val;
     }
   else if (operator == AND)
@@ -820,21 +973,37 @@ do_assignment_operator(char **str, char *var_name)
     }
   else if (operator == SHIFT_L)
     {
+      if (val >= sizeof(ULONG) * CHAR_BIT)
+        {
+          errno = EINVAL;
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
+        }
       v->value <<= val;
     }
   else if (operator == SHIFT_R)
     {
+      if (val >= sizeof(ULONG) * CHAR_BIT)
+        {
+          errno = EINVAL;
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
+        }
       v->value >>= val;
     }
   else if (operator == TIMES)
     {
+      if (val != 0 && v->value > (ULONG)-1 / val)
+        {
+          errno = ERANGE;
+          (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
+        }
       v->value *= val;
     }
   else if (operator == DIVISION)
     {
       if (val == 0) /* Check for it, but still get the result */
         {
-          (void)fprintf(stderr, "Divide by zero!\n");
+          errno = EDOM;
+          (void)fprintf(stderr, "Warning: %s (Division by zero)\n", strerror(errno));
           v->value = 0;
         }
       else
@@ -846,7 +1015,8 @@ do_assignment_operator(char **str, char *var_name)
     {
       if (val == 0) /* check for it, but still get the result */
         {
-          (void)fprintf(stderr, "Modulo by zero!\n");
+          errno = EDOM;
+          (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", strerror(errno));
           v->value = 0;
         }
       else
@@ -1051,6 +1221,12 @@ shift_expr(char **str)
       *str = skipwhite(*str + 2); /* Advance over the operator */
       val  = add_expression(str);
 
+      if (val >= sizeof(ULONG) * CHAR_BIT)
+        {
+          errno = EINVAL;
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
+        }
+
       if (op == SHIFT_L)
         {
           sum <<= val;
@@ -1081,10 +1257,20 @@ add_expression(char **str)
 
       if (op == PLUS)
         {
+          if (sum > (ULONG)-1 - val)
+            {
+              errno = ERANGE;
+              (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
+            }
           sum += val;
         }
       else if (op == MINUS) //-V547
         {
+          if (val > sum)
+            {
+              errno = ERANGE;
+              (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
+            }
           sum -= val;
         }
     }
@@ -1109,13 +1295,19 @@ term(char **str)
 
       if (op == TIMES)
         {
+          if (val != 0 && sum > (ULONG)-1 / val)
+            {
+              errno = ERANGE;
+              (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
+            }
           sum *= val;
         }
       else if (op == DIVISION)
         {
           if (val == 0)
             {
-              (void)fprintf(stderr, "Divide by zero!\n");
+              errno = EDOM;
+              (void)fprintf(stderr, "Warning: %s (Division by zero)\n", strerror(errno));
               sum = 0;
             }
           else
@@ -1127,7 +1319,8 @@ term(char **str)
         {
           if (val == 0)
             {
-              (void)fprintf(stderr, "Modulo by zero!\n");
+              errno = EDOM;
+              (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", strerror(errno));
               sum = 0;
             }
           else
@@ -1265,7 +1458,7 @@ get_value(char **str)
                 }
             }
 
-          val <<= 8;
+          val <<= CHAR_BIT;
           val  |= (ULONG)((unsigned)**str );
         }
 
@@ -1288,7 +1481,12 @@ get_value(char **str)
     }
   else if (isdigit(**str))  /* A regular number */
     {
+      errno = 0;
       val  = STRTOUL(*str, str, 0);
+      if (errno)
+        {
+          (void)fprintf(stderr, "Warning: %s\n", strerror(errno));
+        }
       *str = skipwhite(*str);
     }
   else if (**str == USE_LAST_RESULT) /* A `.' meaning use the last result */

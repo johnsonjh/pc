@@ -1558,12 +1558,16 @@ do_assignment_operator(char **str, char *var_name)
     }
   else if (operator == MINUS)
     {
-      if (val > v->value)
+      if ((LONG)val > 0 && (LONG)v->value < LLONG_MIN + (LONG)val)
         {
           errno = ERANGE;
           (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
         }
-
+      else if ((LONG)val < 0 && (LONG)v->value > LLONG_MAX + (LONG)val)
+        {
+          errno = ERANGE;
+          (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
+        }
       v->value -= val;
     }
   else if (operator == AND)
@@ -1863,12 +1867,16 @@ add_expression(char **str)
         }
       else if (op == MINUS) //-V547
         {
-          if (val > sum)
+          if ((LONG)val > 0 && (LONG)sum < LLONG_MIN + (LONG)val)
             {
               errno = ERANGE;
               (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
             }
-
+          else if ((LONG)val < 0 && (LONG)sum > LLONG_MAX + (LONG)val)
+            {
+              errno = ERANGE;
+              (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
+            }
           sum -= val;
         }
     }

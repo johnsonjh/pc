@@ -203,7 +203,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #include <unistd.h> /* getpid, getuid, getgid ...                      */
 
 /* cppcheck-suppress preprocessorErrorDirective */
-#if HAS_INCLUDE (<sys/param.h>)
+#if defined(__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
 # include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
 #endif
 
@@ -638,21 +638,21 @@ print_result(ULONG value)
 
   if (use_short_format)
     {
-      (void)sprintf(dec_buf, "%20lu", (unsigned long)value);
-      (void)sprintf(hex_buf, "0x%.8lx", (unsigned long)value);
+      (void)snprintf(dec_buf, sizeof(dec_buf), "%20lu", (unsigned long)value);
+      (void)snprintf(hex_buf, sizeof(hex_buf), "0x%.8lx", (unsigned long)value);
     }
   else
     {
-      (void)sprintf(dec_buf, "%20llu", value);
-      (void)sprintf(hex_buf, "0x%.16llx", value);
+	    (void)snprintf(dec_buf, sizeof(dec_buf), "%20llu", value);
+      (void)snprintf(hex_buf, sizeof(hex_buf), "0x%.16llx", value);
     }
 
   if ((signed LONG)value < 0)
     {
       if (use_short_format)
-        (void)sprintf(sign_buf, "sign: %20ld", (signed long)value);
+        (void)snprintf(sign_buf, sizeof(sign_buf), "sign: %20ld", (signed long)value);
       else
-        (void)sprintf(sign_buf, "sign: %20lld", (signed LONG)value);
+        (void)snprintf(sign_buf, sizeof(sign_buf), "sign: %20lld", (signed LONG)value);
 		}
 
   for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
@@ -700,7 +700,11 @@ builtin_vars(char *name, ULONG *val)
   if (strcmp(name, "time") == 0)
     *val = (ULONG)time(NULL);
   else if (strcmp(name, "rand") == 0)
+#if defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811)
+		*val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
+#else
     *val = (ULONG)rand();
+#endif
   else if (strcmp(name, "dbg") == 0)
     *val = 0x82969;
   else if (strcmp(name, "pid") == 0)

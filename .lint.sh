@@ -13,6 +13,9 @@
 # Copyright (c) 2022-2025 The DPS8M Development Team
 # scspell-id: a91f10f2-a39e-11f0-a871-80ee73e9b8e7
 
+# shellcheck disable=SC3040
+(set -o pipefail) > /dev/null 2>&1 && set -o pipefail > /dev/null 2>&1
+
 set -eu
 
 CH="$(command -v ch 2> /dev/null || printf '%s\n' true)"
@@ -43,7 +46,7 @@ case "$(uname -s 2>/dev/null || :)" in
       LINT="$(command -v /usr/bin/lint 2> /dev/null || printf '%s\n' true)"
       test "${LINT:?}" != "true" && printf '%s\n' "NetBSD Lint..."
       lint -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 | \
-        grep -v '^lint: cannot find llib-lc.ln$' || :
+        grep -Ev '(^lint: cannot find llib-lc\.ln$|^pc\.c:$)' || :
     }; ;;
    *) : ;;
 esac;

@@ -1,3 +1,7 @@
+#/* \
+set -x;PID=$$;p=$0;cc=$(command -v c99 2>/dev/null||command -v gcc 2>/dev/null||command -v clang 2>/dev/null||printf '%s\n' cc); if "$cc" -o "$p.out.$PID" "$p";then case "${p:?}" in *"/"*) dir=${0%"/"*} ;; *) dir=. ;; esac;PATH="$dir:$PATH";"$p.out.$PID" "$@";rm -f "$p.out.$PID";exit 0;else printf '%s\n' 'ERROR: Compilation failed' >&2;exit 1;fi
+#*/
+
 /*
  * pc: programmer's calculator (version 2025-10-07)
  * vim: set ts=2:sw=2:tw=0:ai:expandtab
@@ -120,6 +124,36 @@
 #if defined(__MVS__)
 # undef _ALL_SOURCE
 # define _ALL_SOURCE
+#endif
+
+#if defined (_POSIX_C_SOURCE)
+# undef _POSIX_C_SOURCE
+#endif
+
+#define _POSIX_C_SOURCE 200809L
+
+#if !defined (_GNU_SOURCE)
+# define _GNU_SOURCE
+#endif
+
+#if !defined (_NETBSD_SOURCE)
+# define _NETBSD_SOURCE
+#endif
+
+#if !defined (_OPENBSD_SOURCE)
+# define _OPENBSD_SOURCE
+#endif
+
+#if !defined (_DARWIN_C_SOURCE)
+# define _DARWIN_C_SOURCE
+#endif
+
+#if !defined (__BSD_VISIBLE)
+# define __BSD_VISIBLE 1
+#endif
+
+#if !defined (__EXTENSIONS__)
+# define __EXTENSIONS__
 #endif
 
 #include <ctype.h>   /* for isalnum, isalpha, isdigit, isprint, isspace ... */

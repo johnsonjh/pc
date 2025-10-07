@@ -1,10 +1,11 @@
 RM=rm -f
+CC?=$$({ command -v c99 || command -v gcc || command -v clang || printf '%s\n' cc; } 2> /dev/null)"
 
 .PHONY: all
 all: pc
 
 pc: pc.c
-	$(CC) $(CFLAGS) $(LDFLAGS) pc.c -o pc
+	case "$$(uname -s 2>/dev/null || :)" in AIX) export OBJECT_MODE=64; case "$(CC)" in *gcc*) CFLAGS="$(CFLAGS) -maix64" ;; esac ;; esac; $(CC) $(CFLAGS) $(LDFLAGS) pc.c -o pc
 
 .PHONY: clean
 clean:

@@ -273,9 +273,9 @@ static int never = 0;
 #endif
 
 static ULONG
-xstrtoUL (const char *nptr, char **endptr, int base)
+xstrtoUL (char *nptr, char **endptr, int base)
 {
-  const char *p = nptr;
+  char *p = nptr;
   ULONG result = 0;
   int any = 0;
   int neg = 0;
@@ -283,7 +283,7 @@ xstrtoUL (const char *nptr, char **endptr, int base)
   if ((base != 0 && (base < 2 || base > 36)))
     {
       if (endptr)
-        *endptr = (char *)nptr;
+        *endptr = nptr;
 
       errno = EINVAL;
 
@@ -488,7 +488,7 @@ xstrtoUL (const char *nptr, char **endptr, int base)
             }
 
           if (endptr)
-            *endptr = (char *)p;
+            *endptr = p;
 
 #if defined (USE_LONG_LONG)
           return ULLONG_MAX;
@@ -507,7 +507,7 @@ xstrtoUL (const char *nptr, char **endptr, int base)
   if (!any)
     {
       if (endptr)
-        *endptr = (char *)nptr;
+        *endptr = nptr;
 
       return 0;
     }
@@ -520,7 +520,7 @@ xstrtoUL (const char *nptr, char **endptr, int base)
 #endif
 
   if (endptr)
-    *endptr = (char *)p;
+    *endptr = p;
 
   return result;
 }
@@ -567,7 +567,7 @@ static variable *vars = &dummy;
  * If it returns 0, it didn't find the variable.
  */
 
-static int (*external_var_lookup) (char *name, ULONG *val) = (int (*)(char *, ULONG *))NULL;
+static int (*external_var_lookup) (const char *name, ULONG *val) = (int (*)(const char *, ULONG *))NULL;
 
 /*
  * This very ugly function declaration is for the function
@@ -586,12 +586,12 @@ static int (*external_var_lookup) (char *name, ULONG *val) = (int (*)(char *, UL
 static int(
   *set_var_lookup_hook(
     int ( *func ) (
-      char *name,
+      const char *name,
       ULONG *val))) (
-  char *name,
+  const char *name,
   ULONG *val)
 {
-  int (*old_func) (char *name, ULONG *val) = external_var_lookup;
+  int (*old_func) (const char *name, ULONG *val) = external_var_lookup;
 
   external_var_lookup = func;
 
@@ -696,7 +696,7 @@ print_result(ULONG value)
 }
 
 static int
-builtin_vars(char *name, ULONG *val)
+builtin_vars(const char *name, ULONG *val)
 {
   static int isbe;
   static int endianed = 0;
@@ -938,7 +938,7 @@ resize_var_entries(var_entry *entries, int count, int *capacity)
 }
 
 static inline variable *
-lookup_var(char *name)
+lookup_var(const char *name)
 {
   variable *v;
 
@@ -1009,7 +1009,7 @@ set_var(char *name, ULONG val)
  */
 
 static int
-get_var(char *name, ULONG *val)
+get_var(const char *name, ULONG *val)
 {
   variable *v;
 
@@ -1061,7 +1061,7 @@ list_vars(varquery_type type)
   else if (type == BUILTIN_VARS)
     {
       for (i = 0; builtin_var_names[i] != NULL; i++)
-        if (get_var((char *)builtin_var_names[i], &val))
+        if (get_var(builtin_var_names[i], &val))
           {
             entries = resize_var_entries(entries, count, &capacity);
 

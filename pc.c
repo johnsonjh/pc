@@ -987,7 +987,13 @@ squash(const char *s)
   char *d = buf;
   int in_space = 0;
 
-  while (*s && (d - buf) < (int)sizeof(buf) - 1)
+ if (s == NULL)
+   {
+     buf[0] = '\0';
+     return buf;
+   }
+
+  while (*s && d < (buf + sizeof buf - 1))
     {
       if (*s == ' ' || *s == '\t')
         {
@@ -996,7 +1002,7 @@ squash(const char *s)
               *d++ = ' ';
               in_space = 1;
             }
-        }
+        } /*LINTED: E_NOP_IF_STMT*/
       else if (*s == '"' || *s == '\'');
       else
         {
@@ -1015,10 +1021,11 @@ squash(const char *s)
 static void
 print_herald(void)
 {
-  char oshitbuf[3]; /* "-N" + NULL */
+  char oshitbuf[6]; /* "-N" + NULL */
 
+	/*LINTED: E_CONSTANT_CONDITION*/
 	if (PC_VERSION_OSHIT > 0)
-    snprintf(oshitbuf, sizeof oshitbuf, "-%d", PC_VERSION_OSHIT);
+    (void)snprintf(oshitbuf, sizeof oshitbuf, "-%d", PC_VERSION_OSHIT);
   else
     oshitbuf[0] = '\0';
 

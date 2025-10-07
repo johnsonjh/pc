@@ -46,7 +46,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * and mod sort of stuff.  It can also deal with logical/relational
  * operations and expressions.  The logic/relational operations AND, OR,
  * NOT, and EXCLUSIVE OR, &&, ||, ==, !=, <, >, <=, and >= are all
- * supported.  It also handles parens and nested expresions as well as
+ * supported.  It also handles parens and nested expressions as well as
  * left and right shifts.  There are variables and assignments (as well
  * as assignment operators like "*=").
  *
@@ -89,7 +89,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * just (10/26/94) got it working right and with code I'm not ashamed of.
  * Now you can have variables (no restrictions on length) and assign to
  * them and use them in expressions.  Variable names have the usual C
- * rules (i.e. alpha or underscore followed by alpha-numeric and
+ * rules (i.e. alpha or underscore followed by alphanumeric and
  * underscore).  Variables are initialized to zero and created as needed.
  * You can have any number of variables. Here are some examples:
  *

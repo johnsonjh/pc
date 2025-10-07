@@ -21,6 +21,11 @@ set -eu
 # Cleanup
 "${MAKE:-make}" distclean > /dev/null 2>&1
 
+# Codespell
+CODESPELL="$(command -v codespell 2> /dev/null || printf '%s\n' true)"
+test "${CODESPELL:?}" != "true" && printf '%s\n' "Codespell..."
+"${CODESPELL:?}" .
+
 # REUSE
 REUSE="$(command -v reuse 2> /dev/null || printf '%s\n' true)"
 

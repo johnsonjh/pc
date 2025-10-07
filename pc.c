@@ -1108,7 +1108,7 @@ squash(const char *s)
      return buf;
    }
 
-  while (*s && d < (buf + sizeof buf - 1))
+  while (*s && d < (buf + (sizeof(buf) - 1)))
     {
       if (*s == ' ' || *s == '\t')
         {
@@ -1140,7 +1140,7 @@ print_herald(void)
 
 	/*LINTED: E_CONSTANT_CONDITION*/
 	if (PC_VERSION_OSHIT > 0)
-    (void)snprintf(oshitbuf, sizeof oshitbuf, "-%d", PC_VERSION_OSHIT);
+    (void)snprintf(oshitbuf, sizeof(oshitbuf), "-%d", PC_VERSION_OSHIT);
   else
     oshitbuf[0] = '\0';
 

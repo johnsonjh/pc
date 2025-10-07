@@ -528,11 +528,11 @@ xstrtoUL (const char *nptr, char **endptr, int base)
 static ULONG do_assignment_operator(char **str, char *var_name);
 static ULONG parse_expression(char *str);  /* Top-level interface to parser */
 static ULONG assignment_expr(char **str);  /* Assignments =, +=, *=, etc */
-static ULONG logical_or_expr(char **str);  /* Logical OR  `||' */
-static ULONG logical_and_expr(char **str); /* Logical AND  `&&' */
-static ULONG or_expr(char **str);          /* OR  `|' */
-static ULONG xor_expr(char **str);         /* XOR `^' */
-static ULONG and_expr(char **str);         /* AND `&' */
+static ULONG logical_or_expr(char **str);  /* Logical OR  '||' */
+static ULONG logical_and_expr(char **str); /* Logical AND  '&&' */
+static ULONG or_expr(char **str);          /* OR  '|' */
+static ULONG xor_expr(char **str);         /* XOR '^' */
+static ULONG and_expr(char **str);         /* AND '&' */
 static ULONG equality_expr(char **str);    /* Equality ==, != */
 static ULONG relational_expr(char **str);  /* Relational <, >, <=, >= */
 static ULONG shift_expr(char **str);       /* Shifts <<, >> */
@@ -545,7 +545,7 @@ static ULONG get_value(char **str);
  * Variables are kept in a simple singly-linked list. Not high
  * performance, but it's also an extremely small implementation.
  * New variables get added to the head of the list.  Variables
- * can be unset/removed by assigning no value (e.g. `var=`).
+ * can be unset/removed by assigning no value (e.g. 'var=').
  */
 
 typedef struct variable
@@ -600,7 +600,7 @@ static int(
 
 /*
  * last_result is equal to the result of the last expression and
- * expressions can refer to it as `.' (just like bc).
+ * expressions can refer to it as '.' (just like bc).
  */
 
 static ULONG last_result = 0;
@@ -2043,7 +2043,7 @@ get_value(char **str)
 
       *str = skipwhite(*str);
     }
-  else if (**str == USE_LAST_RESULT) /* A `.' meaning use the last result */
+  else if (**str == USE_LAST_RESULT) /* '.' meaning use the last result */
     {
       val  = last_result;
       *str = skipwhite(*str + 1);
@@ -2101,7 +2101,7 @@ get_value(char **str)
   else
     {
       (void)fprintf(stderr, "Expecting left paren, unary op, constant or variable.");
-      (void)fprintf(stderr, "  Got: `%s'\n", *str);
+      (void)fprintf(stderr, "  Got: '%s'\n", *str);
       return 0;
     }
 

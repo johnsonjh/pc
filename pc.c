@@ -157,7 +157,9 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # undef _POSIX_C_SOURCE
 #endif
 
-#define _POSIX_C_SOURCE 200809L
+#if !defined (__OpenBSD__)
+# define _POSIX_C_SOURCE 200809L
+#endif
 
 #if !defined (_GNU_SOURCE)
 # define _GNU_SOURCE

@@ -18,6 +18,7 @@
 
 set -eu
 
+# SoftIntegration Ch C/C++ Interpreter
 CH="$(command -v ch 2> /dev/null || printf '%s\n' true)"
 test "${CH:?}" != "true" \
   && {
@@ -27,10 +28,12 @@ test "${CH:?}" != "true" \
     rm -f ./ch.c > /dev/null 2>&1
   }
 
+# ShellCheck
 SHELLCHECK="$(command -v shellcheck 2> /dev/null || printf '%s\n' true)"
 test "${SHELLCHECK:?}" != "true" && printf '%s\n' "ShellCheck..."
 "${SHELLCHECK:?}" -o any,all ./.lint.sh
 
+# Oracle Lint
 ORSTLINT="$(command -v /opt/developerstudio12.6/bin/lint 2> /dev/null \
   || command -v /opt/oracle/developerstudio12.6/bin/lint 2> /dev/null \
   || printf '%s\n' true)"
@@ -40,6 +43,7 @@ test "${ORSTLINT:?}" != "true" && printf '%s\n' "Oracle Lint..."
   -errsecurity=extended -errshort=full -fd \
   -erroff=E_SEC_STRNCPY_WARN,E_SEC_RAND_WARN pc.c
 
+# NetBSD Lint
 case "$(uname -s 2>/dev/null || :)" in
   NetBSD)
     {
@@ -48,9 +52,10 @@ case "$(uname -s 2>/dev/null || :)" in
       lint -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 | \
         grep -Ev '(^lint: cannot find llib-lc\.ln$|^pc\.c:$)' || :
     }; ;;
-   *) : ;;
-esac;
+  *) : ;;
+esac
 
+# Cppcheck
 CPPCHECK="$(command -v cppcheck 2> /dev/null || printf '%s\n' true)"
 test "${CPPCHECK:?}" != "true" && printf '%s\n' "Cppcheck..."
 "${CPPCHECK:?}" --inline-suppr --force --check-level=exhaustive \
@@ -59,6 +64,12 @@ test "${CPPCHECK:?}" != "true" && printf '%s\n' "Cppcheck..."
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
   -D__EXTENSIONS__ --quiet pc.c
 
+# Clang Analyzer
+SCANBUILD="$(command -v scan-build 2> /dev/null || printf '%s\n' true)"
+test "${SCANBUILD:?}" != "true" && printf '%s\n' "Clang Analyzer..."
+"${SCANBUILD:?}" --status-bugs -maxloop 8 make
+
+# REUSE
 REUSE="$(command -v reuse 2> /dev/null || printf '%s\n' true)"
 test "${REUSE:?}" != "true" && printf '%s\n' "REUSE..."
 "${REUSE:?}" lint -q || "${REUSE:?}" lint

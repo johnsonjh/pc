@@ -2083,12 +2083,12 @@ get_value(char **str)
         {
           if (( v = lookup_var(var_name)) != NULL)
             {
-              val = v->value;
-
               if (**str == '+')
                 v->value++;
               else
                 v->value--;
+
+              val = v->value;
 
               *str = *str + 2;
             }

@@ -121,7 +121,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 2025
 #define PC_VERSION_MINOR 10
 #define PC_VERSION_PATCH 7
-#define PC_VERSION_OSHIT 2
+#define PC_VERSION_OSHIT 3
 
 #if !defined (USE_XSTRTOULL)
 # define USE_XSTRTOULL
@@ -162,15 +162,15 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # define __EXTENSIONS__
 #endif
 
-#include <ctype.h>  /* for isalnum, isalpha, isdigit, isprint, isspace ... */
-#include <errno.h>  /* for errno ...                                       */
-#include <limits.h> /* for LONG_MIN, ULONG_MAX ...                         */
-#include <stdio.h>  /* for fprintf, NULL, printf, stderr, fgets, stdin ... */
-#include <stdlib.h> /* for free, malloc, exit, abort, rand, realloc,       */
-                    /*     strtoull ...                                    */
-#include <string.h> /* for strncmp, strlen, strcmp, strdup, strncat ...    */
-#include <time.h>   /* for time ...                                        */
-#include <unistd.h> /* for getpid, getuid, getgid ...                      */
+#include <ctype.h>     /* isalnum, isalpha, isdigit, isprint, isspace ... */
+#include <errno.h>     /* errno ...                                       */
+#include <limits.h>    /* LONG_MIN, ULONG_MAX ...                         */
+#include <stdio.h>     /* fprintf, NULL, printf, stderr, fgets, stdin ... */
+#include <stdlib.h>    /* free, malloc, exit, abort, rand, realloc ...    */
+#include <string.h>    /* strncmp, strlen, strcmp, strdup, strncat ...    */
+#include <sys/param.h> /* PAGESIZE, PAGE_SIZE ...                         */
+#include <time.h>      /* time ...                                        */
+#include <unistd.h>    /* getpid, getuid, getgid ...                      */
 
 #if defined (__MVS__) && !defined (__clang_version__)
 # undef inline
@@ -731,6 +731,42 @@ builtin_vars(char *name, ULONG *val)
     {
       *val = (ULONG)UCHAR_MAX;
     }
+  else if (strcmp(name, "FILESIZEBITS") == 0)
+    {
+      *val = (ULONG)pathconf(".", _PC_FILESIZEBITS);
+    }
+  else if (strcmp(name, "NULL") == 0)
+    {
+      *val = 0;
+    }
+  else if (strcmp(name, "nil") == 0)
+    {
+      *val = 0;
+    }
+#if defined (WORD_BIT)
+  else if (strcmp(name, "WORD_BIT") == 0)
+    {
+      *val = (ULONG)WORD_BIT;
+    }
+#endif
+#if defined (LONG_BIT)
+  else if (strcmp(name, "LONG_BIT") == 0)
+    {
+      *val = (ULONG)LONG_BIT;
+    }
+#endif
+#if defined (PAGESIZE)
+  else if (strcmp(name, "PAGESIZE") == 0)
+    {
+      *val = (ULONG)PAGESIZE;
+    }
+#endif
+#if defined (PAGE_SIZE)
+  else if (strcmp(name, "PAGE_SIZE") == 0)
+    {
+      *val = (ULONG)PAGE_SIZE;
+    }
+#endif
   else if (strcmp(name, "SHRT_MAX") == 0)
     {
       *val = (ULONG)SHRT_MAX;
@@ -810,15 +846,27 @@ builtin_var_names [] =
   "dbg",
   "EOF",
   "errno",
+  "FILESIZEBITS",
   "gid",
   "INT_MAX",
   "INT_MIN",
   "LLONG_MAX",
   "LLONG_MIN",
+#if defined (LONG_BIT)
+  "LONG_BIT",
+#endif
   "LONG_MAX",
   "LONG_MIN",
   "NAME_MAX",
+  "nil",
+  "NULL",
   "OPEN_MAX",
+#if defined (PAGESIZE)
+  "PAGESIZE",
+#endif
+#if defined (PAGE_SIZE)
+  "PAGE_SIZE",
+#endif
   "PATH_MAX",
   "pid",
   "rand",
@@ -842,6 +890,9 @@ builtin_var_names [] =
   "ULLONG_MAX",
   "ULONG_MAX",
   "USHRT_MAX",
+#if defined (WORD_BIT)
+  "WORD_BIT",
+#endif
   NULL
 };
 
@@ -992,7 +1043,7 @@ main(int argc, char *argv[])
       do_input();
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static void

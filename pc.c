@@ -521,8 +521,6 @@ xstrtoUL (const char *nptr, char **endptr, int base)
   return result;
 }
 
-
-
 static ULONG do_assignment_operator(char **str, char *var_name);
 static ULONG parse_expression(char *str);  /* Top-level interface to parser */
 static ULONG assignment_expr(char **str);  /* Assignments =, +=, *=, etc */
@@ -538,14 +536,6 @@ static ULONG add_expression(char **str);   /* Addition/Subtraction +, - */
 static ULONG term(char **str);             /* Multiplication/Division *,%,/ */
 static ULONG factor(char **str);           /* Negation, Logical NOT ~, ! */
 static ULONG get_value(char **str);
-
-static int get_var(char *name, ULONG *val); /* External interfaces to vars */
-#if defined (EXTERNAL)
-static void set_var(char *name, ULONG val);
-#endif
-
-static void do_input(void);        /* Reads stdin and calls parser */
-static char *skipwhite(char *str); /* Skip over input white space */
 
 /*
  * Variables are kept in a simple singly-linked list. Not high
@@ -566,12 +556,28 @@ static variable dummy = {
 };
 static variable *vars = &dummy;
 
-static variable *lookup_var(char *name);
-static variable *add_var(char *name, ULONG value);
-static int remove_var(char *name);
+/*
+ * This is a hook for external read-only variables. If it is set and we
+ * don't find a variable name in our name space, we call it to look for
+ * the variable.  If it finds the name, it fills in val and returns 1.
+ * If it returns 0, it didn't find the variable.
+ */
 
-static char *get_var_name(char **input_str);
-static void parse_args(int argc, char *argv[]);
+static int (*external_var_lookup) (char *name, ULONG *val) = (int (*)(char *, ULONG *))NULL;
+
+/*
+ * This very ugly function declaration is for the function
+ * set_var_lookup_hook which accepts one argument, "func", which
+ * is a pointer to a function that returns int (and accepts a
+ * char * and ULONG *).  set_var_lookup_hook returns a pointer to
+ * a function that returns int and accepts char * and ULONG *.
+ *
+ * It's very ugly looking but fairly basic in what it does.  You
+ * pass in a function to set as the variable name lookup up hook
+ * and it passes back to you the old function (which you should
+ * call if it is non-NULL and your function fails to find the
+ * variable name).
+ */
 
 static int(
   *set_var_lookup_hook(
@@ -579,7 +585,14 @@ static int(
       char *name,
       ULONG *val))) (
   char *name,
-  ULONG *val);
+  ULONG *val)
+{
+  int (*old_func) (char *name, ULONG *val) = external_var_lookup;
+
+  external_var_lookup = func;
+
+  return old_func;
+}
 
 /*
  * last_result is equal to the result of the last expression and
@@ -895,6 +908,94 @@ resize_var_entries(var_entry *entries, int count, int *capacity)
   return entries;
 }
 
+static inline variable *
+lookup_var(char *name)
+{
+  variable *v;
+
+  for (v = vars; v; v = v->next)
+    if (v->name && strcmp(v->name, name) == 0)
+      return v;
+
+  return NULL;
+}
+
+static variable *
+add_var(char *name, ULONG value)
+{
+  variable *v;
+  ULONG tmp;
+
+  /* First make sure this isn't an external read-only variable */
+
+  if (external_var_lookup)
+    if (external_var_lookup(name, &tmp) != 0)
+      {
+        (void)fprintf(stderr, "Can't assign/create %s, it is a read-only var\n", name);
+        return NULL;
+      }
+
+  v = malloc(sizeof ( variable ));
+
+  if (v == NULL)
+    {
+      (void)fprintf(stderr, "No memory to add variable: %s\n", name);
+      return NULL;
+    }
+
+  v->name  = strdup(name);
+  v->value = value;
+  v->next  = vars;
+
+  vars = v; /* Set head of list to the new guy */
+
+  return v;
+}
+
+/*
+ * This routine and the companion get_var() are external
+ * interfaces to the variable manipulation routines.
+ */
+
+#if defined (EXTERNAL)
+static void
+set_var(char *name, ULONG val)
+{
+  variable *v;
+
+  v = lookup_var(name);
+
+  if (v != NULL)
+    v->value = val;
+  else
+    (void)add_var(name, val);
+}
+#endif
+
+/*
+ * This function returns 1 on success of finding
+ * a variable and 0 on failure to find a variable.
+ * If a variable is found, val is filled with its
+ * value.
+ */
+
+static int
+get_var(char *name, ULONG *val)
+{
+  variable *v;
+
+  v = lookup_var(name);
+  if (v != NULL)
+    {
+      *val = v->value;
+      return 1;
+    }
+  else if (external_var_lookup != NULL)
+    return external_var_lookup(name, val);
+
+  return 0;
+}
+
 static void
 list_vars(varquery_type type)
 {
@@ -1047,20 +1148,50 @@ print_herald(void)
                 PC_SOFTWARE_DATE ? squash(PC_SOFTWARE_DATE) : "", PC_SOFTWARE_DATE ? ")" : "");
 }
 
-int
-main(int argc, char *argv[])
+static void
+do_input(void)
 {
-  (void)set_var_lookup_hook(builtin_vars);
+  ULONG value;
+  char buff[256], *ptr, *end;
 
-  if (argc > 1)
-    parse_args(argc, argv);
-  else
+  while (fgets(buff, 256, stdin) != NULL)
     {
-      print_herald();
-      do_input();
-    }
+      if (strlen(buff) >= 255)
+        {
+          (void)fprintf(stderr, "FATAL: Oversize input!\n");
+          exit(1);
+        }
 
-  return EXIT_SUCCESS;
+      if (buff[0] != '\0' && buff[strlen(buff) - 1] == '\n') //-V557
+        buff[strlen(buff) - 1] = '\0'; //-V557 /* Kill the newline character */
+
+      for (ptr = buff; isspace(*ptr) && *ptr; ptr++); /* Skip whitespace */
+
+      if (*ptr == '\0') /* Hmmm, an empty line, just skip it */
+        continue;
+
+      end = ptr + strlen(ptr) - 1;
+
+      while (end > ptr && isspace((unsigned char)*end))
+        *end-- = '\0';
+
+      if (strcmp(ptr, "vars") == 0)
+        {
+          list_user_vars();
+          continue;
+        }
+
+      if (strcmp(ptr, "help") == 0)
+        {
+          list_builtin_vars();
+          continue;
+        }
+
+      value = parse_expression(buff);
+
+      if (!suppress_output)
+        print_result(value);
+    }
 }
 
 static void
@@ -1120,50 +1251,32 @@ parse_args(int argc, char *argv[])
   FREE(buff);
 }
 
-static void
-do_input(void)
+int
+main(int argc, char *argv[])
 {
-  ULONG value;
-  char buff[256], *ptr, *end;
+  (void)set_var_lookup_hook(builtin_vars);
 
-  while (fgets(buff, 256, stdin) != NULL)
+  if (argc > 1)
+    parse_args(argc, argv);
+  else
     {
-      if (strlen(buff) >= 255)
-        {
-          (void)fprintf(stderr, "FATAL: Oversize input!\n");
-          exit(1);
-        }
-
-      if (buff[0] != '\0' && buff[strlen(buff) - 1] == '\n') //-V557
-        buff[strlen(buff) - 1] = '\0'; //-V557 /* Kill the newline character */
-
-      for (ptr = buff; isspace(*ptr) && *ptr; ptr++); /* Skip whitespace */
-
-      if (*ptr == '\0') /* Hmmm, an empty line, just skip it */
-        continue;
-
-      end = ptr + strlen(ptr) - 1;
-
-      while (end > ptr && isspace((unsigned char)*end))
-        *end-- = '\0';
-
-      if (strcmp(ptr, "vars") == 0)
-        {
-          list_user_vars();
-          continue;
-        }
-
-      if (strcmp(ptr, "help") == 0)
-        {
-          list_builtin_vars();
-          continue;
-        }
-
-      value = parse_expression(buff);
-
-      if (!suppress_output)
-        print_result(value);
+      print_herald();
+      do_input();
     }
+
+  return EXIT_SUCCESS;
+}
+
+static char *
+skipwhite(char *str)
+{
+  if (str == NULL)
+    return NULL;
+
+  while (*str && ( *str == ' ' || *str == '\t' || *str == '\n' || *str == '\f' ))
+    str++;
+
+  return str;
 }
 
 static ULONG
@@ -1195,6 +1308,81 @@ parse_expression(char *str)
 
   last_result = val;
   return val;
+}
+
+static int
+remove_var(char *name)
+{
+  variable *v, *prev = NULL;
+
+  if (name == NULL)
+    return 0;
+
+  for (v = vars; v; prev = v, v = v->next)
+    if (v->name && strcmp(v->name, name) == 0)
+      {
+        if (prev)
+          prev->next = v->next;
+        else
+          vars = v->next;
+
+        FREE(v->name);
+        FREE(v);
+
+        return 1;
+      }
+
+  return 0;
+}
+
+#define DEFAULT_LEN 32
+
+static char *
+get_var_name(char **str)
+{
+  int i, len = DEFAULT_LEN;
+  char *buff, *tmpbuff;
+
+  if (isalpha(**str) == 0 && **str != '_')
+    return NULL;
+
+  buff = malloc((ULONG)len * sizeof ( char ));
+
+  if (buff == NULL)
+    return NULL;
+
+  /*
+   * First get the variable name
+   */
+
+  i = 0;
+
+  while (**str && ( isalnum(**str) || **str == '_' ))
+    {
+      if (i >= len - 1)
+        {
+          len     *= 2;
+          tmpbuff  = realloc(buff, (ULONG)len);
+
+          if (tmpbuff == NULL)
+            {
+              FREE(buff);
+              return NULL;
+            }
+
+          buff = tmpbuff;
+        }
+
+      buff[i++] = **str;
+      *str      = *str + 1;
+    }
+
+  buff[i] = '\0'; /* NULL terminate */
+
+  while (isalnum(**str) || **str == '_') /* Skip over any remaining junk */
+    *str = *str + 1;
+
+  return buff;
 }
 
 static ULONG
@@ -1905,225 +2093,6 @@ get_value(char **str)
     }
 
   return val;
-}
-
-/*
- * Here are the functions that manipulate variables.
- */
-
-/*
- * This is a hook function for external read-only
- * variables.  If it is set and we don't find a
- * variable name in our name space, we call it to
- * look for the variable.  If it finds the name, it
- * fills in val and returns 1. If it returns 0, it
- * didn't find the variable.
- */
-
-static int (*external_var_lookup) (char *name, ULONG *val) = (int (*)(char *, ULONG *))NULL;
-
-/*
- * This very ugly function declaration is for the function
- * set_var_lookup_hook which accepts one argument, "func", which
- * is a pointer to a function that returns int (and accepts a
- * char * and ULONG *).  set_var_lookup_hook returns a pointer to
- * a function that returns int and accepts char * and ULONG *.
- *
- * It's very ugly looking but fairly basic in what it does.  You
- * pass in a function to set as the variable name lookup up hook
- * and it passes back to you the old function (which you should
- * call if it is non-NULL and your function fails to find the
- * variable name).
- */
-
-static int(
-  *set_var_lookup_hook(
-    int ( *func ) (
-      char *name,
-      ULONG *val))) (
-  char *name,
-  ULONG *val)
-{
-  int (*old_func) (char *name, ULONG *val) = external_var_lookup;
-
-  external_var_lookup = func;
-
-  return old_func;
-}
-
-static int
-remove_var(char *name)
-{
-  variable *v, *prev = NULL;
-
-  if (name == NULL)
-    return 0;
-
-  for (v = vars; v; prev = v, v = v->next)
-    if (v->name && strcmp(v->name, name) == 0)
-      {
-        if (prev)
-          prev->next = v->next;
-        else
-          vars = v->next;
-
-        FREE(v->name);
-        FREE(v);
-
-        return 1;
-      }
-
-  return 0;
-}
-
-static inline variable *
-lookup_var(char *name)
-{
-  variable *v;
-
-  for (v = vars; v; v = v->next)
-    if (v->name && strcmp(v->name, name) == 0)
-      return v;
-
-  return NULL;
-}
-
-static variable *
-add_var(char *name, ULONG value)
-{
-  variable *v;
-  ULONG tmp;
-
-  /* First make sure this isn't an external read-only variable */
-
-  if (external_var_lookup)
-    if (external_var_lookup(name, &tmp) != 0)
-      {
-        (void)fprintf(stderr, "Can't assign/create %s, it is a read-only var\n", name);
-        return NULL;
-      }
-
-  v = malloc(sizeof ( variable ));
-
-  if (v == NULL)
-    {
-      (void)fprintf(stderr, "No memory to add variable: %s\n", name);
-      return NULL;
-    }
-
-  v->name  = strdup(name);
-  v->value = value;
-  v->next  = vars;
-
-  vars = v; /* Set head of list to the new guy */
-
-  return v;
-}
-
-/*
- * This routine and the companion get_var() are external
- * interfaces to the variable manipulation routines.
- */
-
-#if defined (EXTERNAL)
-static void
-set_var(char *name, ULONG val)
-{
-  variable *v;
-
-  v = lookup_var(name);
-
-  if (v != NULL)
-    v->value = val;
-  else
-    (void)add_var(name, val);
-}
-#endif
-
-/*
- * This function returns 1 on success of finding
- * a variable and 0 on failure to find a variable.
- * If a variable is found, val is filled with its
- * value.
- */
-
-static int
-get_var(char *name, ULONG *val)
-{
-  variable *v;
-
-  v = lookup_var(name);
-  if (v != NULL)
-    {
-      *val = v->value;
-      return 1;
-    }
-  else if (external_var_lookup != NULL)
-    return external_var_lookup(name, val);
-
-  return 0;
-}
-
-#define DEFAULT_LEN 32
-
-static char *
-get_var_name(char **str)
-{
-  int i, len = DEFAULT_LEN;
-  char *buff, *tmpbuff;
-
-  if (isalpha(**str) == 0 && **str != '_')
-    return NULL;
-
-  buff = malloc((ULONG)len * sizeof ( char ));
-
-  if (buff == NULL)
-    return NULL;
-
-  /*
-   * First get the variable name
-   */
-
-  i = 0;
-
-  while (**str && ( isalnum(**str) || **str == '_' ))
-    {
-      if (i >= len - 1)
-        {
-          len     *= 2;
-          tmpbuff  = realloc(buff, (ULONG)len);
-
-          if (tmpbuff == NULL)
-            {
-              FREE(buff);
-              return NULL;
-            }
-
-          buff = tmpbuff;
-        }
-
-      buff[i++] = **str;
-      *str      = *str + 1;
-    }
-
-  buff[i] = '\0'; /* NULL terminate */
-
-  while (isalnum(**str) || **str == '_') /* Skip over any remaining junk */
-    *str = *str + 1;
-
-  return buff;
-}
-
-static char *
-skipwhite(char *str)
-{
-  if (str == NULL)
-    return NULL;
-
-  while (*str && ( *str == ' ' || *str == '\t' || *str == '\n' || *str == '\f' ))
-    str++;
-
-  return str;
 }
 
 /* vim: set ts=2:sw=2:tw=0:ai:expandtab */

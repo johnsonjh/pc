@@ -242,13 +242,15 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # undef FREE
 #endif
 
+static int never = 1;
+
 #define FREE(p)   \
   do              \
     {             \
       free ((p)); \
       (p) = NULL; \
     }             \
-  while (0)
+  while (never)
 
 /*
  * Define #define USE_LONG_LONG if your compiler supports the the long long

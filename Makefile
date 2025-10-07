@@ -1,4 +1,4 @@
-RM?=rm -f
+RM=rm -f
 
 .PHONY: all
 all: pc

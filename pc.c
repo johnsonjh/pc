@@ -1800,7 +1800,7 @@ shift_expr(char **str)
   sum  = add_expression(str);
   *str = skipwhite(*str);
 
-  while (( strncmp(*str, "<<", 2) == 0 ) || ( strncmp(*str, ">>", 2) == 0 ))
+  while (*str != NULL && ((strncmp(*str, "<<", 2) == 0) || (strncmp(*str, ">>", 2) == 0)))
     {
       op   = **str;
       *str = skipwhite(*str + 2); /* Advance over the operator */

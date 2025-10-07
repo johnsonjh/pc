@@ -1,9 +1,9 @@
 #/* \
 PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v gcc 2>/dev/null || command -v clang 2>/dev/null || command -v c99 2>/dev/null || :)"; case "$(uname -s 2>/dev/null || :)" in AIX) export OBJECT_MODE=64; case "${cc:-cc}" in *gcc*) CFLAGS="${CFLAGS:-} -maix64" ;; esac ;; esac; if "${cc:-cc}" ${CFLAGS:-} ${LDFLAGS-} -o "${p:?}.out.${PID:?}" "${p:?}"; then case "${p:?}" in *"/"*) dir=${0%"/"*} ;; *) dir=. ;; esac; PATH="${dir:?}:${PATH:-.}"; "${rlwrap:-env}" "${p:?}.out.${PID:?}" "$@"; rm -f "${p:?}.out.${PID:?}" > /dev/null 2>&1; exit 0;fi;exit 1
-#*/
+#*/ /* Remove from this line to the top of the file for SoftIntegration Ch. */
 
 /*
- * pc: programmer's calculator (version 2025-10-07)
+ * pc2: programmer's calculator
  * SPDX-License-Identifier: MIT
  * scspell-id: db65bb93-4b7b-11ed-bd13-80ee73e9b8e7
  */
@@ -118,13 +118,38 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  *      dbg@be.com (though this was written while I was at sgi)
  */
 
-#define PC_VERSION_MAJOR 2025
-#define PC_VERSION_MINOR 10
-#define PC_VERSION_PATCH 7
-#define PC_VERSION_OSHIT 3
+#define PC_SOFTWARE_NAME "pc2"
+#define PC_VERSION_MAJOR 0
+#define PC_VERSION_MINOR 1
+#define PC_VERSION_PATCH 0
+#define PC_VERSION_OSHIT 0
+
+#if defined (STR_HELPER)
+# undef STR_HELPER
+#endif
+
+#define STR_HELPER(x) #x
+
+#if defined (STR)
+# undef STR
+#endif
+
+#define STR(x) STR_HELPER(x)
+
+#ifndef PC_SOFTWARE_DATE
+# if defined (__TIMESTAMP__)
+#  define PC_SOFTWARE_DATE STR(__TIMESTAMP__)
+# elif defined (__DATE__)
+#  define PC_SOFTWARE_DATE STR(__DATE__)
+# else
+#  define PC_SOFTWARE_DATE 0
+# endif
+#endif
 
 #if defined (__MVS__) || defined (_AIX)
-# undef _ALL_SOURCE
+# if defined (_ALL_SOURCE)
+#  undef _ALL_SOURCE
+# endif
 # define _ALL_SOURCE
 #endif
 
@@ -158,18 +183,33 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # define __EXTENSIONS__
 #endif
 
-#include <ctype.h>     /* isalnum, isalpha, isdigit, isprint, isspace ... */
-#include <errno.h>     /* errno ...                                       */
-#include <limits.h>    /* LONG_MIN, ULONG_MAX ...                         */
-#include <stdio.h>     /* fprintf, NULL, printf, stderr, fgets, stdin ... */
-#include <stdlib.h>    /* free, malloc, exit, abort, rand, realloc ...    */
-#include <string.h>    /* strncmp, strlen, strcmp, strdup, strncat ...    */
-#include <sys/param.h> /* PAGESIZE, PAGE_SIZE ...                         */
-#include <time.h>      /* time ...                                        */
-#include <unistd.h>    /* getpid, getuid, getgid ...                      */
+#if defined (HAS_INCLUDE)
+# undef HAS_INCLUDE
+#endif
+
+#if defined __has_include
+# define HAS_INCLUDE(inc) __has_include(inc)
+#else
+# define HAS_INCLUDE(inc) 0
+#endif
+
+#include <ctype.h>  /* isalnum, isalpha, isdigit, isprint, isspace ... */
+#include <errno.h>  /* errno ...                                       */
+#include <limits.h> /* LONG_MIN, ULONG_MAX ...                         */
+#include <stdio.h>  /* fprintf, NULL, printf, stderr, fgets, stdin ... */
+#include <stdlib.h> /* free, malloc, exit, abort, rand, realloc ...    */
+#include <string.h> /* strncmp, strlen, strcmp, strdup, strncat ...    */
+#include <time.h>   /* time ...                                        */
+#include <unistd.h> /* getpid, getuid, getgid ...                      */
+
+#if HAS_INCLUDE (<sys/param.h>)
+# include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
+#endif
 
 #if defined (__MVS__) && !defined (__clang_version__)
-# undef inline
+# if defined (inline)
+#  undef inline
+# endif
 # define inline //-V1059
 #endif
 
@@ -197,6 +237,18 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define USE_LAST_RESULT '.'
 #define XOR             '^'
 
+#if defined(FREE)
+# undef FREE
+#endif
+
+#define FREE(p)   \
+  do              \
+    {             \
+      free ((p)); \
+      (p) = NULL; \
+    }             \
+  while (0)
+
 /*
  * Define #define USE_LONG_LONG if your compiler supports the the long long
  * type and your printf supports the '%lld' format specifier.  Otherwise,
@@ -208,11 +260,18 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #endif
 
 #if defined (USE_LONG_LONG)
-static unsigned long long
-xstrtoull (const char *nptr, char **endptr, int base)
+# define LONG  long long
+# define ULONG unsigned long long
+#else
+# define LONG  long
+# define ULONG unsigned long
+#endif
+
+static ULONG
+xstrtoUL (const char *nptr, char **endptr, int base)
 {
   const char *p = nptr;
-  unsigned long long result = 0;
+  ULONG result = 0;
   int any = 0;
   int neg = 0;
 
@@ -317,9 +376,7 @@ xstrtoull (const char *nptr, char **endptr, int base)
             }
 
           if (base == 0)
-            {
-              base = 8;
-            }
+            base = 8;
         }
       else
         base = 10;
@@ -393,248 +450,15 @@ xstrtoull (const char *nptr, char **endptr, int base)
 
       any = 1;
 
+#if defined (USE_LONG_LONG)
       if (result > ULLONG_MAX / (unsigned long long)base ||
          (result == ULLONG_MAX / (unsigned long long)base &&
          (unsigned long long)d > ULLONG_MAX % (unsigned long long)base))
-        {
-          errno = ERANGE;
-          p++;
-
-          while (*p)
-            {
-              c = (unsigned char)*p;
-
-              if (c >= '0' && c <= '9')
-                d = c - '0';
-              else if (c >= 'a' && c <= 'z')
-                d = c - 'a' + 10;
-              else if (c >= 'A' && c <= 'Z')
-                d = c - 'A' + 10;
-              else
-                break;
-
-              if (d >= base)
-                break;
-
-              p++;
-            }
-
-          if (endptr)
-            *endptr = (char *)p;
-
-          return ULLONG_MAX;
-        }
-
-      result = result * (unsigned long long)base + (unsigned long long)d;
-    }
-
-  if (!any)
-    {
-      if (endptr)
-        *endptr = (char *)nptr;
-
-      return 0;
-    }
-
-  if (neg)
-    result = (unsigned long long)(-(long long)result);
-
-  if (endptr)
-    *endptr = (char *)p;
-
-  return result;
-}
-#endif
-
-#if !defined (USE_LONG_LONG)
-static unsigned long
-xstrtoul (const char *nptr, char **endptr, int base)
-{
-  const char *p = nptr;
-  unsigned long result = 0;
-  int any = 0;
-  int neg = 0;
-
-  if ((base != 0 && (base < 2 || base > 36)))
-    {
-      if (endptr)
-        *endptr = (char *)nptr;
-
-      errno = EINVAL;
-
-      return 0;
-    }
-
-  while (*p && isspace((unsigned char)*p))
-    p++;
-
-  if (*p == '+' || *p == '-')
-    {
-      neg = (*p == '-');
-      p++;
-    }
-
-  if (base == 0)
-    {
-      if (*p == '0')
-        {
-          if ((p[1] == 'z' || p[1] == 'Z'))
-            {
-              int next;
-
-              if (p[2] >= '0' && p[2] <= '9')
-                next = p[2] - '0';
-              else if (p[2] >= 'a' && p[2] <= 'z')
-                next = p[2] - 'a' + 10;
-              else if (p[2] >= 'A' && p[2] <= 'Z')
-                next = p[2] - 'A' + 10;
-              else
-                next = -1;
-
-              if (next >= 0 && next < 36) //-V560
-                {
-                  base = 36;
-                  p += 2;
-                }
-              else
-                base = 0; //-V1048
-            }
-          else if ((p[1] == 'x' || p[1] == 'X'))
-            {
-              int next;
-
-              if (p[2] >= '0' && p[2] <= '9')
-                next = p[2] - '0';
-              else if (p[2] >= 'a' && p[2] <= 'z')
-                next = p[2] - 'a' + 10;
-              else if (p[2] >= 'A' && p[2] <= 'Z')
-                next = p[2] - 'A' + 10;
-              else
-                next = -1;
-
-              if (next >= 0 && next < 16)
-                {
-                  base = 16;
-                  p += 2;
-                }
-              else
-                base = 0; //-V1048
-            }
-          else if ((p[1] == 'b' || p[1] == 'B'))
-            {
-              int next;
-
-              if (p[2] >= '0' && p[2] <= '1')
-                next = p[2] - '0';
-              else
-                next = -1;
-
-              if (next >= 0 && next < 2) //-V560
-                {
-                  base = 2;
-                  p += 2;
-                }
-              else
-                base = 0; //-V1048
-            }
-          else if ((p[1] == 't' || p[1] == 'T'))
-            {
-              int next;
-
-              if (p[2] >= '0' && p[2] <= '2')
-                next = p[2] - '0';
-              else
-                next = -1;
-
-              if (next >= 0 && next < 3) //-V560
-                {
-                  base = 3;
-                  p += 2;
-                }
-              else
-                base = 0; //-V1048
-            }
-
-          if (base == 0)
-            {
-              base = 8;
-            }
-        }
-      else
-        base = 10;
-    }
-  else if (base == 2)
-    {
-      if (p[0] == '0' && (p[1] == 'b' || p[1] == 'B'))
-        {
-          int next;
-
-          if (p[2] >= '0' && p[2] <= '1')
-            next = p[2] - '0';
-          else
-            next = -1;
-
-          if (next >= 0 && next < 2) //-V560
-            p += 2;
-        }
-    }
-  else if (base == 3)
-    {
-      if (p[0] == '0' && (p[1] == 't' || p[1] == 'T'))
-        {
-          int next;
-
-          if (p[2] >= '0' && p[2] <= '2')
-            next = p[2] - '0';
-          else
-            next = -1;
-
-          if (next >= 0 && next < 3) //-V560
-            p += 2;
-        }
-    }
-  else if (base == 16)
-    {
-      if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X'))
-        {
-          int next;
-
-          if (p[2] >= '0' && p[2] <= '9')
-            next = p[2] - '0';
-          else if (p[2] >= 'a' && p[2] <= 'z')
-            next = p[2] - 'a' + 10;
-          else if (p[2] >= 'A' && p[2] <= 'Z')
-            next = p[2] - 'A' + 10;
-          else
-            next = -1;
-
-          if (next >= 0 && next < 16)
-            p += 2;
-        }
-    }
-
-  for (;; p++)
-    {
-      int d;
-      unsigned char c = (unsigned char)*p;
-
-      if (c >= '0' && c <= '9')
-        d = c - '0';
-      else if (c >= 'a' && c <= 'z')
-        d = c - 'a' + 10;
-      else if (c >= 'A' && c <= 'Z')
-        d = c - 'A' + 10;
-      else
-        break;
-
-      if (d >= base)
-        break;
-
-      any = 1;
-
+#else
       if (result > ULONG_MAX / (unsigned long)base ||
          (result == ULONG_MAX / (unsigned long)base &&
          (unsigned long)d > ULONG_MAX % (unsigned long)base))
+#endif
         {
           errno = ERANGE;
           p++;
@@ -661,10 +485,18 @@ xstrtoul (const char *nptr, char **endptr, int base)
           if (endptr)
             *endptr = (char *)p;
 
+#if defined (USE_LONG_LONG)
+          return ULLONG_MAX;
+#else
           return ULONG_MAX;
+#endif
         }
 
+#if defined (USE_LONG_LONG)
+      result = result * (unsigned long long)base + (unsigned long long)d;
+#else
       result = result * (unsigned long)base + (unsigned long)d;
+#endif
     }
 
   if (!any)
@@ -676,24 +508,19 @@ xstrtoul (const char *nptr, char **endptr, int base)
     }
 
   if (neg)
+#if defined (USE_LONG_LONG)
+    result = (unsigned long long)(-(long long)result);
+#else
     result = (unsigned long)(-(long)result);
+#endif
 
   if (endptr)
     *endptr = (char *)p;
 
   return result;
 }
-#endif
 
-#if defined (USE_LONG_LONG)
-# define LONG    long long
-# define ULONG   unsigned long long
-# define STRTOUL xstrtoull
-#else
-# define LONG    long
-# define ULONG   unsigned long
-# define STRTOUL xstrtoul
-#endif
+
 
 static ULONG do_assignment_operator(char **str, char *var_name);
 static ULONG parse_expression(char *str);  /* Top-level interface to parser */
@@ -853,205 +680,111 @@ builtin_vars(char *name, ULONG *val)
 {
   /* NB: Keep in sync with builtin_var_names */
   if (strcmp(name, "time") == 0)
-    {
-      *val = (ULONG)time(NULL);
-    }
+    *val = (ULONG)time(NULL);
   else if (strcmp(name, "rand") == 0)
-    {
-      *val = (ULONG)rand();
-    }
+    *val = (ULONG)rand();
   else if (strcmp(name, "dbg") == 0)
-    {
-      *val = 0x82969;
-    }
+    *val = 0x82969;
   else if (strcmp(name, "pid") == 0)
-    {
-      *val = (ULONG)getpid();
-    }
+    *val = (ULONG)getpid();
   else if (strcmp(name, "uid") == 0)
-    {
-      *val = (ULONG)getuid();
-    }
+    *val = (ULONG)getuid();
   else if (strcmp(name, "gid") == 0)
-    {
-      *val = (ULONG)getgid();
-    }
+    *val = (ULONG)getgid();
   else if (strcmp(name, "errno") == 0)
-    {
-      *val = (ULONG)errno;
-    }
+    *val = (ULONG)errno;
   else if (strcmp(name, "ULLONG_MAX") == 0)
-    {
-      *val = (ULONG)ULLONG_MAX;
-    }
+    *val = (ULONG)ULLONG_MAX;
   else if (strcmp(name, "LLONG_MAX") == 0)
-    {
-      *val = (ULONG)LLONG_MAX;
-    }
+    *val = (ULONG)LLONG_MAX;
   else if (strcmp(name, "LLONG_MIN") == 0)
-    {
-      *val = (ULONG)LLONG_MIN;
-    }
+    *val = (ULONG)LLONG_MIN;
   else if (strcmp(name, "LONG_MAX") == 0)
-    {
-      *val = (ULONG)LONG_MAX;
-    }
+    *val = (ULONG)LONG_MAX;
   else if (strcmp(name, "LONG_MIN") == 0)
-    {
-      *val = (ULONG)LONG_MIN;
-    }
+    *val = (ULONG)LONG_MIN;
   else if (strcmp(name, "INT_MAX") == 0)
-    {
-      *val = (ULONG)INT_MAX;
-    }
+    *val = (ULONG)INT_MAX;
   else if (strcmp(name, "INT_MIN") == 0)
-    {
-      *val = (ULONG)INT_MIN;
-    }
+    *val = (ULONG)INT_MIN;
   else if (strcmp(name, "ARG_MAX") == 0)
-    {
-      *val = (ULONG)sysconf(_SC_ARG_MAX);
-    }
+    *val = (ULONG)sysconf(_SC_ARG_MAX);
   else if (strcmp(name, "CHILD_MAX") == 0)
-    {
-      *val = (ULONG)sysconf(_SC_CHILD_MAX);
-    }
+    *val = (ULONG)sysconf(_SC_CHILD_MAX);
   else if (strcmp(name, "OPEN_MAX") == 0)
-    {
-      *val = (ULONG)sysconf(_SC_OPEN_MAX);
-    }
+    *val = (ULONG)sysconf(_SC_OPEN_MAX);
   else if (strcmp(name, "PATH_MAX") == 0)
-    {
-      *val = (ULONG)pathconf("/", _PC_PATH_MAX);
-    }
+    *val = (ULONG)pathconf("/", _PC_PATH_MAX);
   else if (strcmp(name, "NAME_MAX") == 0)
-    {
-      *val = (ULONG)pathconf(".", _PC_NAME_MAX);
-    }
+    *val = (ULONG)pathconf(".", _PC_NAME_MAX);
   else if (strcmp(name, "CHAR_BIT") == 0)
-    {
-      *val = (ULONG)CHAR_BIT;
-    }
+    *val = (ULONG)CHAR_BIT;
   else if (strcmp(name, "CHAR_MAX") == 0)
-    {
-      *val = (ULONG)CHAR_MAX;
-    }
+    *val = (ULONG)CHAR_MAX;
   else if (strcmp(name, "CHAR_MIN") == 0)
-    {
-      *val = (ULONG)CHAR_MIN;
-    }
+    *val = (ULONG)CHAR_MIN;
   else if (strcmp(name, "SCHAR_MAX") == 0)
-    {
-      *val = (ULONG)SCHAR_MAX;
-    }
+    *val = (ULONG)SCHAR_MAX;
   else if (strcmp(name, "SCHAR_MIN") == 0)
-    {
-      *val = (ULONG)SCHAR_MIN;
-    }
+    *val = (ULONG)SCHAR_MIN;
   else if (strcmp(name, "UCHAR_MAX") == 0)
-    {
-      *val = (ULONG)UCHAR_MAX;
-    }
+    *val = (ULONG)UCHAR_MAX;
+#if defined (_PC_FILESIZEBITS)
   else if (strcmp(name, "FILESIZEBITS") == 0)
-    {
-      *val = (ULONG)pathconf(".", _PC_FILESIZEBITS);
-    }
+    *val = (ULONG)pathconf(".", _PC_FILESIZEBITS);
+#endif
   else if (strcmp(name, "NULL") == 0)
-    {
-      *val = 0;
-    }
+    *val = 0;
   else if (strcmp(name, "nil") == 0)
-    {
-      *val = 0;
-    }
+    *val = 0;
 #if defined (WORD_BIT)
   else if (strcmp(name, "WORD_BIT") == 0)
-    {
-      *val = (ULONG)WORD_BIT;
-    }
+    *val = (ULONG)WORD_BIT;
 #endif
 #if defined (LONG_BIT)
   else if (strcmp(name, "LONG_BIT") == 0)
-    {
-      *val = (ULONG)LONG_BIT;
-    }
+    *val = (ULONG)LONG_BIT;
 #endif
 #if defined (PAGESIZE)
   else if (strcmp(name, "PAGESIZE") == 0)
-    {
-      *val = (ULONG)PAGESIZE;
-    }
+    *val = (ULONG)PAGESIZE;
 #endif
 #if defined (PAGE_SIZE)
   else if (strcmp(name, "PAGE_SIZE") == 0)
-    {
-      *val = (ULONG)PAGE_SIZE;
-    }
+    *val = (ULONG)PAGE_SIZE;
 #endif
   else if (strcmp(name, "SHRT_MAX") == 0)
-    {
-      *val = (ULONG)SHRT_MAX;
-    }
+    *val = (ULONG)SHRT_MAX;
   else if (strcmp(name, "SHRT_MIN") == 0)
-    {
-      *val = (ULONG)SHRT_MIN;
-    }
+    *val = (ULONG)SHRT_MIN;
   else if (strcmp(name, "USHRT_MAX") == 0)
-    {
-      *val = (ULONG)USHRT_MAX;
-    }
+    *val = (ULONG)USHRT_MAX;
   else if (strcmp(name, "UINT_MAX") == 0)
-    {
-      *val = (ULONG)UINT_MAX;
-    }
+    *val = (ULONG)UINT_MAX;
   else if (strcmp(name, "ULONG_MAX") == 0)
-    {
-      *val = (ULONG)ULONG_MAX;
-    }
+    *val = (ULONG)ULONG_MAX;
   else if (strcmp(name, "EOF") == 0)
-    {
-      *val = (ULONG)EOF;
-    }
+    *val = (ULONG)EOF;
   else if (strcmp(name, "STDIN_FILENO") == 0)
-    {
-      *val = (ULONG)STDIN_FILENO;
-    }
+    *val = (ULONG)STDIN_FILENO;
   else if (strcmp(name, "STDOUT_FILENO") == 0)
-    {
-      *val = (ULONG)STDOUT_FILENO;
-    }
+    *val = (ULONG)STDOUT_FILENO;
   else if (strcmp(name, "STDERR_FILENO") == 0)
-    {
-      *val = (ULONG)STDERR_FILENO;
-    }
+    *val = (ULONG)STDERR_FILENO;
   else if (strcmp(name, "sizeof_char") == 0)
-    {
-      *val = (ULONG)sizeof(char);
-    }
+    *val = (ULONG)sizeof(char);
   else if (strcmp(name, "sizeof_short") == 0)
-    {
-      *val = (ULONG)sizeof(short);
-    }
+    *val = (ULONG)sizeof(short);
   else if (strcmp(name, "sizeof_int") == 0)
-    {
-      *val = (ULONG)sizeof(int);
-    }
+    *val = (ULONG)sizeof(int);
   else if (strcmp(name, "sizeof_long") == 0)
-    {
-      *val = (ULONG)sizeof(long);
-    }
+    *val = (ULONG)sizeof(long);
   else if (strcmp(name, "sizeof_ll") == 0)
-    {
-      *val = (ULONG)sizeof(long long);
-    }
+    *val = (ULONG)sizeof(long long);
   else if (strcmp(name, "sizeof_void") == 0)
-    {
-      *val = (ULONG)sizeof(void *);
-    }
+    *val = (ULONG)sizeof(void *);
   else
-    {
-      return 0;
-    }
+    return 0;
 
   return 1;
 }
@@ -1067,7 +800,9 @@ builtin_var_names [] =
   "dbg",
   "EOF",
   "errno",
+#if defined (_PC_FILESIZEBITS)
   "FILESIZEBITS",
+#endif
   "gid",
   "INT_MAX",
   "INT_MIN",
@@ -1149,27 +884,28 @@ list_user_variables(void)
     }
 
   for (v = vars; v; v = v->next)
-    {
-      if (v->name)
-        {
-          if (count >= capacity)
-            {
-              capacity *= 2;
-              var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
+    if (v->name)
+      {
+        if (count >= capacity)
+          {
+            capacity *= 2;
+            var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
 
-              if (new_entries == NULL)
-                {
-                  (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
-                  free(entries);
-                  return;
-                }
-              entries = new_entries;
-            }
-          entries[count].name = v->name;
-          entries[count].value = v->value;
-          count++;
-        }
-    }
+            if (new_entries == NULL)
+              {
+                (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
+                free(entries);
+                return;
+              }
+
+            entries = new_entries;
+          }
+
+        entries[count].name = v->name;
+        entries[count].value = v->value;
+
+        count++;
+      }
 
   qsort(entries, count, sizeof(var_entry), compare_var_entries);
 
@@ -1181,6 +917,7 @@ list_user_variables(void)
     }
 
   (void)printf("User variables:\n");
+
   for (i = 0; i < count; i++)
     {
       (void)printf("  %-16s = ", entries[i].name);
@@ -1207,33 +944,33 @@ list_builtin_variables(void)
     }
 
   for (i = 0; builtin_var_names[i] != NULL; i++)
-    {
-      if (get_var((char *)builtin_var_names[i], &val))
-        {
-          if (count >= capacity)
-            {
-              capacity *= 2;
-              var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
+    if (get_var((char *)builtin_var_names[i], &val))
+      {
+        if (count >= capacity)
+          {
+            capacity *= 2;
+            var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
 
-              if (new_entries == NULL)
-                {
-                  (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
-                  free(entries);
-                  return;
-                }
+            if (new_entries == NULL)
+              {
+                (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
+                free(entries);
+                return;
+              }
 
-              entries = new_entries;
-            }
+            entries = new_entries;
+          }
 
-          entries[count].name = builtin_var_names[i];
-          entries[count].value = val;
-          count++;
-        }
-    }
+        entries[count].name = builtin_var_names[i];
+        entries[count].value = val;
+
+        count++;
+      }
 
   qsort(entries, count, sizeof(var_entry), compare_var_entries);
 
   (void)printf("The following builtin variables are defined:\n");
+
   for (i = 0; i < count; i++)
     {
       (void)printf("  %-16s = ", entries[i].name);
@@ -1243,12 +980,52 @@ list_builtin_variables(void)
   free(entries);
 }
 
+static const char *
+squash(const char *s)
+{
+  static char buf[128]; /* Ought to be enough for anybody */
+  char *d = buf;
+  int in_space = 0;
+
+  while (*s && (d - buf) < (int)sizeof(buf) - 1)
+    {
+      if (*s == ' ' || *s == '\t')
+        {
+          if (!in_space)
+            {
+              *d++ = ' ';
+              in_space = 1;
+            }
+        }
+      else if (*s == '"' || *s == '\'');
+      else
+        {
+          *d++ = *s;
+          in_space = 0;
+        }
+
+      s++;
+    }
+
+  *d = '\0';
+
+  return buf;
+}
+
 static void
 print_herald(void)
 {
-(void)fprintf(stdout, "pc %d.%d.%d%s%d ready.\n",
-              PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
-              PC_VERSION_OSHIT > 0 ? "-" : "", PC_VERSION_OSHIT > 0 ? PC_VERSION_OSHIT : 0);
+  char oshitbuf[3]; /* "-N" + NULL */
+
+	if (PC_VERSION_OSHIT > 0)
+    snprintf(oshitbuf, sizeof oshitbuf, "-%d", PC_VERSION_OSHIT);
+  else
+    oshitbuf[0] = '\0';
+
+  (void)fprintf(stdout, "%s %d.%d.%d%s%s%s%s ready.\n",
+                PC_SOFTWARE_NAME, PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
+                oshitbuf, PC_SOFTWARE_DATE ? " (" : "",
+                PC_SOFTWARE_DATE ? squash(PC_SOFTWARE_DATE) : "", PC_SOFTWARE_DATE ? ")" : "");
 }
 
 int
@@ -1275,17 +1052,17 @@ parse_args(int argc, char *argv[])
   ULONG value;
 
   for (i = 1, len = 0; i < argc; i++)
-    {
-      len += strlen(argv[i]) + 1;
-    }
+    len += strlen(argv[i]) + 1;
 
   len++;
 
   buff = malloc((ULONG)len * sizeof ( char ));
+
   if (buff == NULL)
     return;
 
   buff[0] = '\0';
+
   for (i = 1; i < argc; i++)
     {
       (void)strncat(buff, argv[i], len - strlen(buff) - 1);
@@ -1342,25 +1119,17 @@ do_input(void)
         }
 
       if (buff[0] != '\0' && buff[strlen(buff) - 1] == '\n') //-V557
-        {
-          buff[strlen(buff) - 1] = '\0'; //-V557 /* Kill the newline character */
-        }
+        buff[strlen(buff) - 1] = '\0'; //-V557 /* Kill the newline character */
 
-      for (ptr = buff; isspace(*ptr) && *ptr; ptr++)
-        { /* Skip whitespace */
-        }
+      for (ptr = buff; isspace(*ptr) && *ptr; ptr++); /* Skip whitespace */
 
       if (*ptr == '\0') /* Hmmm, an empty line, just skip it */
-        {
-          continue;
-        }
+        continue;
 
       end = ptr + strlen(ptr) - 1;
 
       while (end > ptr && isspace((unsigned char)*end))
-        {
-          *end-- = '\0';
-        }
+        *end-- = '\0';
 
       if (strcmp(ptr, "vars") == 0)
         {
@@ -1377,9 +1146,7 @@ do_input(void)
       value = parse_expression(buff);
 
       if (!suppress_output)
-        {
-          print_result(value);
-        }
+        print_result(value);
     }
 }
 
@@ -1390,10 +1157,9 @@ parse_expression(char *str)
   char *ptr = str;
 
   ptr = skipwhite(ptr);
+
   if (*ptr == '\0')
-    {
-      return last_result;
-    }
+    return last_result;
 
   val = assignment_expr(&ptr);
   ptr = skipwhite(ptr);
@@ -1524,8 +1290,9 @@ do_assignment_operator(char **str, char *var_name)
     *str = skipwhite(*str + 2); /* Skip the assignment operator */
 
   val = assignment_expr(str); /* Go recursive! */
+  v = lookup_var(var_name);
   suppress_output = 0;
-  v   = lookup_var(var_name);
+
   if (v == NULL)
     {
       v = add_var(var_name, 0);
@@ -1555,17 +1322,11 @@ do_assignment_operator(char **str, char *var_name)
       v->value -= val;
     }
   else if (operator == AND)
-    {
-      v->value &= val;
-    }
+    v->value &= val;
   else if (operator == XOR)
-    {
-      v->value ^= val;
-    }
+    v->value ^= val;
   else if (operator == OR)
-    {
-      v->value |= val;
-    }
+    v->value |= val;
   else if (operator == SHIFT_L)
     {
       if (val >= sizeof(ULONG) * CHAR_BIT)
@@ -1605,9 +1366,7 @@ do_assignment_operator(char **str, char *var_name)
           v->value = 0;
         }
       else
-        {
-          v->value /= val;
-        }
+        v->value /= val;
     }
   else if (operator == MODULO)
     {
@@ -1618,9 +1377,7 @@ do_assignment_operator(char **str, char *var_name)
           v->value = 0;
         }
       else
-        {
-          v->value %= val;
-        }
+        v->value %= val;
     }
   else
     {
@@ -1682,9 +1439,9 @@ or_expr(char **str)
 
   while (**str == OR && *( *str + 1 ) != OR)
     {
-      *str  = skipwhite(*str + 1); /* Advance over the operator */
-      val   = xor_expr(str);
-      sum  |= val;
+      *str = skipwhite(*str + 1); /* Advance over the operator */
+      val  = xor_expr(str);
+      sum |= val;
     }
 
   return sum;
@@ -1701,9 +1458,9 @@ xor_expr(char **str)
 
   while (**str == XOR)
     {
-      *str  = skipwhite(*str + 1); /* Advance over the operator */
-      val   = and_expr(str);
-      sum  ^= val;
+      *str = skipwhite(*str + 1); /* Advance over the operator */
+      val  = and_expr(str);
+      sum ^= val;
     }
 
   return sum;
@@ -1720,9 +1477,9 @@ and_expr(char **str)
 
   while (**str == AND && *( *str + 1 ) != AND)
     {
-      *str  = skipwhite(*str + 1); /* Advance over the operator */
-      val   = equality_expr(str);
-      sum  &= val;
+      *str = skipwhite(*str + 1); /* Advance over the operator */
+      val  = equality_expr(str);
+      sum &= val;
     }
 
   return sum;
@@ -1767,7 +1524,7 @@ relational_expr(char **str)
   while (**str == LESS_THAN || **str == GREATER_THAN)
     {
       equal_to = 0;
-      op       = **str;
+      op = **str;
 
       if (*( *str + 1 ) == EQUAL)
         {
@@ -1855,6 +1612,7 @@ add_expression(char **str)
               errno = ERANGE;
               (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
             }
+
           sum += val;
         }
       else if (op == MINUS) //-V547
@@ -1864,6 +1622,7 @@ add_expression(char **str)
               errno = ERANGE;
               (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
             }
+
           sum -= val;
         }
     }
@@ -1952,14 +1711,14 @@ factor(char **str)
     {
       op = **str; /* Must be a unary op */
 
-      if (( op == NEGATIVE && *( *str + 1 ) == NEGATIVE ) || /* Look for ++/-- */
-          ( op == PLUS && *( *str + 1 ) == PLUS ))
+      if (( op == NEGATIVE && *( *str + 1 ) == NEGATIVE ) || /* Look for -- */
+          ( op == PLUS     && *( *str + 1 ) == PLUS ))       /* Look for ++ */
         {
-          *str         = *str + 1;
+          *str = *str + 1;
           have_special = 1;
         }
 
-      *str         = skipwhite(*str + 1);
+      *str = skipwhite(*str + 1);
       var_name_ptr = *str; /* Save where the varname should be */
     }
 
@@ -1973,6 +1732,7 @@ factor(char **str)
   if (have_special) /* We've got a ++ or -- */
     {
       var_name = get_var_name(&var_name_ptr);
+
       if (var_name == NULL)
         {
           (void)fprintf(stderr, "Can only use ++/-- on variables.\n");
@@ -1999,17 +1759,17 @@ factor(char **str)
     {
       switch (op)
         {
-        case NEGATIVE:
-          val *= -(unsigned long long)1LL;
-          break;
+          case NEGATIVE:
+            val *= -(unsigned long long)1LL;
+            break;
 
-        case BANG:
-          val = !val;
-          break;
+          case BANG:
+            val = !val;
+            break;
 
-        case TWIDDLE:
-          val = ~val;
-          break;
+          case TWIDDLE:
+            val = ~val;
+            break;
         }
     }
 
@@ -2049,8 +1809,7 @@ get_value(char **str)
 
       if (**str != SINGLE_QUOTE) /* Constant must have been too long */
         {
-          (void)fprintf(stderr,
-                        "Warning: character constant not terminated or too long (max len == %ld bytes)\n",
+          (void)fprintf(stderr, "Warning: character constant not terminated or too long (max len == %ld bytes)\n",
                         sizeof ( LONG ));
 
           while (**str && **str != SINGLE_QUOTE)
@@ -2062,7 +1821,7 @@ get_value(char **str)
   else if (isdigit(**str)) /* A regular number */
     {
       errno = 0;
-      val  = STRTOUL(*str, str, 0);
+      val   = xstrtoUL(*str, str, 0);
 
       if (errno)
         (void)fprintf(stderr, "Warning: %s\n", strerror(errno));
@@ -2231,7 +1990,7 @@ add_var(char *name, ULONG value)
         return NULL;
       }
 
-  v = (variable *)malloc(sizeof ( variable ));
+  v = malloc(sizeof ( variable ));
 
   if (v == NULL)
     {
@@ -2303,7 +2062,7 @@ get_var_name(char **str)
   if (isalpha(**str) == 0 && **str != '_')
     return NULL;
 
-  buff = (char *)malloc((ULONG)len * sizeof ( char ));
+  buff = malloc((ULONG)len * sizeof ( char ));
 
   if (buff == NULL)
     return NULL;
@@ -2319,7 +2078,7 @@ get_var_name(char **str)
       if (i >= len - 1)
         {
           len     *= 2;
-          tmpbuff  = (char *)realloc(buff, (ULONG)len);
+          tmpbuff  = realloc(buff, (ULONG)len);
 
           if (tmpbuff == NULL)
             return NULL;

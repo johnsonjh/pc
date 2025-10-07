@@ -1,3 +1,15 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 1993 Dominic Giampaolo <dbg@be.com>
+# Copyright (c) 1994 Joel Tesler <joel@engr.sgi.com>
+# Copyright (c) 2005 Axel Dörfler <axeld@pinc-software.de>
+# Copyright (c) 2005 Ingo Weinhold <ingo_weinhold@gmx.de>
+# Copyright (c) 2009 Oliver Tappe <zooey@hirschkaefer.de>
+# Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
+# Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
+# Copyright (c) 2022-2025 Jeffrey H. Johnson <trnsz@pobox.com>
+# Copyright (c) 2022-2025 The DPS8M Development Team
+# scspell-id: 805354da-a39e-11f0-8637-80ee73e9b8e7
+
 RM=rm -f
 CC=$$(command -v gcc 2>/dev/null || command -v clang 2>/dev/null || command -v c99 2>/dev/null || printf '%s\n' cc || :)
 

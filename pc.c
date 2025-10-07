@@ -698,8 +698,22 @@ print_result(ULONG value)
 static int
 builtin_vars(char *name, ULONG *val)
 {
+  static int isbe;
+  static int endianed = 0;
+
+  if (endianed == 0)
+    {
+      int tmp = 1;
+      isbe = (*((char *)&tmp) ? 0 : 1);
+      endianed = 1;
+    }
+
   /* NB: Keep in sync with builtin_var_names */
-  if (strcmp(name, "time") == 0)
+  if (strcmp(name, "ENDIAN_BIG") == 0)
+    *val = (ULONG)isbe;
+  else if (strcmp(name, "ENDIAN_LITTLE") == 0)
+    *val = (ULONG)!isbe;
+  else if (strcmp(name, "time") == 0)
     *val = (ULONG)time(NULL);
   else if (strcmp(name, "rand") == 0)
 #if defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811)
@@ -824,6 +838,8 @@ builtin_var_names [] =
   "CHAR_MIN",
   "CHILD_MAX",
   "dbg",
+  "ENDIAN_BIG",
+  "ENDIAN_LITTLE",
   "EOF",
   "errno",
 #if defined (_PC_FILESIZEBITS)

@@ -41,7 +41,7 @@ case "$(uname -s 2>/dev/null || :)" in
   NetBSD)
     {
       LINT="$(command -v /usr/bin/lint 2> /dev/null || printf '%s\n' true)"
-      test "${LINT:?}" !\ "true" && printf '%s\n' "NetBSD Lint..."
+      test "${LINT:?}" != "true" && printf '%s\n' "NetBSD Lint..."
       lint -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 | \
         grep -v '^lint: cannot find llib-lc.ln$' || :
     }; ;;

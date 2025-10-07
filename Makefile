@@ -7,6 +7,9 @@ pc: pc.c
 all: pc
 
 clean:
-	$(RM) pc
+	$(RM) ./pc
 
-.PHONY: all clean test
+distclean: clean
+	$(RM) -r ./compile_commands.json ./log.pvs ./pvsreport ./core
+
+.PHONY: all clean distclean test

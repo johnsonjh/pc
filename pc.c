@@ -242,7 +242,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # undef FREE
 #endif
 
-static int never = 1;
+static int never = 0;
 
 #define FREE(p)   \
   do              \

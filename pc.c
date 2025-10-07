@@ -923,8 +923,10 @@ list_builtin_variables(void)
                   free(entries);
                   return;
                 }
+
               entries = new_entries;
             }
+
           entries[count].name = builtin_var_names[i];
           entries[count].value = val;
           count++;
@@ -983,9 +985,7 @@ parse_args(int argc, char *argv[])
 
   buff = malloc((ULONG)len * sizeof ( char ));
   if (buff == NULL)
-    {
-      return;
-    }
+    return;
 
   buff[0] = '\0';
   for (i = 1; i < argc; i++)
@@ -995,16 +995,14 @@ parse_args(int argc, char *argv[])
     }
 
   ptr = buff;
+
   while (*ptr && isspace((unsigned char)*ptr))
-    {
-      ptr++;
-    }
+    ptr++;
 
   end = ptr + strlen(ptr) - 1;
+
   while (end > ptr && isspace((unsigned char)*end))
-    {
-      *end-- = '\0';
-    }
+    *end-- = '\0';
 
   if (strcmp(ptr, "vars") == 0)
     {
@@ -1025,9 +1023,7 @@ parse_args(int argc, char *argv[])
   value = parse_expression(buff);
 
   if (!suppress_output)
-    {
-      print_result(value);
-    }
+    print_result(value);
 
   free(buff);
   buff = NULL;
@@ -1062,6 +1058,7 @@ do_input(void)
         }
 
       end = ptr + strlen(ptr) - 1;
+
       while (end > ptr && isspace((unsigned char)*end))
         {
           *end-- = '\0';
@@ -1102,9 +1099,11 @@ parse_expression(char *str)
 
   val = assignment_expr(&ptr);
   ptr = skipwhite(ptr);
+
   while (*ptr == SEMI_COLON /* && *ptr != '\0' */)
     {
       ptr++;
+
       if (*ptr == '\0') /* Reached the end of the string, stop parsing */
         {
           suppress_output = 1;
@@ -1136,7 +1135,8 @@ assignment_expr(char **str)
       return logical_or_expr(str);
     }
 
-  *str     = skipwhite(*str);
+  *str = skipwhite(*str);
+
   if (**str == EQUAL && *( *str + 1 ) != EQUAL)
     {
       char *peek;
@@ -1152,9 +1152,8 @@ assignment_expr(char **str)
           existed = remove_var(var_name);
 
           if (existed && !unset_silent)
-            {
-              (void)printf("Variable '%s' unset\n", var_name);
-            }
+            (void)printf("Variable '%s' unset\n", var_name);
+
           val = 0;
           *str = peek;
           suppress_output = 1;
@@ -1167,33 +1166,24 @@ assignment_expr(char **str)
             {
               int existed = remove_var(var_name);
               if (existed && !unset_silent)
-                {
-                  (void)printf("Variable '%s' unset\n", var_name);
-                }
+                (void)printf("Variable '%s' unset\n", var_name);
             }
           else /* RHS was a normal expression */
             {
               suppress_output = 0;
 
               if (( v = lookup_var(var_name)) == NULL)
-                {
-                  (void)add_var(var_name, val);
-                }
+                (void)add_var(var_name, val);
               else
-                {
-                  v->value = val;
-                }
+                v->value = val;
             }
         }
     }
   else if ((( **str == PLUS || **str == MINUS || **str == OR || **str == TIMES
-              || **str == DIVISION || **str == MODULO || **str == AND
-              || **str == XOR )
-            && *( *str + 1 ) == EQUAL )
+           || **str == DIVISION || **str == MODULO || **str == AND
+           || **str == XOR ) && *( *str + 1 ) == EQUAL )
            || strncmp(*str, "<<=", 3) == 0 || strncmp(*str, ">>=", 3) == 0)
-    {
-      val = do_assignment_operator(str, var_name);
-    }
+    val = do_assignment_operator(str, var_name);
   else
     {
       *str = orig_str;
@@ -1208,9 +1198,7 @@ assignment_expr(char **str)
         }
 
       if (**str == EQUAL)
-        {
-          (void)fprintf(stderr, "Left hand side of expression is not assignable.\n");
-        }
+        (void)fprintf(stderr, "Left hand side of expression is not assignable.\n");
     }
 
   if (var_name)
@@ -1232,13 +1220,9 @@ do_assignment_operator(char **str, char *var_name)
   operator = **str;
 
   if (operator == SHIFT_L || operator == SHIFT_R)
-    {
-      *str = skipwhite(*str + 3);
-    }
+    *str = skipwhite(*str + 3);
   else
-    {
-      *str = skipwhite(*str + 2); /* Skip the assignment operator */
-    }
+    *str = skipwhite(*str + 2); /* Skip the assignment operator */
 
   val = assignment_expr(str); /* Go recursive! */
   suppress_output = 0;
@@ -1246,10 +1230,9 @@ do_assignment_operator(char **str, char *var_name)
   if (v == NULL)
     {
       v = add_var(var_name, 0);
+
       if (v == NULL)
-        {
-          return 0;
-        }
+        return 0;
     }
 
   if (operator == PLUS)
@@ -1259,6 +1242,7 @@ do_assignment_operator(char **str, char *var_name)
           errno = ERANGE;
           (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
         }
+
       v->value += val;
     }
   else if (operator == MINUS)
@@ -1268,6 +1252,7 @@ do_assignment_operator(char **str, char *var_name)
           errno = ERANGE;
           (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
         }
+
       v->value -= val;
     }
   else if (operator == AND)
@@ -1289,6 +1274,7 @@ do_assignment_operator(char **str, char *var_name)
           errno = EINVAL;
           (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
         }
+
       v->value <<= val;
     }
   else if (operator == SHIFT_R)
@@ -1298,6 +1284,7 @@ do_assignment_operator(char **str, char *var_name)
           errno = EINVAL;
           (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
         }
+
       v->value >>= val;
     }
   else if (operator == TIMES)
@@ -1307,6 +1294,7 @@ do_assignment_operator(char **str, char *var_name)
           errno = ERANGE;
           (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
         }
+
       v->value *= val;
     }
   else if (operator == DIVISION)
@@ -1452,20 +1440,16 @@ equality_expr(char **str)
   *str = skipwhite(*str);
 
   while (( **str == EQUAL && *( *str + 1 ) == EQUAL )
-         || ( **str == BANG && *( *str + 1 ) == EQUAL ))
+      || ( **str == BANG  && *( *str + 1 ) == EQUAL ))
     {
       op   = **str;
       *str = skipwhite(*str + 2); /* Advance over the operator */
       val  = relational_expr(str);
 
       if (op == EQUAL)
-        {
-          sum = ( sum == val );
-        }
+        sum = ( sum == val );
       else if (op == BANG) //-V547
-        {
-          sum = ( sum != val );
-        }
+        sum = ( sum != val );
     }
 
   return sum;
@@ -1506,21 +1490,13 @@ relational_expr(char **str)
        */
 
       if (op == LESS_THAN && equal_to == 0)
-        {
-          sum = ((LONG)sum < (LONG)val );
-        }
+        sum = ((LONG)sum < (LONG)val );
       else if (op == LESS_THAN && equal_to == 1)
-        {
-          sum = ((LONG)sum <= (LONG)val );
-        }
+        sum = ((LONG)sum <= (LONG)val );
       else if (op == GREATER_THAN && equal_to == 0)
-        {
-          sum = ((LONG)sum > (LONG)val );
-        }
+        sum = ((LONG)sum > (LONG)val );
       else if (op == GREATER_THAN && equal_to == 1)
-        {
-          sum = ((LONG)sum >= (LONG)val );
-        }
+        sum = ((LONG)sum >= (LONG)val );
     }
 
   return sum;
@@ -1549,13 +1525,9 @@ shift_expr(char **str)
         }
 
       if (op == SHIFT_L)
-        {
-          sum <<= val;
-        }
+        sum <<= val;
       else if (op == SHIFT_R)
-        {
-          sum >>= val;
-        }
+        sum >>= val;
     }
 
   return sum;
@@ -1622,6 +1594,7 @@ term(char **str)
               errno = ERANGE;
               (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
             }
+
           sum *= val;
         }
       else if (op == DIVISION)
@@ -1633,9 +1606,7 @@ term(char **str)
               sum = 0;
             }
           else
-            {
-              sum /= val;
-            }
+            sum /= val;
         }
       else if (op == MODULO) //-V547
         {
@@ -1646,9 +1617,7 @@ term(char **str)
               sum = 0;
             }
           else
-            {
-              sum %= val;
-            }
+            sum %= val;
         }
     }
 
@@ -1665,7 +1634,7 @@ term(char **str)
       && **str != SEMI_COLON && strncmp(*str, "<<", 2) != 0
       && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0') //-V526
     {
-      (void)fprintf(stderr, "Parsing stopped: unknown operator %s\n", *str);
+      (void)fprintf(stderr, "Parsing stopped: unknown operator '%s'\n", *str);
       return sum;
     }
 
@@ -1714,23 +1683,18 @@ factor(char **str)
       if (( v = lookup_var(var_name)) == NULL)
         {
           v = add_var(var_name, 0);
+
           if (v == NULL)
-            {
-              return val;
-            }
+            return val;
         }
 
       free(var_name);
       var_name = NULL;
 
       if (op == PLUS)
-        {
-          val = ++v->value;
-        }
+        val = ++v->value;
       else
-        {
-          val = --v->value;
-        }
+        val = --v->value;
     }
   else /* Normal unary operator */
     {
@@ -1772,6 +1736,7 @@ get_value(char **str)
           if (**str == '\\') /* Escape the next char */
             {
               *str += 1;
+
               if (!**str)
                 {
                   (void)fprintf(stderr, "Invalid escape sequence.\n");
@@ -1785,29 +1750,24 @@ get_value(char **str)
 
       if (**str != SINGLE_QUOTE) /* Constant must have been too long */
         {
-          (void)fprintf(
-            stderr,
-            "Warning: character constant not terminated or too "
-            "long (max len == %ld bytes)\n",
-            sizeof ( LONG ));
+          (void)fprintf(stderr,
+                        "Warning: character constant not terminated or too long (max len == %ld bytes)\n",
+                        sizeof ( LONG ));
+
           while (**str && **str != SINGLE_QUOTE)
-            {
-              *str += 1;
-            }
+            *str += 1;
         }
       else if (**str != '\0') //-V547
-        {
-          *str += 1;
-        }
+        *str += 1;
     }
   else if (isdigit(**str)) /* A regular number */
     {
       errno = 0;
       val  = STRTOUL(*str, str, 0);
+
       if (errno)
-        {
-          (void)fprintf(stderr, "Warning: %s\n", strerror(errno));
-        }
+        (void)fprintf(stderr, "Warning: %s\n", strerror(errno));
+
       *str = skipwhite(*str);
     }
   else if (**str == USE_LAST_RESULT) /* A `.' meaning use the last result */
@@ -1821,13 +1781,9 @@ get_value(char **str)
       val  = assignment_expr(str); /* Start at top and come back down */
 
       if (**str == RPAREN)
-        {
-          *str = *str + 1;
-        }
+        *str = *str + 1;
       else
-        {
-          (void)fprintf(stderr, "Mismatched paren's\n");
-        }
+        (void)fprintf(stderr, "Mismatched paren's\n");
     }
   else if (isalpha(**str) || **str == '_') /* A variable name */
     {
@@ -1839,17 +1795,14 @@ get_value(char **str)
 
       if (get_var(var_name, &val) == 0)
         {
-          (void)fprintf(
-            stderr,
-            "No such variable: %s (assigning value of zero)\n",
-            var_name);
+          (void)fprintf(stderr, "No such variable: %s (assigning value of zero)\n",
+                        var_name);
 
           val = 0;
           v   = add_var(var_name, val);
+
           if (v == NULL)
-            {
-              return 0;
-            }
+            return 0;
         }
 
       *str = skipwhite(*str);
@@ -1858,21 +1811,16 @@ get_value(char **str)
           if (( v = lookup_var(var_name)) != NULL)
             {
               val = v->value;
+
               if (**str == '+')
-                {
-                  v->value++;
-                }
+                v->value++;
               else
-                {
-                  v->value--;
-                }
+                v->value--;
 
               *str = *str + 2;
             }
           else
-            {
-              (void)fprintf(stderr, "%s is a read-only variable\n", var_name);
-            }
+            (void)fprintf(stderr, "%s is a read-only variable\n", var_name);
         }
 
       free(var_name);
@@ -1880,9 +1828,7 @@ get_value(char **str)
     }
   else
     {
-      (void)fprintf(
-        stderr,
-        "Expecting left paren, unary op, constant or variable.");
+      (void)fprintf(stderr, "Expecting left paren, unary op, constant or variable.");
       (void)fprintf(stderr, "  Got: `%s'\n", *str);
       return 0;
     }
@@ -1965,12 +1911,8 @@ lookup_var(char *name)
   variable *v;
 
   for (v = vars; v; v = v->next)
-    {
-      if (v->name && strcmp(v->name, name) == 0)
-        {
-          return v;
-        }
-    }
+    if (v->name && strcmp(v->name, name) == 0)
+      return v;
 
   return NULL;
 }
@@ -1984,18 +1926,14 @@ add_var(char *name, ULONG value)
   /* First make sure this isn't an external read-only variable */
 
   if (external_var_lookup)
-    {
-      if (external_var_lookup(name, &tmp) != 0)
-        {
-          (void)fprintf(
-            stderr,
-            "Can't assign/create %s, it is a read-only var\n",
-            name);
-          return NULL;
-        }
-    }
+    if (external_var_lookup(name, &tmp) != 0)
+      {
+        (void)fprintf(stderr, "Can't assign/create %s, it is a read-only var\n", name);
+        return NULL;
+      }
 
   v = (variable *)malloc(sizeof ( variable ));
+
   if (v == NULL)
     {
       (void)fprintf(stderr, "No memory to add variable: %s\n", name);
@@ -2016,21 +1954,18 @@ add_var(char *name, ULONG value)
  * interfaces to the variable manipulation routines.
  */
 
-#if defined(EXTERNAL)
+#if defined (EXTERNAL)
 static void
 set_var(char *name, ULONG val)
 {
   variable *v;
 
   v = lookup_var(name);
+
   if (v != NULL)
-    {
-      v->value = val;
-    }
+    v->value = val;
   else
-    {
-      (void)add_var(name, val);
-    }
+    (void)add_var(name, val);
 }
 #endif
 
@@ -2053,9 +1988,7 @@ get_var(char *name, ULONG *val)
       return 1;
     }
   else if (external_var_lookup != NULL)
-    {
-      return external_var_lookup(name, val);
-    }
+    return external_var_lookup(name, val);
 
   return 0;
 }
@@ -2069,31 +2002,28 @@ get_var_name(char **str)
   char *buff, *tmpbuff;
 
   if (isalpha(**str) == 0 && **str != '_')
-    {
-      return NULL;
-    }
+    return NULL;
 
   buff = (char *)malloc((ULONG)len * sizeof ( char ));
+
   if (buff == NULL)
-    {
-      return NULL;
-    }
+    return NULL;
 
   /*
    * First get the variable name
    */
 
   i = 0;
+
   while (**str && ( isalnum(**str) || **str == '_' ))
     {
       if (i >= len - 1)
         {
           len     *= 2;
           tmpbuff  = (char *)realloc(buff, (ULONG)len);
+
           if (tmpbuff == NULL)
-            {
-              return NULL;
-            }
+            return NULL;
 
           buff = tmpbuff;
         }
@@ -2105,9 +2035,7 @@ get_var_name(char **str)
   buff[i] = '\0'; /* NULL terminate */
 
   while (isalnum(**str) || **str == '_') /* Skip over any remaining junk */
-    {
-      *str = *str + 1;
-    }
+    *str = *str + 1;
 
   return buff;
 }
@@ -2116,14 +2044,10 @@ static char *
 skipwhite(char *str)
 {
   if (str == NULL)
-    {
-      return NULL;
-    }
+    return NULL;
 
   while (*str && ( *str == ' ' || *str == '\t' || *str == '\n' || *str == '\f' ))
-    {
-      str++;
-    }
+    str++;
 
   return str;
 }

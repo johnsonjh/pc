@@ -2049,7 +2049,7 @@ get_value(char **str)
       else if (**str != '\0') //-V547
         *str += 1;
     }
-  else if (isdigit(**str)) /* A regular number */
+  else if (isdigit((unsigned char)**str)) /* A regular number */
     {
       errno = 0;
       val   = xstrtoUL(*str, str, 0);

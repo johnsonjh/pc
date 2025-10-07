@@ -10,6 +10,6 @@ clean:
 	$(RM) ./pc
 
 distclean: clean
-	$(RM) -r ./compile_commands.json ./log.pvs ./pvsreport ./core
+	$(RM) -r ./a.out ./compile_commands.json ./core ./log.pvs ./pvsreport
 
 .PHONY: all clean distclean test

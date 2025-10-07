@@ -645,7 +645,7 @@ print_result(ULONG value)
     }
   else
     {
-	    (void)snprintf(dec_buf, sizeof(dec_buf), "%20llu", value);
+      (void)snprintf(dec_buf, sizeof(dec_buf), "%20llu", value);
       (void)snprintf(hex_buf, sizeof(hex_buf), "0x%.16llx", value);
     }
 
@@ -655,7 +655,7 @@ print_result(ULONG value)
         (void)snprintf(sign_buf, sizeof(sign_buf), "sign: %20ld", (signed long)value);
       else
         (void)snprintf(sign_buf, sizeof(sign_buf), "sign: %20lld", (signed LONG)value);
-		}
+    }
 
   for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
     {
@@ -703,7 +703,7 @@ builtin_vars(char *name, ULONG *val)
     *val = (ULONG)time(NULL);
   else if (strcmp(name, "rand") == 0)
 #if defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811)
-		*val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
+    *val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
 #else
     *val = (ULONG)rand();
 #endif
@@ -787,6 +787,8 @@ builtin_vars(char *name, ULONG *val)
     *val = (ULONG)UINT_MAX;
   else if (strcmp(name, "ULONG_MAX") == 0)
     *val = (ULONG)ULONG_MAX;
+  else if (strcmp(name, "RAND_MAX") == 0)
+    *val = (ULONG)RAND_MAX;
   else if (strcmp(name, "EOF") == 0)
     *val = (ULONG)EOF;
   else if (strcmp(name, "STDIN_FILENO") == 0)
@@ -850,6 +852,7 @@ builtin_var_names [] =
   "PATH_MAX",
   "pid",
   "rand",
+  "RAND_MAX",
   "SCHAR_MAX",
   "SCHAR_MIN",
   "SHRT_MAX",
@@ -1055,11 +1058,11 @@ list_vars(varquery_type type)
             count++;
           }
     }
-	else
-	  {
-		  (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
-			abort();
-	  }
+  else
+    {
+      (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
+      abort();
+    }
 
   qsort(entries, count, sizeof(var_entry), compare_var_entries);
 
@@ -1076,11 +1079,11 @@ list_vars(varquery_type type)
     }
   else if (type == BUILTIN_VARS)
     (void)printf("The following builtin variables are defined:\n");
-	else
-	  {
-		  (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
-			abort();
-	  }
+  else
+    {
+      (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
+      abort();
+    }
 
   for (i = 0; i < count; i++)
     {
@@ -1146,8 +1149,8 @@ print_herald(void)
 {
   char oshitbuf[6]; /* "-N" + NULL */
 
-	/*LINTED: E_CONSTANT_CONDITION*/
-	if (PC_VERSION_OSHIT > 0)
+  /*LINTED: E_CONSTANT_CONDITION*/
+  if (PC_VERSION_OSHIT > 0)
     (void)snprintf(oshitbuf, sizeof(oshitbuf), "-%d", PC_VERSION_OSHIT);
   else
     oshitbuf[0] = '\0';
@@ -2105,4 +2108,4 @@ get_value(char **str)
   return val;
 }
 
-/* vim: set ts=2:sw=2:tw=0:ai:expandtab */
+/* vim: set ts=2 sw=2 tw=0 ai expandtab : */

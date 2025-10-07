@@ -202,6 +202,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #include <time.h>   /* time ...                                        */
 #include <unistd.h> /* getpid, getuid, getgid ...                      */
 
+/* cppcheck-suppress preprocessorErrorDirective */
 #if HAS_INCLUDE (<sys/param.h>)
 # include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
 #endif
@@ -642,7 +643,7 @@ print_result(ULONG value)
       shift = (ULONG)i * (LONG)CHAR_BIT;
       ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
 
-      if (isprint((int)ch))
+      if (isprint((unsigned char)ch))
         {
           has_printable_char = 1;
           break;
@@ -665,8 +666,8 @@ print_result(ULONG value)
           shift = (ULONG)i * (LONG)CHAR_BIT;
           ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
 
-          if (isprint((int)ch))
-            (void)printf("%c", (char)( ch ));
+          if (isprint((unsigned char)ch))
+            (void)printf("%c", (char)(ch));
           else
             (void)printf(".");
         }
@@ -858,6 +859,12 @@ typedef struct
   ULONG value;
 } var_entry;
 
+typedef enum
+{
+  USER_VARS,
+  BUILTIN_VARS
+} varquery_type;
+
 static int
 compare_var_entries(const void *a, const void *b)
 {
@@ -867,69 +874,31 @@ compare_var_entries(const void *a, const void *b)
   return strcmp(var_a->name, var_b->name);
 }
 
-static void
-list_user_variables(void)
+static var_entry *
+resize_var_entries(var_entry *entries, int count, int *capacity)
 {
-  variable *v;
-  int i;
-  int count = 0;
-  int capacity = 32;
-
-  var_entry *entries = malloc(capacity * sizeof(var_entry));
-
-  if (entries == NULL)
+  if (count >= *capacity)
     {
-      (void)fprintf(stderr, "ERROR: memory allocation failed\n");
-      return;
+      *capacity *= 2;
+      var_entry *new_entries = realloc(entries, *capacity * sizeof(var_entry));
+
+      if (new_entries == NULL)
+        {
+          (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
+          free(entries);
+          return NULL;
+        }
+
+      return new_entries;
     }
 
-  for (v = vars; v; v = v->next)
-    if (v->name)
-      {
-        if (count >= capacity)
-          {
-            capacity *= 2;
-            var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
-
-            if (new_entries == NULL)
-              {
-                (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
-                free(entries);
-                return;
-              }
-
-            entries = new_entries;
-          }
-
-        entries[count].name = v->name;
-        entries[count].value = v->value;
-
-        count++;
-      }
-
-  qsort(entries, count, sizeof(var_entry), compare_var_entries);
-
-  if (count == 0)
-    {
-      (void)printf("No user variables defined.\n");
-      free(entries);
-      return;
-    }
-
-  (void)printf("User variables:\n");
-
-  for (i = 0; i < count; i++)
-    {
-      (void)printf("  %-16s = ", entries[i].name);
-      print_result(entries[i].value);
-    }
-
-  free(entries);
+  return entries;
 }
 
 static void
-list_builtin_variables(void)
+list_vars(varquery_type type)
 {
+  variable *v;
   ULONG val;
   int i;
   int count = 0;
@@ -943,33 +912,64 @@ list_builtin_variables(void)
       return;
     }
 
-  for (i = 0; builtin_var_names[i] != NULL; i++)
-    if (get_var((char *)builtin_var_names[i], &val))
-      {
-        if (count >= capacity)
+  if (type == USER_VARS)
+    {
+      for (v = vars; v; v = v->next)
+        if (v->name)
           {
-            capacity *= 2;
-            var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
+            entries = resize_var_entries(entries, count, &capacity);
 
-            if (new_entries == NULL)
-              {
-                (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
-                free(entries);
-                return;
-              }
+            if (entries == NULL)
+              return;
 
-            entries = new_entries;
+            entries[count].name = v->name;
+            entries[count].value = v->value;
+
+            count++;
           }
+    }
+  else if (type == BUILTIN_VARS)
+    {
+      for (i = 0; builtin_var_names[i] != NULL; i++)
+        if (get_var((char *)builtin_var_names[i], &val))
+          {
+            entries = resize_var_entries(entries, count, &capacity);
 
-        entries[count].name = builtin_var_names[i];
-        entries[count].value = val;
+            if (entries == NULL)
+              return;
 
-        count++;
-      }
+            entries[count].name = builtin_var_names[i];
+            entries[count].value = val;
+
+            count++;
+          }
+    }
+	else
+	  {
+		  (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
+			abort();
+	  }
 
   qsort(entries, count, sizeof(var_entry), compare_var_entries);
 
-  (void)printf("The following builtin variables are defined:\n");
+  if (type == USER_VARS)
+    {
+      if (count == 0)
+        {
+          (void)printf("No user variables defined.\n");
+          free(entries);
+          return;
+        }
+
+      (void)printf("User variables:\n");
+    }
+  else if (type == BUILTIN_VARS)
+    (void)printf("The following builtin variables are defined:\n");
+	else
+	  {
+		  (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
+			abort();
+	  }
 
   for (i = 0; i < count; i++)
     {
@@ -978,6 +978,18 @@ list_builtin_variables(void)
     }
 
   free(entries);
+}
+
+static void
+list_user_vars(void)
+{
+  list_vars(USER_VARS);
+}
+
+static void
+list_builtin_vars(void)
+{
+  list_vars(BUILTIN_VARS);
 }
 
 static const char *
@@ -1054,11 +1066,11 @@ main(int argc, char *argv[])
 static void
 parse_args(int argc, char *argv[])
 {
-  int i, len;
+  size_t i, len;
   char *buff, *ptr, *end;
   ULONG value;
 
-  for (i = 1, len = 0; i < argc; i++)
+  for (i = 1, len = 0; i < (size_t)argc; i++)
     len += strlen(argv[i]) + 1;
 
   len++;
@@ -1070,7 +1082,7 @@ parse_args(int argc, char *argv[])
 
   buff[0] = '\0';
 
-  for (i = 1; i < argc; i++)
+  for (i = 1; i < (size_t)argc; i++)
     {
       (void)strncat(buff, argv[i], len - strlen(buff) - 1);
       (void)strncat(buff, " ", len - strlen(buff) - 1);
@@ -1088,7 +1100,7 @@ parse_args(int argc, char *argv[])
 
   if (strcmp(ptr, "vars") == 0)
     {
-      list_user_variables();
+      list_user_vars();
       free(buff);
       buff = NULL;
       return;
@@ -1096,7 +1108,7 @@ parse_args(int argc, char *argv[])
 
   if (strcmp(ptr, "help") == 0)
     {
-      list_builtin_variables();
+      list_builtin_vars();
       free(buff);
       buff = NULL;
       return;
@@ -1140,13 +1152,13 @@ do_input(void)
 
       if (strcmp(ptr, "vars") == 0)
         {
-          list_user_variables();
+          list_user_vars();
           continue;
         }
 
       if (strcmp(ptr, "help") == 0)
         {
-          list_builtin_variables();
+          list_builtin_vars();
           continue;
         }
 

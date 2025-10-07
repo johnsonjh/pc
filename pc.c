@@ -1,5 +1,5 @@
 #/* \
-PID=$$;p=$0;cc=$(command -v c99 2>/dev/null||command -v gcc 2>/dev/null||command -v clang 2>/dev/null||printf '%s\n' cc); if "$cc" -o "$p.out.$PID" "$p";then case "${p:?}" in *"/"*) dir=${0%"/"*} ;; *) dir=. ;; esac;PATH="$dir:$PATH";"$p.out.$PID" "$@";rm -f "$p.out.$PID";exit 0;else printf '%s\n' 'ERROR: Compilation failed' >&2;exit 1;fi
+PID=$$;p=$0;rlwrap=$(command -v rlwrap 2>/dev/null||printf '%s\n' env);cc=$(command -v c99 2>/dev/null||command -v gcc 2>/dev/null||command -v clang 2>/dev/null||printf '%s\n' cc); if "$cc" -o "$p.out.$PID" "$p";then case "${p:?}" in *"/"*) dir=${0%"/"*} ;; *) dir=. ;; esac;PATH="$dir:$PATH";"${rlwrap}" "$p.out.$PID" "$@";rm -f "$p.out.$PID";exit 0;else printf '%s\n' 'ERROR: Compilation failed' >&2;exit 1;fi
 #*/
 
 /*

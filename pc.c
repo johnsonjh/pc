@@ -244,7 +244,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # undef FREE
 #endif
 
-static int never = 0;
+static const int never = 0;
 
 #define FREE(p)   \
   do              \
@@ -630,7 +630,7 @@ print_result(ULONG value)
   char sign_buf[40] = "";
 
 #if defined (USE_LONG_LONG)
-  if (value <= 0xffffffffUL && (signed LONG)value >= 0)
+  if (value <= 0xffffffffUL && (signed LONG)value >= 0) //-V560
     use_short_format = 1;
   else if ((signed LONG)value >= -0x80000000L && (signed LONG)value <= 0x7fffffffL)
     use_short_format = 1;
@@ -1093,7 +1093,7 @@ list_vars(varquery_type type)
 
       (void)printf("User variables:\n");
     }
-  else if (type == BUILTIN_VARS)
+  else if (type == BUILTIN_VARS) //-V547
     (void)printf("The following builtin variables are defined:\n");
   else
     {
@@ -1316,13 +1316,13 @@ parse_expression(char *str)
 
   ptr = skipwhite(ptr);
 
-  if (*ptr == '\0')
+  if (ptr != NULL && (*ptr == '\0'))
     return last_result;
 
   val = assignment_expr(&ptr);
   ptr = skipwhite(ptr);
 
-  while (*ptr == SEMI_COLON /* && *ptr != '\0' */)
+  while (ptr != NULL && (*ptr == SEMI_COLON))
     {
       ptr++;
 
@@ -1434,14 +1434,14 @@ assignment_expr(char **str)
 
   *str = skipwhite(*str);
 
-  if (**str == EQUAL && *( *str + 1 ) != EQUAL)
+  if (*str != NULL && (**str == EQUAL && *( *str + 1 ) != EQUAL))
     {
       char *peek;
 
       *str = skipwhite(*str + 1); /* Skip the equal sign */
       peek = skipwhite(*str);
 
-      if (*peek == '\0' || *peek == SEMI_COLON)
+      if (peek != NULL && (*peek == '\0' || *peek == SEMI_COLON))
         {
           int existed;
 
@@ -1477,10 +1477,11 @@ assignment_expr(char **str)
             }
         }
     }
-  else if ((( **str == PLUS || **str == MINUS || **str == OR || **str == TIMES
-           || **str == DIVISION || **str == MODULO || **str == AND
+  else if (*str != NULL && ((( **str == PLUS || **str == MINUS
+           || **str == OR || **str == TIMES || **str == DIVISION
+           || **str == MODULO || **str == AND
            || **str == XOR ) && *( *str + 1 ) == EQUAL )
-           || strncmp(*str, "<<=", 3) == 0 || strncmp(*str, ">>=", 3) == 0)
+           || strncmp(*str, "<<=", 3) == 0 || strncmp(*str, ">>=", 3) == 0))
     val = do_assignment_operator(str, var_name);
   else
     {
@@ -1631,7 +1632,7 @@ logical_or_expr(char **str)
   sum  = logical_and_expr(str);
   *str = skipwhite(*str);
 
-  while (**str == OR && *( *str + 1 ) == OR)
+  while (*str != NULL && (**str == OR && *( *str + 1 ) == OR))
     {
       *str = skipwhite(*str + 2); /* Advance over the operator */
       val  = logical_and_expr(str);
@@ -1650,7 +1651,7 @@ logical_and_expr(char **str)
   sum  = or_expr(str);
   *str = skipwhite(*str);
 
-  while (**str == AND && *( *str + 1 ) == AND)
+  while (*str != NULL && (**str == AND && *( *str + 1 ) == AND))
     {
       *str = skipwhite(*str + 2); /* Advance over the operator */
       val  = or_expr(str);
@@ -1669,7 +1670,7 @@ or_expr(char **str)
   sum  = xor_expr(str);
   *str = skipwhite(*str);
 
-  while (**str == OR && *( *str + 1 ) != OR)
+  while (*str != NULL && (**str == OR && *( *str + 1 ) != OR))
     {
       *str = skipwhite(*str + 1); /* Advance over the operator */
       val  = xor_expr(str);
@@ -1688,7 +1689,7 @@ xor_expr(char **str)
   sum  = and_expr(str);
   *str = skipwhite(*str);
 
-  while (**str == XOR)
+  while (*str != NULL && (**str == XOR))
     {
       *str = skipwhite(*str + 1); /* Advance over the operator */
       val  = and_expr(str);
@@ -1707,7 +1708,7 @@ and_expr(char **str)
   sum  = equality_expr(str);
   *str = skipwhite(*str);
 
-  while (**str == AND && *( *str + 1 ) != AND)
+  while (*str != NULL && (**str == AND && *( *str + 1 ) != AND))
     {
       *str = skipwhite(*str + 1); /* Advance over the operator */
       val  = equality_expr(str);
@@ -1727,8 +1728,9 @@ equality_expr(char **str)
   sum  = relational_expr(str);
   *str = skipwhite(*str);
 
-  while (( **str == EQUAL && *( *str + 1 ) == EQUAL )
-      || ( **str == BANG  && *( *str + 1 ) == EQUAL ))
+  while (*str != NULL && (
+         ( **str == EQUAL && *( *str + 1 ) == EQUAL ) ||
+         ( **str == BANG  && *( *str + 1 ) == EQUAL )))
     {
       op   = **str;
       *str = skipwhite(*str + 2); /* Advance over the operator */
@@ -1753,7 +1755,7 @@ relational_expr(char **str)
   sum  = shift_expr(str);
   *str = skipwhite(*str);
 
-  while (**str == LESS_THAN || **str == GREATER_THAN)
+  while (*str != NULL && (**str == LESS_THAN || **str == GREATER_THAN))
     {
       equal_to = 0;
       op = **str;
@@ -1831,7 +1833,7 @@ add_expression(char **str)
   sum  = term(str);
   *str = skipwhite(*str);
 
-  while (**str == PLUS || **str == MINUS)
+  while (*str != NULL && (**str == PLUS || **str == MINUS))
     {
       op   = **str;
       *str = skipwhite(*str + 1); /* Advance over the operator */
@@ -1871,7 +1873,7 @@ term(char **str)
   sum  = factor(str);
   *str = skipwhite(*str);
 
-  while (**str == TIMES || **str == DIVISION || **str == MODULO)
+  while (*str != NULL && (**str == TIMES || **str == DIVISION || **str == MODULO))
     {
       op   = **str;
       *str = skipwhite(*str + 1);
@@ -1917,12 +1919,13 @@ term(char **str)
    * an error and we print a message.
    */
 
-  if (**str != TIMES && **str != DIVISION && **str != MODULO && **str != PLUS //-V560
+  if (*str != NULL && (**str != TIMES && **str != DIVISION
+      && **str != MODULO && **str != PLUS //-V560
       && **str != MINUS && **str != OR && **str != AND && **str != XOR
       && **str != BANG && **str != NEGATIVE && **str != TWIDDLE //-V560
       && **str != RPAREN && **str != LESS_THAN && **str != GREATER_THAN
       && **str != SEMI_COLON && strncmp(*str, "<<", 2) != 0
-      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0') //-V526
+      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0')) //-V526
     {
       (void)fprintf(stderr, "Parsing stopped: unknown operator '%s'\n", *str);
       return sum;

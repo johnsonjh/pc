@@ -13,11 +13,19 @@
 # Copyright (c) 2022-2025 The DPS8M Development Team
 # scspell-id: a91f10f2-a39e-11f0-a871-80ee73e9b8e7
 
-# shellcheck disable=SC3040
-(set -o pipefail) > /dev/null 2>&1 && set -o pipefail > /dev/null 2>&1
+# shellcheck disable=SC2015,SC3040
+(set -o pipefail || :) > /dev/null 2>&1 && set -o pipefail > /dev/null 2>&1 || :
 
 set -eu
 
+# Cleanup
+"${MAKE:-make}" distclean > /dev/null 2>&1
+
+# REUSE
+REUSE="$(command -v reuse 2> /dev/null || printf '%s\n' true)"
+
+test "${REUSE:?}" != "true" && printf '%s\n' "REUSE..."
+"${REUSE:?}" lint -q || "${REUSE:?}" lint
 # SoftIntegration Ch C/C++ Interpreter
 CH="$(command -v ch 2> /dev/null || printf '%s\n' true)"
 test "${CH:?}" != "true" \
@@ -44,16 +52,40 @@ test "${ORSTLINT:?}" != "true" && printf '%s\n' "Oracle Lint..."
   -erroff=E_SEC_STRNCPY_WARN,E_SEC_RAND_WARN pc.c
 
 # NetBSD Lint
-case "$(uname -s 2>/dev/null || :)" in
-  NetBSD)
-    {
-      LINT="$(command -v /usr/bin/lint 2> /dev/null || printf '%s\n' true)"
-      test "${LINT:?}" != "true" && printf '%s\n' "NetBSD Lint..."
-      lint -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 | \
-        grep -Ev '(^lint: cannot find llib-lc\.ln$|^pc\.c:$)' || :
-    }; ;;
-  *) : ;;
+case "$(uname -s 2> /dev/null || :)" in
+NetBSD)
+  {
+    LINT="$(command -v /usr/bin/lint 2> /dev/null || printf '%s\n' true)"
+    test "${LINT:?}" != "true" && printf '%s\n' "NetBSD Lint..."
+    lint -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 \
+      | grep -Ev '(^lint: cannot find llib-lc\.ln$|^pc\.c:$)' || :
+  }
+  ;;
+*) : ;;
 esac
+
+# PVS-Studio
+command -v bear > /dev/null 2>&1 && {
+  PVSSTUDIO="$(command -v pvs-studio-analyzer || printf '%s\n' true)"
+  test "${PVSSTUDIO:?}" != "true" && {
+    printf '%s\n' "PVS-Studio..."
+    "${MAKE:-make}" clean > /dev/null 2>&1
+    rm -rf ./compile_commands.json ./log.pvs ./pvsreport
+    bear -- "${MAKE:-make}"
+    pvs-studio-analyzer analyze --intermodular \
+      -j "$(nproc || printf '%s\n' '1' || true)" -o log.pvs
+    plog-converter -a "GA:1,2,3" -t fullhtml log.pvs -o pvsreport
+    "${MAKE:-make}" clean > /dev/null 2>&1
+  }
+}
+
+# Clang Analyzer
+SCANBUILD="$(command -v scan-build 2> /dev/null || printf '%s\n' true)"
+test "${SCANBUILD:?}" != "true" && {
+  printf '%s\n' "Clang Analyzer..."
+  "${SCANBUILD:?}" --status-bugs -maxloop 8 "${MAKE:-make}"
+  "${MAKE:-make}" clean > /dev/null 2>&1
+}
 
 # Cppcheck
 CPPCHECK="$(command -v cppcheck 2> /dev/null || printf '%s\n' true)"
@@ -63,13 +95,3 @@ test "${CPPCHECK:?}" != "true" && printf '%s\n' "Cppcheck..."
   -D_NETBSD_SOURCE -D_OPENBSD_SOURCE -D_POSIX_C_SOURCE=200809L \
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
   -D__EXTENSIONS__ --quiet pc.c
-
-# Clang Analyzer
-SCANBUILD="$(command -v scan-build 2> /dev/null || printf '%s\n' true)"
-test "${SCANBUILD:?}" != "true" && printf '%s\n' "Clang Analyzer..."
-"${SCANBUILD:?}" --status-bugs -maxloop 8 make
-
-# REUSE
-REUSE="$(command -v reuse 2> /dev/null || printf '%s\n' true)"
-test "${REUSE:?}" != "true" && printf '%s\n' "REUSE..."
-"${REUSE:?}" lint -q || "${REUSE:?}" lint

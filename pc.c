@@ -121,7 +121,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 2025
 #define PC_VERSION_MINOR 10
 #define PC_VERSION_PATCH 7
-#define PC_VERSION_OSHIT 1
+#define PC_VERSION_OSHIT 2
 
 #if !defined (USE_XSTRTOULL)
 # define USE_XSTRTOULL
@@ -557,32 +557,38 @@ print_result(ULONG value)
 {
   int i;
   ULONG ch, shift;
+  int use_short_format = 0;
+  int has_printable_char = 0;
+  char dec_buf[30];
+  char hex_buf[30];
+  char sign_buf[40] = "";
 
-  if ((signed LONG)value < 0)
+#if defined (USE_LONG_LONG)
+  if (value <= 0xffffffffUL && (signed LONG)value >= 0)
+    use_short_format = 1;
+  else if ((signed LONG)value >= -0x80000000L && (signed LONG)value <= 0x7fffffffL)
+    use_short_format = 1;
+#else
+  use_short_format = 1;
+#endif
+
+  if (use_short_format)
     {
-      if ((signed LONG)value < (signed LONG)( LONG_MIN )) //-V547
-        {
-          (void)printf(STR1, value, value, value);
-        }
-      else
-        {
-          (void)printf(STR4, (unsigned long)value, (long)value, (long)value);
-        }
-    }
-  else if ((ULONG)value <= (ULONG)ULONG_MAX) //-V547
-    {
-      (void)printf(STR5, (unsigned long)value, (long)value);
+      (void)sprintf(dec_buf, "%20lu", (unsigned long)value);
+      (void)sprintf(hex_buf, "0x%.8lx", (unsigned long)value);
     }
   else
     {
-      (void)printf(STR2, value, value);
+      (void)sprintf(dec_buf, "%20llu", value);
+      (void)sprintf(hex_buf, "0x%.16llx", value);
     }
 
-  /*
-   * Print any printable character (and print dots for unprintable chars)
-   */
+  if ((signed LONG)value < 0)
+    if (use_short_format)
+      (void)sprintf(sign_buf, "sign: %20ld", (signed long)value);
+    else
+      (void)sprintf(sign_buf, "sign: %20lld", (signed LONG)value);
 
-  (void)printf(STR3);
   for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
     {
       shift = (ULONG)i * (LONG)CHAR_BIT;
@@ -590,11 +596,31 @@ print_result(ULONG value)
 
       if (isprint((int)ch))
         {
-          (void)printf("%c", (char)( ch ));
+          has_printable_char = 1;
+          break;
         }
-      else
+    }
+
+  if (has_printable_char)
+    (void)printf("%s  %-18s", dec_buf, hex_buf);
+  else
+    (void)printf("%s  %s", dec_buf, hex_buf);
+
+  if (sign_buf[0])
+    (void)printf("  %s", sign_buf);
+
+  if (has_printable_char)
+    {
+      (void)printf("  char: ");
+      for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
         {
-          (void)printf(".");
+          shift = (ULONG)i * (LONG)CHAR_BIT;
+          ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
+
+          if (isprint((int)ch))
+            (void)printf("%c", (char)( ch ));
+          else
+            (void)printf(".");
         }
     }
 
@@ -1165,12 +1191,13 @@ assignment_expr(char **str)
           if (suppress_output) /* RHS was an unset chain */
             {
               int existed = remove_var(var_name);
+
               if (existed && !unset_silent)
                 (void)printf("Variable '%s' unset\n", var_name);
             }
           else /* RHS was a normal expression */
             {
-              suppress_output = 0;
+              suppress_output = 0; //-V1048
 
               if (( v = lookup_var(var_name)) == NULL)
                 (void)add_var(var_name, val);
@@ -1201,7 +1228,7 @@ assignment_expr(char **str)
         (void)fprintf(stderr, "Left hand side of expression is not assignable.\n");
     }
 
-  if (var_name)
+  if (var_name) //-V547
     {
       free(var_name);
       var_name = NULL;

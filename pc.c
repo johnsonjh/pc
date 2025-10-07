@@ -921,8 +921,9 @@ resize_var_entries(var_entry *entries, int count, int *capacity)
 {
   if (count >= *capacity)
     {
+      var_entry *new_entries;
       *capacity *= 2;
-      var_entry *new_entries = realloc(entries, *capacity * sizeof(var_entry));
+      new_entries = realloc(entries, (size_t)*capacity * sizeof(var_entry));
 
       if (new_entries == NULL)
         {
@@ -1034,7 +1035,7 @@ list_vars(varquery_type type)
   int count = 0;
   int capacity = 32;
 
-  var_entry *entries = malloc(capacity * sizeof(var_entry));
+  var_entry *entries = malloc((size_t)capacity * sizeof(var_entry));
 
   if (entries == NULL)
     {
@@ -1080,7 +1081,7 @@ list_vars(varquery_type type)
       abort();
     }
 
-  qsort(entries, count, sizeof(var_entry), compare_var_entries);
+  qsort(entries, (size_t)count, sizeof(var_entry), compare_var_entries);
 
   if (type == USER_VARS)
     {

@@ -155,5 +155,8 @@ test "${CPPCHECK:?}" != "true" && {
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
   -D__EXTENSIONS__ --quiet pc.c
 
+# Clang -Weverything - manual run because it's ridiculous
+# clang -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+
 # Final xline
 xline

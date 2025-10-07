@@ -885,7 +885,7 @@ resize_var_entries(var_entry *entries, int count, int *capacity)
       if (new_entries == NULL)
         {
           (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
-          free(entries);
+          FREE(entries);
           return NULL;
         }
 
@@ -957,7 +957,7 @@ list_vars(varquery_type type)
       if (count == 0)
         {
           (void)printf("No user variables defined.\n");
-          free(entries);
+          FREE(entries);
           return;
         }
 
@@ -977,7 +977,7 @@ list_vars(varquery_type type)
       print_result(entries[i].value);
     }
 
-  free(entries);
+  FREE(entries);
 }
 
 static void
@@ -1101,16 +1101,14 @@ parse_args(int argc, char *argv[])
   if (strcmp(ptr, "vars") == 0)
     {
       list_user_vars();
-      free(buff);
-      buff = NULL;
+      FREE(buff);
       return;
     }
 
   if (strcmp(ptr, "help") == 0)
     {
       list_builtin_vars();
-      free(buff);
-      buff = NULL;
+      FREE(buff);
       return;
     }
 
@@ -1119,8 +1117,7 @@ parse_args(int argc, char *argv[])
   if (!suppress_output)
     print_result(value);
 
-  free(buff);
-  buff = NULL;
+  FREE(buff);
 }
 
 static void
@@ -1287,8 +1284,7 @@ assignment_expr(char **str)
 
   if (var_name) //-V547
     {
-      free(var_name);
-      var_name = NULL;
+      FREE(var_name);
     }
 
   return val;
@@ -1766,8 +1762,7 @@ factor(char **str)
             return val;
         }
 
-      free(var_name);
-      var_name = NULL;
+      FREE(var_name);
 
       if (op == PLUS)
         val = ++v->value;
@@ -1900,8 +1895,7 @@ get_value(char **str)
             (void)fprintf(stderr, "%s is a read-only variable\n", var_name);
         }
 
-      free(var_name);
-      var_name = NULL;
+      FREE(var_name);
     }
   else
     {
@@ -1973,8 +1967,8 @@ remove_var(char *name)
         else
           vars = v->next;
 
-        free(v->name);
-        free(v);
+        FREE(v->name);
+        FREE(v);
 
         return 1;
       }
@@ -2100,7 +2094,10 @@ get_var_name(char **str)
           tmpbuff  = realloc(buff, (ULONG)len);
 
           if (tmpbuff == NULL)
-            return NULL;
+            {
+              FREE(buff);
+              return NULL;
+            }
 
           buff = tmpbuff;
         }

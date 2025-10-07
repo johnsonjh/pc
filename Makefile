@@ -11,5 +11,6 @@ clean:
 
 distclean: clean
 	$(RM) -r ./a.out ./compile_commands.json ./core ./log.pvs ./pvsreport
+	$(RM) -r ./pc.c.out.*
 
 .PHONY: all clean distclean test

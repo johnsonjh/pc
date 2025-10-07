@@ -1165,6 +1165,11 @@ print_herald(void)
 {
   char oshitbuf[6]; /* "-N" + NULL */
 
+#if defined(__clang_version__)
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
+
   /*LINTED: E_CONSTANT_CONDITION*/
   if (PC_VERSION_OSHIT > 0) /*NOTREACHED*/ /* unreachable */
     (void)snprintf(oshitbuf, sizeof(oshitbuf), "-%d", PC_VERSION_OSHIT);
@@ -1173,8 +1178,14 @@ print_herald(void)
 
   (void)fprintf(stdout, "%s %d.%d.%d%s%s%s%s ready.\n",
                 PC_SOFTWARE_NAME, PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
-                oshitbuf, PC_SOFTWARE_DATE ? " (" : "",
-                PC_SOFTWARE_DATE ? squash(PC_SOFTWARE_DATE) : "", PC_SOFTWARE_DATE ? ")" : "");
+                oshitbuf, (void *)PC_SOFTWARE_DATE ? " (" : "",
+                (void *)PC_SOFTWARE_DATE ? squash(PC_SOFTWARE_DATE) : "",
+                (void *)PC_SOFTWARE_DATE ? ")" : "");
+
+
+#if defined(__clang_version__)
+# pragma clang diagnostic pop
+#endif
 }
 
 static void
@@ -1187,7 +1198,7 @@ do_input(void)
     {
       if (strlen(buff) >= 255)
         {
-          (void)fprintf(stderr, "FATAL: Oversize input!\n");
+          (void)fprintf(stderr, "FATAL: Oversize input, exiting!\n");
           exit(1);
         }
 
@@ -1492,7 +1503,7 @@ assignment_expr(char **str)
       if (*str == NULL)
         {
           (void)fprintf(stderr, "FATAL: Bugcheck: str == NULL %s[%s:%d]\n",
-                  __FILE__, __func__, __LINE__);
+                        __FILE__, __func__, __LINE__);
           abort();
         }
 
@@ -1990,22 +2001,23 @@ factor(char **str)
         val = --v->value;
     }
   else /* Normal unary operator */
-    {
-      switch (op)
-        {
-          case NEGATIVE:
-            val *= -(unsigned long long)1LL;
-            break;
+    switch (op)
+      {
+        case NEGATIVE:
+          val *= -(unsigned long long)1LL;
+          break;
 
-          case BANG:
-            val = !val;
-            break;
+        case BANG:
+          val = !val;
+          break;
 
-          case TWIDDLE:
-            val = ~val;
-            break;
-        }
-    }
+        case TWIDDLE:
+          val = ~val;
+          break;
+
+        default:
+          break;
+      }
 
   return val;
 }
@@ -2044,7 +2056,7 @@ get_value(char **str)
       if (**str != SINGLE_QUOTE) /* Constant must have been too long */
         {
           (void)fprintf(stderr, "Warning: character constant not terminated or too long (max len == %ld bytes)\n",
-                        sizeof ( LONG ));
+                        (long)sizeof ( LONG ));
 
           while (**str && **str != SINGLE_QUOTE)
             *str += 1;

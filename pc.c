@@ -119,9 +119,11 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$({ command -
  *      dbg@be.com (though this was written while I was at sgi)
  */
 
-#define USE_XSTRTOULL
+#if !defined (USE_XSTRTOULL)
+# define USE_XSTRTOULL
+#endif
 
-#if defined(__MVS__)
+#if defined (__MVS__) || defined (_AIX)
 # undef _ALL_SOURCE
 # define _ALL_SOURCE
 #endif
@@ -166,13 +168,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$({ command -
 #include <time.h>    /* for time ...                                        */
 #include <unistd.h>  /* for getpid, getuid, getgid ...                      */
 
-#if defined(_CH_)
-# if !defined(USE_XSTRTOULL)
-#  define USE_XSTRTOULL
-# endif
-#endif
-
-#if defined(__MVS__) && !defined(__clang_version__)
+#if defined (__MVS__) && !defined (__clang_version__)
 # undef inline
 # define inline //-V1059
 #endif
@@ -203,13 +199,15 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$({ command -
 
 /*
  * You should #define USE_LONG_LONG if your compiler supports the long long
- * data type, has strtoull(), and a %lld conversion specifier for printf.
- * Otherwise just comment out the #define and pc will use plain longs.
+ * data type and the %lld conversion specifier for printf.  Otherwise, just
+ * comment out the #define below and pc will use plain longs.
  */
 
-#define USE_LONG_LONG
+#if !defined (USE_LONG_LONG)
+# define USE_LONG_LONG
+#endif
 
-#if defined(USE_XSTRTOULL)
+#if defined (USE_XSTRTOULL)
 static unsigned long long
 xstrtoull (const char *nptr, char **endptr, int base)
 {
@@ -448,10 +446,10 @@ xstrtoull (const char *nptr, char **endptr, int base)
 }
 #endif
 
-#ifdef USE_LONG_LONG
+#if defined (USE_LONG_LONG)
 # define LONG    long long
 # define ULONG   unsigned long long
-# if defined(USE_XSTRTOULL)
+# if defined (USE_XSTRTOULL)
 #  define STRTOUL xstrtoull
 # else
 #  define STRTOUL strtoull
@@ -461,7 +459,7 @@ xstrtoull (const char *nptr, char **endptr, int base)
 # define STR3    " char: "
 # define STR4    "%20lu  0x%-16.8lx signed: %20ld"
 # define STR5    "%20lu  0x%-16.8lx"
-#else  /* ifdef USE_LONG_LONG */
+#else
 # define LONG    long
 # define ULONG   unsigned long
 # define STRTOUL strtoul
@@ -470,7 +468,7 @@ xstrtoull (const char *nptr, char **endptr, int base)
 # define STR3    " char: "
 # define STR4    STR1
 # define STR5    STR2
-#endif /* ifdef USE_LONG_LONG */
+#endif
 
 static ULONG do_assignment_operator(char **str, char *var_name);
 static ULONG parse_expression(char *str);    /* Top-level interface to parser */
@@ -489,9 +487,9 @@ static ULONG factor(char **str);             /* Negation, Logical NOT ~, ! */
 static ULONG get_value(char **str);
 
 static int get_var(char *name, ULONG *val);  /* External interfaces to vars */
-#ifdef EXTERNAL
+#if defined (EXTERNAL)
 static void set_var(char *name, ULONG val);
-#endif /* ifdef EXTERNAL */
+#endif
 
 static void do_input(void);         /* Reads stdin and calls parser */
 static char *skipwhite(char *str);  /* Skip over input white space */
@@ -1704,7 +1702,7 @@ add_var(char *name, ULONG value)
  * interfaces to the variable manipulation routines.
  */
 
-#ifdef EXTERNAL
+#if defined(EXTERNAL)
 static void
 set_var(char *name, ULONG val)
 {
@@ -1720,7 +1718,7 @@ set_var(char *name, ULONG val)
       (void)add_var(name, val);
     }
 }
-#endif /* ifdef EXTERNAL */
+#endif
 
 /*
  * This function returns 1 on success of finding

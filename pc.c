@@ -4,7 +4,6 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 /*
  * pc: programmer's calculator (version 2025-10-07)
- * vim: set ts=2:sw=2:tw=0:ai:expandtab
  * SPDX-License-Identifier: MIT
  * scspell-id: db65bb93-4b7b-11ed-bd13-80ee73e9b8e7
  */
@@ -119,6 +118,11 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  *      dbg@be.com (though this was written while I was at sgi)
  */
 
+#define PC_VERSION_MAJOR 2025
+#define PC_VERSION_MINOR 10
+#define PC_VERSION_PATCH 7
+#define PC_VERSION_OSHIT 1
+
 #if !defined (USE_XSTRTOULL)
 # define USE_XSTRTOULL
 #endif
@@ -158,15 +162,15 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # define __EXTENSIONS__
 #endif
 
-#include <ctype.h>   /* for isalnum, isalpha, isdigit, isprint, isspace ... */
-#include <errno.h>   /* for errno ...                                       */
-#include <limits.h>  /* for LONG_MIN, ULONG_MAX ...                         */
-#include <stdio.h>   /* for fprintf, NULL, printf, stderr, fgets, stdin ... */
-#include <stdlib.h>  /* for free, malloc, exit, abort, rand, realloc,       */
-                     /*     strtoull ...                                    */
-#include <string.h>  /* for strncmp, strlen, strcmp, strdup, strncat ...    */
-#include <time.h>    /* for time ...                                        */
-#include <unistd.h>  /* for getpid, getuid, getgid ...                      */
+#include <ctype.h>  /* for isalnum, isalpha, isdigit, isprint, isspace ... */
+#include <errno.h>  /* for errno ...                                       */
+#include <limits.h> /* for LONG_MIN, ULONG_MAX ...                         */
+#include <stdio.h>  /* for fprintf, NULL, printf, stderr, fgets, stdin ... */
+#include <stdlib.h> /* for free, malloc, exit, abort, rand, realloc,       */
+                    /*     strtoull ...                                    */
+#include <string.h> /* for strncmp, strlen, strcmp, strdup, strncat ...    */
+#include <time.h>   /* for time ...                                        */
+#include <unistd.h> /* for getpid, getuid, getgid ...                      */
 
 #if defined (__MVS__) && !defined (__clang_version__)
 # undef inline
@@ -471,35 +475,34 @@ xstrtoull (const char *nptr, char **endptr, int base)
 #endif
 
 static ULONG do_assignment_operator(char **str, char *var_name);
-static ULONG parse_expression(char *str);    /* Top-level interface to parser */
-static ULONG assignment_expr(char **str);    /* Assignments =, +=, *=, etc */
-static ULONG logical_or_expr(char **str);    /* Logical OR  `||' */
-static ULONG logical_and_expr(char **str);   /* Logical AND  `&&' */
-static ULONG or_expr(char **str);            /* OR  `|' */
-static ULONG xor_expr(char **str);           /* XOR `^' */
-static ULONG and_expr(char **str);           /* AND `&' */
-static ULONG equality_expr(char **str);      /* Equality ==, != */
-static ULONG relational_expr(char **str);    /* Relational <, >, <=, >= */
-static ULONG shift_expr(char **str);         /* Shifts <<, >> */
-static ULONG add_expression(char **str);     /* Addition/Subtraction +, - */
-static ULONG term(char **str);               /* Multiplication/Division *,%,/ */
-static ULONG factor(char **str);             /* Negation, Logical NOT ~, ! */
+static ULONG parse_expression(char *str);  /* Top-level interface to parser */
+static ULONG assignment_expr(char **str);  /* Assignments =, +=, *=, etc */
+static ULONG logical_or_expr(char **str);  /* Logical OR  `||' */
+static ULONG logical_and_expr(char **str); /* Logical AND  `&&' */
+static ULONG or_expr(char **str);          /* OR  `|' */
+static ULONG xor_expr(char **str);         /* XOR `^' */
+static ULONG and_expr(char **str);         /* AND `&' */
+static ULONG equality_expr(char **str);    /* Equality ==, != */
+static ULONG relational_expr(char **str);  /* Relational <, >, <=, >= */
+static ULONG shift_expr(char **str);       /* Shifts <<, >> */
+static ULONG add_expression(char **str);   /* Addition/Subtraction +, - */
+static ULONG term(char **str);             /* Multiplication/Division *,%,/ */
+static ULONG factor(char **str);           /* Negation, Logical NOT ~, ! */
 static ULONG get_value(char **str);
 
-static int get_var(char *name, ULONG *val);  /* External interfaces to vars */
+static int get_var(char *name, ULONG *val); /* External interfaces to vars */
 #if defined (EXTERNAL)
 static void set_var(char *name, ULONG val);
 #endif
 
-static void do_input(void);         /* Reads stdin and calls parser */
-static char *skipwhite(char *str);  /* Skip over input white space */
+static void do_input(void);        /* Reads stdin and calls parser */
+static char *skipwhite(char *str); /* Skip over input white space */
 
 /*
  * Variables are kept in a simple singly-linked list. Not high
  * performance, but it's also an extremely small implementation.
- *
- * New variables get added to the head of the list.  Variables are
- * never deleted, though it wouldn't be hard to do that.
+ * New variables get added to the head of the list.  Variables
+ * can be unset/removed by assigning no value (e.g. `var=`).
  */
 
 typedef struct variable
@@ -516,6 +519,7 @@ static variable *vars = &dummy;
 
 static variable *lookup_var(char *name);
 static variable *add_var(char *name, ULONG value);
+static int remove_var(char *name);
 
 static char *get_var_name(char **input_str);
 static void parse_args(int argc, char *argv[]);
@@ -534,10 +538,73 @@ static int(
  */
 
 static ULONG last_result = 0;
+static int suppress_output = 0;
+static int unset_silent = 0;
+
+/*
+ * This function prints the result of the expression.
+ * It tries to be smart about printing numbers so it
+ * only uses the necessary number of digits.  If you
+ * have long long (i.e. 64 bit numbers) it's very
+ * annoying to have lots of leading zeros when they
+ * aren't necessary.  By doing the somewhat bizarre
+ * casting and comparisons we can determine if a value
+ * will fit in a 32 bit quantity and only print that.
+ */
+
+static void
+print_result(ULONG value)
+{
+  int i;
+  ULONG ch, shift;
+
+  if ((signed LONG)value < 0)
+    {
+      if ((signed LONG)value < (signed LONG)( LONG_MIN )) //-V547
+        {
+          (void)printf(STR1, value, value, value);
+        }
+      else
+        {
+          (void)printf(STR4, (unsigned long)value, (long)value, (long)value);
+        }
+    }
+  else if ((ULONG)value <= (ULONG)ULONG_MAX) //-V547
+    {
+      (void)printf(STR5, (unsigned long)value, (long)value);
+    }
+  else
+    {
+      (void)printf(STR2, value, value);
+    }
+
+  /*
+   * Print any printable character (and print dots for unprintable chars)
+   */
+
+  (void)printf(STR3);
+  for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
+    {
+      shift = (ULONG)i * (LONG)CHAR_BIT;
+      ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
+
+      if (isprint((int)ch))
+        {
+          (void)printf("%c", (char)( ch ));
+        }
+      else
+        {
+          (void)printf(".");
+        }
+    }
+
+  (void)printf("\n");
+}
 
 static int
-special_vars(char *name, ULONG *val)
+builtin_vars(char *name, ULONG *val)
 {
+  /* NB: Keep in sync with builtin_var_names */
   if (strcmp(name, "time") == 0)
     {
       *val = (ULONG)time(NULL);
@@ -706,88 +773,205 @@ special_vars(char *name, ULONG *val)
   return 1;
 }
 
+static const char *
+builtin_var_names [] =
+{
+  "ARG_MAX",
+  "CHAR_BIT",
+  "CHAR_MAX",
+  "CHAR_MIN",
+  "CHILD_MAX",
+  "dbg",
+  "EOF",
+  "errno",
+  "gid",
+  "INT_MAX",
+  "INT_MIN",
+  "LLONG_MAX",
+  "LLONG_MIN",
+  "LONG_MAX",
+  "LONG_MIN",
+  "NAME_MAX",
+  "OPEN_MAX",
+  "PATH_MAX",
+  "pid",
+  "rand",
+  "SCHAR_MAX",
+  "SCHAR_MIN",
+  "SHRT_MAX",
+  "SHRT_MIN",
+  "sizeof_char",
+  "sizeof_int",
+  "sizeof_ll",
+  "sizeof_long",
+  "sizeof_short",
+  "sizeof_void",
+  "STDERR_FILENO",
+  "STDIN_FILENO",
+  "STDOUT_FILENO",
+  "time",
+  "UCHAR_MAX",
+  "uid",
+  "UINT_MAX",
+  "ULLONG_MAX",
+  "ULONG_MAX",
+  "USHRT_MAX",
+  NULL
+};
+
+typedef struct
+{
+  const char *name;
+  ULONG value;
+} var_entry;
+
+static int
+compare_var_entries(const void *a, const void *b)
+{
+  const var_entry *var_a = (const var_entry *)a;
+  const var_entry *var_b = (const var_entry *)b;
+
+  return strcmp(var_a->name, var_b->name);
+}
+
+static void
+list_user_variables(void)
+{
+  variable *v;
+  int i;
+  int count = 0;
+  int capacity = 32;
+
+  var_entry *entries = malloc(capacity * sizeof(var_entry));
+
+  if (entries == NULL)
+    {
+      (void)fprintf(stderr, "ERROR: memory allocation failed\n");
+      return;
+    }
+
+  for (v = vars; v; v = v->next)
+    {
+      if (v->name)
+        {
+          if (count >= capacity)
+            {
+              capacity *= 2;
+              var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
+
+              if (new_entries == NULL)
+                {
+                  (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
+                  free(entries);
+                  return;
+                }
+              entries = new_entries;
+            }
+          entries[count].name = v->name;
+          entries[count].value = v->value;
+          count++;
+        }
+    }
+
+  qsort(entries, count, sizeof(var_entry), compare_var_entries);
+
+  if (count == 0)
+    {
+      (void)printf("No user variables defined.\n");
+      free(entries);
+      return;
+    }
+
+  (void)printf("User variables:\n");
+  for (i = 0; i < count; i++)
+    {
+      (void)printf("  %-16s = ", entries[i].name);
+      print_result(entries[i].value);
+    }
+
+  free(entries);
+}
+
+static void
+list_builtin_variables(void)
+{
+  ULONG val;
+  int i;
+  int count = 0;
+  int capacity = 32;
+
+  var_entry *entries = malloc(capacity * sizeof(var_entry));
+
+  if (entries == NULL)
+    {
+      (void)fprintf(stderr, "ERROR: memory allocation failed\n");
+      return;
+    }
+
+  for (i = 0; builtin_var_names[i] != NULL; i++)
+    {
+      if (get_var((char *)builtin_var_names[i], &val))
+        {
+          if (count >= capacity)
+            {
+              capacity *= 2;
+              var_entry *new_entries = realloc(entries, capacity * sizeof(var_entry));
+
+              if (new_entries == NULL)
+                {
+                  (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
+                  free(entries);
+                  return;
+                }
+              entries = new_entries;
+            }
+          entries[count].name = builtin_var_names[i];
+          entries[count].value = val;
+          count++;
+        }
+    }
+
+  qsort(entries, count, sizeof(var_entry), compare_var_entries);
+
+  (void)printf("The following builtin variables are defined:\n");
+  for (i = 0; i < count; i++)
+    {
+      (void)printf("  %-16s = ", entries[i].name);
+      print_result(entries[i].value);
+    }
+
+  free(entries);
+}
+
+static void
+print_herald(void)
+{
+(void)fprintf(stdout, "pc %d.%d.%d%s%d ready.\n",
+              PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
+              PC_VERSION_OSHIT > 0 ? "-" : "", PC_VERSION_OSHIT > 0 ? PC_VERSION_OSHIT : 0);
+}
+
 int
 main(int argc, char *argv[])
 {
-  (void)set_var_lookup_hook(special_vars);
+  (void)set_var_lookup_hook(builtin_vars);
 
   if (argc > 1)
-    {
-      parse_args(argc, argv);
-    }
+    parse_args(argc, argv);
   else
     {
+      print_herald();
       do_input();
     }
 
   return 0;
 }
 
-/*
- * This function prints the result of the expression.
- * It tries to be smart about printing numbers so it
- * only uses the necessary number of digits.  If you
- * have long long (i.e. 64 bit numbers) it's very
- * annoying to have lots of leading zeros when they
- * aren't necessary.  By doing the somewhat bizarre
- * casting and comparisons we can determine if a value
- * will fit in a 32 bit quantity and only print that.
- */
-
-static void
-print_result(ULONG value)
-{
-  int i;
-  ULONG ch, shift;
-
-  if ((signed LONG)value < 0)
-    {
-      if ((signed LONG)value < (signed LONG)( LONG_MIN )) //-V547
-        {
-          (void)printf(STR1, value, value, value);
-        }
-      else
-        {
-          (void)printf(STR4, (unsigned long)value, (long)value, (long)value);
-        }
-    }
-  else if ((ULONG)value <= (ULONG)ULONG_MAX) //-V547
-    {
-      (void)printf(STR5, (unsigned long)value, (long)value);
-    }
-  else
-    {
-      (void)printf(STR2, value, value);
-    }
-
-  /*
-   * Print any printable character (and print dots for unprintable chars)
-   */
-
-  (void)printf(STR3);
-  for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
-    {
-      shift = (ULONG)i * (long long)CHAR_BIT;
-      ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
-
-      if (isprint((int)ch))
-        {
-          (void)printf("%c", (char)( ch ));
-        }
-      else
-        {
-          (void)printf(".");
-        }
-    }
-
-  (void)printf("\n");
-}
-
 static void
 parse_args(int argc, char *argv[])
 {
   int i, len;
-  char *buff;
+  char *buff, *ptr, *end;
   ULONG value;
 
   for (i = 1, len = 0; i < argc; i++)
@@ -809,9 +993,41 @@ parse_args(int argc, char *argv[])
       (void)strncat(buff, argv[i], len - strlen(buff) - 1);
       (void)strncat(buff, " ", len - strlen(buff) - 1);
     }
+
+  ptr = buff;
+  while (*ptr && isspace((unsigned char)*ptr))
+    {
+      ptr++;
+    }
+
+  end = ptr + strlen(ptr) - 1;
+  while (end > ptr && isspace((unsigned char)*end))
+    {
+      *end-- = '\0';
+    }
+
+  if (strcmp(ptr, "vars") == 0)
+    {
+      list_user_variables();
+      free(buff);
+      buff = NULL;
+      return;
+    }
+
+  if (strcmp(ptr, "help") == 0)
+    {
+      list_builtin_variables();
+      free(buff);
+      buff = NULL;
+      return;
+    }
+
   value = parse_expression(buff);
 
-  print_result(value);
+  if (!suppress_output)
+    {
+      print_result(value);
+    }
 
   free(buff);
   buff = NULL;
@@ -821,7 +1037,7 @@ static void
 do_input(void)
 {
   ULONG value;
-  char buff[256], *ptr;
+  char buff[256], *ptr, *end;
 
   while (fgets(buff, 256, stdin) != NULL)
     {
@@ -845,9 +1061,30 @@ do_input(void)
           continue;
         }
 
+      end = ptr + strlen(ptr) - 1;
+      while (end > ptr && isspace((unsigned char)*end))
+        {
+          *end-- = '\0';
+        }
+
+      if (strcmp(ptr, "vars") == 0)
+        {
+          list_user_variables();
+          continue;
+        }
+
+      if (strcmp(ptr, "help") == 0)
+        {
+          list_builtin_variables();
+          continue;
+        }
+
       value = parse_expression(buff);
 
-      print_result(value);
+      if (!suppress_output)
+        {
+          print_result(value);
+        }
     }
 }
 
@@ -870,7 +1107,8 @@ parse_expression(char *str)
       ptr++;
       if (*ptr == '\0') /* Reached the end of the string, stop parsing */
         {
-          continue;
+          suppress_output = 1;
+          break;
         }
 
       val = assignment_expr(&ptr);
@@ -891,19 +1129,61 @@ assignment_expr(char **str)
   *str     = skipwhite(*str);
   orig_str = *str;
   var_name = get_var_name(str);
+
+  if (var_name == NULL)
+    {
+      *str = orig_str;
+      return logical_or_expr(str);
+    }
+
   *str     = skipwhite(*str);
   if (**str == EQUAL && *( *str + 1 ) != EQUAL)
     {
-      *str = skipwhite(*str + 1);  /* Skip the equal sign */
-      val  = assignment_expr(str); /* Go recursive! */
+      char *peek;
 
-      if (( v = lookup_var(var_name)) == NULL)
+      *str = skipwhite(*str + 1); /* Skip the equal sign */
+      peek = skipwhite(*str);
+
+      if (*peek == '\0' || *peek == SEMI_COLON)
         {
-          (void)add_var(var_name, val);
+          int existed;
+
+          unset_silent = (*peek == SEMI_COLON);
+          existed = remove_var(var_name);
+
+          if (existed && !unset_silent)
+            {
+              (void)printf("Variable '%s' unset\n", var_name);
+            }
+          val = 0;
+          *str = peek;
+          suppress_output = 1;
         }
       else
         {
-          v->value = val;
+          val  = assignment_expr(str); /* Go recursive! */
+
+          if (suppress_output) /* RHS was an unset chain */
+            {
+              int existed = remove_var(var_name);
+              if (existed && !unset_silent)
+                {
+                  (void)printf("Variable '%s' unset\n", var_name);
+                }
+            }
+          else /* RHS was a normal expression */
+            {
+              suppress_output = 0;
+
+              if (( v = lookup_var(var_name)) == NULL)
+                {
+                  (void)add_var(var_name, val);
+                }
+              else
+                {
+                  v->value = val;
+                }
+            }
         }
     }
   else if ((( **str == PLUS || **str == MINUS || **str == OR || **str == TIMES
@@ -917,7 +1197,7 @@ assignment_expr(char **str)
   else
     {
       *str = orig_str;
-      val  = logical_or_expr(str); /* No equal sign, just get var value */
+      val  = logical_or_expr(str); /* No equal sign, get var value */
       *str = skipwhite(*str);
 
       if (*str == NULL)
@@ -929,9 +1209,7 @@ assignment_expr(char **str)
 
       if (**str == EQUAL)
         {
-          (void)fprintf(
-            stderr,
-            "Left hand side of expression is not assignable.\n");
+          (void)fprintf(stderr, "Left hand side of expression is not assignable.\n");
         }
     }
 
@@ -962,7 +1240,8 @@ do_assignment_operator(char **str, char *var_name)
       *str = skipwhite(*str + 2); /* Skip the assignment operator */
     }
 
-  val = assignment_expr(str);  /* Go recursive! */
+  val = assignment_expr(str); /* Go recursive! */
+  suppress_output = 0;
   v   = lookup_var(var_name);
   if (v == NULL)
     {
@@ -1070,9 +1349,12 @@ logical_or_expr(char **str)
 {
   ULONG val, sum = 0;
 
+  suppress_output = 0;
+
   *str = skipwhite(*str);
   sum  = logical_and_expr(str);
   *str = skipwhite(*str);
+
   while (**str == OR && *( *str + 1 ) == OR)
     {
       *str = skipwhite(*str + 2); /* Advance over the operator */
@@ -1091,6 +1373,7 @@ logical_and_expr(char **str)
   *str = skipwhite(*str);
   sum  = or_expr(str);
   *str = skipwhite(*str);
+
   while (**str == AND && *( *str + 1 ) == AND)
     {
       *str = skipwhite(*str + 2); /* Advance over the operator */
@@ -1109,6 +1392,7 @@ or_expr(char **str)
   *str = skipwhite(*str);
   sum  = xor_expr(str);
   *str = skipwhite(*str);
+
   while (**str == OR && *( *str + 1 ) != OR)
     {
       *str  = skipwhite(*str + 1); /* Advance over the operator */
@@ -1127,6 +1411,7 @@ xor_expr(char **str)
   *str = skipwhite(*str);
   sum  = and_expr(str);
   *str = skipwhite(*str);
+
   while (**str == XOR)
     {
       *str  = skipwhite(*str + 1); /* Advance over the operator */
@@ -1145,6 +1430,7 @@ and_expr(char **str)
   *str = skipwhite(*str);
   sum  = equality_expr(str);
   *str = skipwhite(*str);
+
   while (**str == AND && *( *str + 1 ) != AND)
     {
       *str  = skipwhite(*str + 1); /* Advance over the operator */
@@ -1164,6 +1450,7 @@ equality_expr(char **str)
   *str = skipwhite(*str);
   sum  = relational_expr(str);
   *str = skipwhite(*str);
+
   while (( **str == EQUAL && *( *str + 1 ) == EQUAL )
          || ( **str == BANG && *( *str + 1 ) == EQUAL ))
     {
@@ -1193,6 +1480,7 @@ relational_expr(char **str)
   *str = skipwhite(*str);
   sum  = shift_expr(str);
   *str = skipwhite(*str);
+
   while (**str == LESS_THAN || **str == GREATER_THAN)
     {
       equal_to = 0;
@@ -1213,8 +1501,8 @@ relational_expr(char **str)
        *      0 > -1
        * which would not return the expected value if we did the
        * comparison as unsigned.  This may not always be the
-       * desired behavior, but aside from adding casting to epxressions,
-       * there isn't much of a way around it.
+       * desired behavior, but aside from adding casting to
+       * epxressions, there isn't much of a way around it.
        */
 
       if (op == LESS_THAN && equal_to == 0)
@@ -1247,6 +1535,7 @@ shift_expr(char **str)
   *str = skipwhite(*str);
   sum  = add_expression(str);
   *str = skipwhite(*str);
+
   while (( strncmp(*str, "<<", 2) == 0 ) || ( strncmp(*str, ">>", 2) == 0 ))
     {
       op   = **str;
@@ -1281,6 +1570,7 @@ add_expression(char **str)
   *str = skipwhite(*str);
   sum  = term(str);
   *str = skipwhite(*str);
+
   while (**str == PLUS || **str == MINUS)
     {
       op   = **str;
@@ -1409,8 +1699,7 @@ factor(char **str)
   *str = skipwhite(*str);
 
   /*
-   * Now is the time to actually do the unary operation if one
-   * was present.
+   * Now is the time to actually do the unary operation if one was present.
    */
 
   if (have_special) /* We've got a ++ or -- */
@@ -1511,7 +1800,7 @@ get_value(char **str)
           *str += 1;
         }
     }
-  else if (isdigit(**str))  /* A regular number */
+  else if (isdigit(**str)) /* A regular number */
     {
       errno = 0;
       val  = STRTOUL(*str, str, 0);
@@ -1540,7 +1829,7 @@ get_value(char **str)
           (void)fprintf(stderr, "Mismatched paren's\n");
         }
     }
-  else if (isalpha(**str) || **str == '_')  /* A variable name */
+  else if (isalpha(**str) || **str == '_') /* A variable name */
     {
       if (( var_name = get_var_name(str)) == NULL)
         {
@@ -1643,6 +1932,31 @@ static int(
   external_var_lookup = func;
 
   return old_func;
+}
+
+static int
+remove_var(char *name)
+{
+  variable *v, *prev = NULL;
+
+  if (name == NULL)
+    return 0;
+
+  for (v = vars; v; prev = v, v = v->next)
+    if (v->name && strcmp(v->name, name) == 0)
+      {
+        if (prev)
+          prev->next = v->next;
+        else
+          vars = v->next;
+
+        free(v->name);
+        free(v);
+
+        return 1;
+      }
+
+  return 0;
 }
 
 static inline variable *
@@ -1790,7 +2104,7 @@ get_var_name(char **str)
 
   buff[i] = '\0'; /* NULL terminate */
 
-  while (isalnum(**str) || **str == '_')  /* Skip over any remaining junk */
+  while (isalnum(**str) || **str == '_') /* Skip over any remaining junk */
     {
       *str = *str + 1;
     }
@@ -1813,3 +2127,5 @@ skipwhite(char *str)
 
   return str;
 }
+
+/* vim: set ts=2:sw=2:tw=0:ai:expandtab */

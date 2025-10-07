@@ -123,10 +123,6 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_PATCH 7
 #define PC_VERSION_OSHIT 3
 
-#if !defined (USE_XSTRTOULL)
-# define USE_XSTRTOULL
-#endif
-
 #if defined (__MVS__) || defined (_AIX)
 # undef _ALL_SOURCE
 # define _ALL_SOURCE
@@ -202,16 +198,16 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define XOR             '^'
 
 /*
- * You should #define USE_LONG_LONG if your compiler supports the long long
- * data type and the %lld conversion specifier for printf.  Otherwise, just
- * comment out the #define below and pc will use plain longs.
+ * Define #define USE_LONG_LONG if your compiler supports the the long long
+ * type and your printf supports the '%lld' format specifier.  Otherwise,
+ * just comment out the #define below and pc will make due with plain longs.
  */
 
 #if !defined (USE_LONG_LONG)
 # define USE_LONG_LONG
 #endif
 
-#if defined (USE_XSTRTOULL)
+#if defined (USE_LONG_LONG)
 static unsigned long long
 xstrtoull (const char *nptr, char **endptr, int base)
 {
@@ -450,28 +446,253 @@ xstrtoull (const char *nptr, char **endptr, int base)
 }
 #endif
 
+#if !defined (USE_LONG_LONG)
+static unsigned long
+xstrtoul (const char *nptr, char **endptr, int base)
+{
+  const char *p = nptr;
+  unsigned long result = 0;
+  int any = 0;
+  int neg = 0;
+
+  if ((base != 0 && (base < 2 || base > 36)))
+    {
+      if (endptr)
+        *endptr = (char *)nptr;
+
+      errno = EINVAL;
+
+      return 0;
+    }
+
+  while (*p && isspace((unsigned char)*p))
+    p++;
+
+  if (*p == '+' || *p == '-')
+    {
+      neg = (*p == '-');
+      p++;
+    }
+
+  if (base == 0)
+    {
+      if (*p == '0')
+        {
+          if ((p[1] == 'z' || p[1] == 'Z'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '9')
+                next = p[2] - '0';
+              else if (p[2] >= 'a' && p[2] <= 'z')
+                next = p[2] - 'a' + 10;
+              else if (p[2] >= 'A' && p[2] <= 'Z')
+                next = p[2] - 'A' + 10;
+              else
+                next = -1;
+
+              if (next >= 0 && next < 36) //-V560
+                {
+                  base = 36;
+                  p += 2;
+                }
+              else
+                base = 0; //-V1048
+            }
+          else if ((p[1] == 'x' || p[1] == 'X'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '9')
+                next = p[2] - '0';
+              else if (p[2] >= 'a' && p[2] <= 'z')
+                next = p[2] - 'a' + 10;
+              else if (p[2] >= 'A' && p[2] <= 'Z')
+                next = p[2] - 'A' + 10;
+              else
+                next = -1;
+
+              if (next >= 0 && next < 16)
+                {
+                  base = 16;
+                  p += 2;
+                }
+              else
+                base = 0; //-V1048
+            }
+          else if ((p[1] == 'b' || p[1] == 'B'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '1')
+                next = p[2] - '0';
+              else
+                next = -1;
+
+              if (next >= 0 && next < 2) //-V560
+                {
+                  base = 2;
+                  p += 2;
+                }
+              else
+                base = 0; //-V1048
+            }
+          else if ((p[1] == 't' || p[1] == 'T'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '2')
+                next = p[2] - '0';
+              else
+                next = -1;
+
+              if (next >= 0 && next < 3) //-V560
+                {
+                  base = 3;
+                  p += 2;
+                }
+              else
+                base = 0; //-V1048
+            }
+
+          if (base == 0)
+            {
+              base = 8;
+            }
+        }
+      else
+        base = 10;
+    }
+  else if (base == 2)
+    {
+      if (p[0] == '0' && (p[1] == 'b' || p[1] == 'B'))
+        {
+          int next;
+
+          if (p[2] >= '0' && p[2] <= '1')
+            next = p[2] - '0';
+          else
+            next = -1;
+
+          if (next >= 0 && next < 2) //-V560
+            p += 2;
+        }
+    }
+  else if (base == 3)
+    {
+      if (p[0] == '0' && (p[1] == 't' || p[1] == 'T'))
+        {
+          int next;
+
+          if (p[2] >= '0' && p[2] <= '2')
+            next = p[2] - '0';
+          else
+            next = -1;
+
+          if (next >= 0 && next < 3) //-V560
+            p += 2;
+        }
+    }
+  else if (base == 16)
+    {
+      if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X'))
+        {
+          int next;
+
+          if (p[2] >= '0' && p[2] <= '9')
+            next = p[2] - '0';
+          else if (p[2] >= 'a' && p[2] <= 'z')
+            next = p[2] - 'a' + 10;
+          else if (p[2] >= 'A' && p[2] <= 'Z')
+            next = p[2] - 'A' + 10;
+          else
+            next = -1;
+
+          if (next >= 0 && next < 16)
+            p += 2;
+        }
+    }
+
+  for (;; p++)
+    {
+      int d;
+      unsigned char c = (unsigned char)*p;
+
+      if (c >= '0' && c <= '9')
+        d = c - '0';
+      else if (c >= 'a' && c <= 'z')
+        d = c - 'a' + 10;
+      else if (c >= 'A' && c <= 'Z')
+        d = c - 'A' + 10;
+      else
+        break;
+
+      if (d >= base)
+        break;
+
+      any = 1;
+
+      if (result > ULONG_MAX / (unsigned long)base ||
+         (result == ULONG_MAX / (unsigned long)base &&
+         (unsigned long)d > ULONG_MAX % (unsigned long)base))
+        {
+          errno = ERANGE;
+          p++;
+
+          while (*p)
+            {
+              c = (unsigned char)*p;
+
+              if (c >= '0' && c <= '9')
+                d = c - '0';
+              else if (c >= 'a' && c <= 'z')
+                d = c - 'a' + 10;
+              else if (c >= 'A' && c <= 'Z')
+                d = c - 'A' + 10;
+              else
+                break;
+
+              if (d >= base)
+                break;
+
+              p++;
+            }
+
+          if (endptr)
+            *endptr = (char *)p;
+
+          return ULONG_MAX;
+        }
+
+      result = result * (unsigned long)base + (unsigned long)d;
+    }
+
+  if (!any)
+    {
+      if (endptr)
+        *endptr = (char *)nptr;
+
+      return 0;
+    }
+
+  if (neg)
+    result = (unsigned long)(-(long)result);
+
+  if (endptr)
+    *endptr = (char *)p;
+
+  return result;
+}
+#endif
+
 #if defined (USE_LONG_LONG)
 # define LONG    long long
 # define ULONG   unsigned long long
-# if defined (USE_XSTRTOULL)
-#  define STRTOUL xstrtoull
-# else
-#  define STRTOUL strtoull
-# endif
-# define STR1    "%20llu  0x%.16llx signed: %20lld"
-# define STR2    "%20llu  0x%.16llx"
-# define STR3    " char: "
-# define STR4    "%20lu  0x%-16.8lx signed: %20ld"
-# define STR5    "%20lu  0x%-16.8lx"
+# define STRTOUL xstrtoull
 #else
 # define LONG    long
 # define ULONG   unsigned long
-# define STRTOUL strtoul
-# define STR1    "%10lu\t 0x%.8lx\t signed: %10ld"
-# define STR2    "%10lu\t 0x%.8lx"
-# define STR3    " char: "
-# define STR4    STR1
-# define STR5    STR2
+# define STRTOUL xstrtoul
 #endif
 
 static ULONG do_assignment_operator(char **str, char *var_name);

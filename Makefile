@@ -11,7 +11,10 @@
 # scspell-id: 805354da-a39e-11f0-8637-80ee73e9b8e7
 
 RM=rm -f
-CC=$$(command -v gcc 2>/dev/null || command -v clang 2>/dev/null || command -v c99 2>/dev/null || printf '%s\n' cc || :)
+CC=$$( command -v gcc 2>/dev/null || command -v clang 2>/dev/null || command -v c99 2>/dev/null || printf '%s\n' cc || :)
+
+# To override compiler detection, uncomment and set the following line:
+#CC:=/path/to/compiler
 
 pc: pc.c
 	export CC="$(CC)"; export CFLAGS="$(CFLAGS)"; case "$$(uname -s 2>/dev/null || :)" in AIX) export OBJECT_MODE=64; case "$${CC:?}" in *gcc*) export CFLAGS="$(CFLAGS) -maix64" ;; esac ;; esac; $${CC:?} $${CFLAGS:-} $(LDFLAGS) pc.c -o pc

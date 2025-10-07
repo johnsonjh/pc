@@ -2095,7 +2095,7 @@ get_value(char **str)
         }
 
       *str = skipwhite(*str);
-      if (strncmp(*str, "++", 2) == 0 || strncmp(*str, "--", 2) == 0)
+      if (*str != NULL && (strncmp(*str, "++", 2) == 0 || strncmp(*str, "--", 2) == 0))
         {
           if (( v = lookup_var(var_name)) != NULL)
             {

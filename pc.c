@@ -1194,7 +1194,7 @@ do_input(void)
       if (buff[0] != '\0' && buff[strlen(buff) - 1] == '\n') //-V557
         buff[strlen(buff) - 1] = '\0'; //-V557 /* Kill the newline character */
 
-      for (ptr = buff; isspace(*ptr) && *ptr; ptr++); /* Skip whitespace */
+      for (ptr = buff; *ptr && isspace((unsigned char)*ptr); ptr++); /* Skip whitespace */
 
       if (*ptr == '\0') /* Hmmm, an empty line, just skip it */
         continue;
@@ -1372,7 +1372,7 @@ get_var_name(char **str)
   int i, len = DEFAULT_LEN;
   char *buff, *tmpbuff;
 
-  if (isalpha(**str) == 0 && **str != '_')
+  if (isalpha((unsigned char)**str) == 0 && **str != '_')
     return NULL;
 
   buff = malloc((ULONG)len * sizeof ( char ));
@@ -1386,7 +1386,7 @@ get_var_name(char **str)
 
   i = 0;
 
-  while (**str && ( isalnum(**str) || **str == '_' ))
+  while (**str && ( isalnum((unsigned char)**str) || **str == '_' ))
     {
       if (i >= len - 1)
         {
@@ -1408,7 +1408,7 @@ get_var_name(char **str)
 
   buff[i] = '\0'; /* NULL terminate */
 
-  while (isalnum(**str) || **str == '_') /* Skip over any remaining junk */
+  while (isalnum((unsigned char)**str) || **str == '_') /* Skip over any remaining junk */
     *str = *str + 1;
 
   return buff;
@@ -2074,7 +2074,7 @@ get_value(char **str)
       else
         (void)fprintf(stderr, "Mismatched paren's\n");
     }
-  else if (isalpha(**str) || **str == '_') /* A variable name */
+  else if (isalpha((unsigned char)**str) || **str == '_') /* A variable name */
     {
       if (( var_name = get_var_name(str)) == NULL)
         {

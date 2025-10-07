@@ -648,10 +648,12 @@ print_result(ULONG value)
     }
 
   if ((signed LONG)value < 0)
-    if (use_short_format)
-      (void)sprintf(sign_buf, "sign: %20ld", (signed long)value);
-    else
-      (void)sprintf(sign_buf, "sign: %20lld", (signed LONG)value);
+    {
+      if (use_short_format)
+        (void)sprintf(sign_buf, "sign: %20ld", (signed long)value);
+      else
+        (void)sprintf(sign_buf, "sign: %20lld", (signed LONG)value);
+		}
 
   for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
     {

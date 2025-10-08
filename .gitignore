@@ -11,7 +11,7 @@
 # scspell-id: b0053d6a-a39e-11f0-b229-80ee73e9b8e7
 
 *~
-*.bak
+*.bak*
 ch.c
 compile_commands.json
 *.core

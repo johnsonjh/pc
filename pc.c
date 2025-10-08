@@ -254,6 +254,32 @@ static const int never = 0;
     }             \
   while (never)
 
+/* Determine sane size for input buffers */
+
+/* Always calculate our own INPUT_BUFF */
+#if defined(INPUT_BUFF)
+# undef INPUT_BUFF
+#endif
+
+/* Always calculate our own INPUT_BUFF_FB */
+#if defined(INPUT_BUFF_FB)
+# undef INPUT_BUFF_FB
+#endif
+
+/* Fallback input buffer size */
+#define INPUT_BUFF_FB 256
+
+/* Use PIPE_BUF if larger than INPUT_BUFF_FB */
+#if defined (PIPE_BUF)
+# if PIPE_BUF < INPUT_BUFF_FB
+#  define INPUT_BUFF INPUT_BUFF_FB
+# else
+#  define INPUT_BUFF PIPE_BUF
+# endif
+#else
+# define INPUT_BUFF INPUT_BUFF_FB
+#endif
+
 /*
  * Define #define USE_LONG_LONG if your compiler supports the the long long
  * type and your printf supports the '%lld' format specifier.  Otherwise,
@@ -745,6 +771,8 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)INT_MAX;
   else if (strcmp(name, "INT_MIN") == 0)
     *val = (ULONG)INT_MIN;
+  else if (strcmp(name, "INPUT_BUFF") == 0)
+    *val = (ULONG)INPUT_BUFF;
   else if (strcmp(name, "ARG_MAX") == 0)
     *val = (ULONG)sysconf(_SC_ARG_MAX);
   else if (strcmp(name, "CHILD_MAX") == 0)
@@ -767,6 +795,10 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)SCHAR_MIN;
   else if (strcmp(name, "UCHAR_MAX") == 0)
     *val = (ULONG)UCHAR_MAX;
+#if defined (PIPE_BUF)
+  else if (strcmp(name, "PIPE_BUF") == 0)
+    *val = (ULONG)PIPE_BUF;
+#endif
 #if defined (_PC_FILESIZEBITS)
   else if (strcmp(name, "FILESIZEBITS") == 0)
     *val = (ULONG)pathconf(".", _PC_FILESIZEBITS);
@@ -848,6 +880,7 @@ builtin_var_names [] =
   "gid",
   "INT_MAX",
   "INT_MIN",
+  "INPUT_BUFF",
   "LLONG_MAX",
   "LLONG_MIN",
 #if defined (LONG_BIT)
@@ -867,6 +900,9 @@ builtin_var_names [] =
 #endif
   "PATH_MAX",
   "pid",
+#if defined (PIPE_BUF)
+  "PIPE_BUF",
+#endif
   "rand",
   "RAND_MAX",
   "SCHAR_MAX",
@@ -950,18 +986,40 @@ lookup_var(const char *name)
   return NULL;
 }
 
+static int
+is_reserved_name(const char *name)
+{
+  if (name == NULL)
+    return 0;
+
+  if (strcmp(name, "vars") == 0
+   || strcmp(name, "regs") == 0
+   || strcmp(name, "help") == 0)
+    return 1;
+
+  return 0;
+}
+
 static variable *
 add_var(char *name, ULONG value)
 {
   variable *v;
   ULONG tmp;
 
-  /* First make sure this isn't an external read-only variable */
+  /* First make sure this isn't a reserved name or keyword */
+
+  if (is_reserved_name(name))
+    {
+      (void)fprintf(stderr, "ERROR: can't assign/create '%s', is a reserved name.\n", name);
+      return NULL;
+    }
+
+  /* Next make sure this isn't an external read-only variable */
 
   if (external_var_lookup)
     if (external_var_lookup(name, &tmp) != 0)
       {
-        (void)fprintf(stderr, "Can't assign/create %s, it is a read-only var\n", name);
+        (void)fprintf(stderr, "Can't assign/create '%s', it is a read-only variable\n", name);
         return NULL;
       }
 
@@ -969,7 +1027,7 @@ add_var(char *name, ULONG value)
 
   if (v == NULL)
     {
-      (void)fprintf(stderr, "No memory to add variable: %s\n", name);
+      (void)fprintf(stderr, "No memory to add variable '%s'\n", name);
       return NULL;
     }
 
@@ -1026,6 +1084,41 @@ get_var(const char *name, ULONG *val)
   return 0;
 }
 
+static int
+is_register(const char *name)
+{
+  if (name == NULL)
+    return 0;
+
+  if (strcmp(name, "GC") == 0
+   || strcmp(name, "GS") == 0
+   || strcmp(name, "GI") == 0
+   || strcmp(name, "GL") == 0
+   || strcmp(name, "GLL") == 0)
+    return 1;
+
+  return 0;
+}
+
+static ULONG
+truncate_register(const char *name, ULONG value)
+{
+  if (strcmp(name, "GC") == 0)
+    return (unsigned char)value;
+
+  if (strcmp(name, "GS") == 0)
+    return (unsigned short)value;
+
+  if (strcmp(name, "GI") == 0)
+    return (unsigned int)value;
+
+  if (strcmp(name, "GL") == 0)
+    return (unsigned long)value;
+
+  /* No truncation for GLL (it's a ULONG) */
+  return value;
+}
+
 static void
 list_vars(varquery_type type)
 {
@@ -1046,7 +1139,7 @@ list_vars(varquery_type type)
   if (type == USER_VARS)
     {
       for (v = vars; v; v = v->next)
-        if (v->name)
+        if (v->name && !is_register(v->name))
           {
             entries = resize_var_entries(entries, count, &capacity);
 
@@ -1077,7 +1170,8 @@ list_vars(varquery_type type)
     }
   else
     {
-      (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
+      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+                    __FILE__, __func__, __LINE__);
       abort();
     }
 
@@ -1095,10 +1189,11 @@ list_vars(varquery_type type)
       (void)printf("User variables:\n");
     }
   else if (type == BUILTIN_VARS) //-V547
-    (void)printf("The following builtin variables are defined:\n");
+    (void)printf("The following read-only builtin variables are defined:\n");
   else
     {
-      (void)fprintf(stderr, "ERROR: Internal error - unknown varquery_type!\n");
+      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+                    __FILE__, __func__, __LINE__);
       abort();
     }
 
@@ -1109,6 +1204,66 @@ list_vars(varquery_type type)
     }
 
   FREE(entries);
+}
+
+/* Custom sort order for registers */
+
+static int
+get_reg_order(const char *name)
+{
+    if (strcmp(name, "GC") == 0)
+      return 0;
+
+    if (strcmp(name, "GS") == 0)
+      return 1;
+
+    if (strcmp(name, "GI") == 0)
+      return 2;
+
+    if (strcmp(name, "GL") == 0)
+      return 3;
+
+    if (strcmp(name, "GLL") == 0)
+      return 4;
+
+    return 5;
+}
+
+static int
+compare_reg_entries(const void *a, const void *b)
+{
+    const var_entry *var_a = (const var_entry *)a;
+    const var_entry *var_b = (const var_entry *)b;
+
+    return get_reg_order(var_a->name) - get_reg_order(var_b->name);
+}
+
+static void
+list_regs(void)
+{
+  variable *v;
+  int i;
+  int count = 0;
+  var_entry entries[5];
+
+  for (v = vars; v; v = v->next)
+    if (v->name && is_register(v->name))
+      if (count < 5)
+        {
+          entries[count].name = v->name;
+          entries[count].value = v->value;
+          count++;
+        }
+
+  qsort(entries, (size_t)count, sizeof(var_entry), compare_reg_entries);
+
+  (void)printf("Registers:\n");
+
+  for (i = 0; i < count; i++)
+    {
+      (void)printf("  %-16s = ", entries[i].name);
+      print_result(entries[i].value);
+    }
 }
 
 static void
@@ -1126,7 +1281,7 @@ list_builtin_vars(void)
 static const char *
 squash(const char *s)
 {
-  static char buf[128]; /* Ought to be enough for anybody */
+  static char buf[INPUT_BUFF];
   char *d = buf;
   int in_space = 0;
 
@@ -1193,15 +1348,12 @@ static void
 do_input(void)
 {
   ULONG value;
-  char buff[256], *ptr, *end;
+  char buff[INPUT_BUFF], *ptr, *end;
 
-  while (fgets(buff, 256, stdin) != NULL)
+  while (fgets(buff, INPUT_BUFF, stdin) != NULL)
     {
-      if (strlen(buff) >= 255)
-        {
-          (void)fprintf(stderr, "FATAL: Oversize input, exiting!\n");
-          exit(1);
-        }
+      if (strlen(buff) >= PIPE_BUF - 1)
+        (void)fprintf(stderr, "Warning: Input truncated at %d characters.\n", INPUT_BUFF);
 
       if (buff[0] != '\0' && buff[strlen(buff) - 1] == '\n') //-V557
         buff[strlen(buff) - 1] = '\0'; //-V557 /* Kill the newline character */
@@ -1216,15 +1368,26 @@ do_input(void)
       while (end > ptr && isspace((unsigned char)*end))
         *end-- = '\0';
 
+      /* List user variables */
       if (strcmp(ptr, "vars") == 0)
         {
           list_user_vars();
           continue;
         }
 
+      /* List registers */
+      if (strcmp(ptr, "regs") == 0)
+        {
+          list_regs();
+          continue;
+        }
+
+      /* List builtins and show other help */
       if (strcmp(ptr, "help") == 0)
         {
           list_builtin_vars();
+          list_regs();
+          list_user_vars();
           continue;
         }
 
@@ -1277,6 +1440,13 @@ parse_args(int argc, char *argv[])
       return;
     }
 
+  if (strcmp(ptr, "regs") == 0)
+    {
+      list_regs();
+      FREE(buff);
+      return;
+    }
+
   if (strcmp(ptr, "help") == 0)
     {
       list_builtin_vars();
@@ -1296,6 +1466,12 @@ int
 main(int argc, char *argv[])
 {
   (void)set_var_lookup_hook(builtin_vars);
+
+  add_var("GC" , 0);
+  add_var("GS",  0);
+  add_var("GI",  0);
+  add_var("GL",  0);
+  add_var("GLL", 0);
 
   if (argc > 1)
     parse_args(argc, argv);
@@ -1455,17 +1631,29 @@ assignment_expr(char **str)
 
       if (peek != NULL && (*peek == '\0' || *peek == SEMI_COLON))
         {
-          int existed;
+          if (is_register(var_name))
+            {
+              (void)fprintf(stderr, "ERROR: Cannot unset register '%s'.\n", var_name);
+              val  = 0;
+              *str = peek;
+              suppress_output = 1;
+            }
+          else
+            {
+              int existed;
 
-          unset_silent = (*peek == SEMI_COLON);
-          existed = remove_var(var_name);
+              unset_silent = (*peek == SEMI_COLON);
+              existed = remove_var(var_name);
 
-          if (existed && !unset_silent)
-            (void)printf("Variable '%s' unset\n", var_name);
+              if (existed && !unset_silent)
+                (void)printf("Variable '%s' unset\n", var_name);
+              else if (!existed && !unset_silent)
+                (void)fprintf(stderr, "Warning: No such variable '%s'.\n", var_name);
 
-          val = 0;
-          *str = peek;
-          suppress_output = 1;
+              val  = 0;
+              *str = peek;
+              suppress_output = 1;
+            }
         }
       else
         {
@@ -1482,10 +1670,15 @@ assignment_expr(char **str)
             {
               suppress_output = 0; //-V1048
 
-              if (( v = lookup_var(var_name)) == NULL)
+              if ((v = lookup_var(var_name)) == NULL)
                 (void)add_var(var_name, val);
               else
-                v->value = val;
+                {
+                  if (is_register(var_name))
+                    v->value = truncate_register(var_name, val);
+                  else
+                    v->value = val;
+                }
             }
         }
     }
@@ -1633,6 +1826,9 @@ do_assignment_operator(char **str, char *var_name)
       (void)fprintf(stderr, "Unknown operator: %c\n", operator);
       v->value = 0;
     }
+
+  if (is_register(var_name))
+    v->value = truncate_register(var_name, v->value);
 
   return v->value;
 }
@@ -1994,20 +2190,28 @@ factor(char **str)
           return val;
         }
 
-      if (( v = lookup_var(var_name)) == NULL)
+      if ((v = lookup_var(var_name)) == NULL)
         {
           v = add_var(var_name, 0);
 
           if (v == NULL)
-            return val;
+            {
+              FREE(var_name);
+              return val;
+            }
         }
 
-      FREE(var_name);
-
       if (op == PLUS)
-        val = ++v->value;
+        v->value++;
       else
-        val = --v->value;
+        v->value--;
+
+      if (is_register(var_name))
+        v->value = truncate_register(var_name, v->value);
+
+      val = v->value;
+
+      FREE(var_name);
     }
   else /* Normal unary operator */
     switch (op)
@@ -2075,11 +2279,13 @@ get_value(char **str)
     }
   else if (isdigit((unsigned char)**str)) /* A regular number */
     {
+      char *orig_str = *str; /* Store original for errors, etc. */
       errno = 0;
-      val   = xstrtoUL(*str, str, 0);
+      val = xstrtoUL(orig_str, str, 0);
 
       if (errno)
-        (void)fprintf(stderr, "Warning: %s\n", strerror(errno));
+        (void)fprintf(stderr, "Warning converting input '%.*s': %s\n",
+                      (int)(*str - orig_str), orig_str, strerror(errno));
 
       *str = skipwhite(*str);
     }
@@ -2121,12 +2327,15 @@ get_value(char **str)
       *str = skipwhite(*str);
       if (*str != NULL && (strncmp(*str, "++", 2) == 0 || strncmp(*str, "--", 2) == 0))
         {
-          if (( v = lookup_var(var_name)) != NULL)
+          if ((v = lookup_var(var_name)) != NULL)
             {
               if (**str == '+')
                 v->value++;
               else
                 v->value--;
+
+              if (is_register(var_name))
+                v->value = truncate_register(var_name, v->value);
 
               val = v->value;
 

@@ -14,7 +14,7 @@ RM=rm -f
 XCC=$$(command -v gcc 2> /dev/null || command -v clang 2> /dev/null || command -v c99 2> /dev/null || printf '%s\n' cc)
 
 pc: pc.c
-	@XCC="$(XCC)"; CFLAGS="$(CFLAGS)"; case "$$(uname -s 2> /dev/null || :)" in AIX) OM="OBJECT_MODE=64"; ;; esac; test "$$(command -v "$$CC" 2> /dev/null)" && { XCC="$$CC"; }; case "$$XCC" in *gcc*) CFLAGS="$${CFLAGS:-} -maix64"; ;; esac; set -x; env $${OM:-} $${XCC:?} $${CFLAGS:-} $(LDFLAGS) pc.c -o pc
+	@XCC="$(XCC)"; CFLAGS="$(CFLAGS)"; case "$$(uname -s 2> /dev/null || :)" in AIX) OM="OBJECT_MODE=64"; ;; esac; test "$$(command -v "$$CC" 2> /dev/null)" && { XCC="$$CC"; }; test "$$OM" && case "$$XCC" in *gcc*) CFLAGS="$${CFLAGS:-} -maix64"; ;; esac; set -x; env $${OM:-} $${XCC:?} $${CFLAGS:-} $(LDFLAGS) pc.c -o pc
 
 all: pc
 

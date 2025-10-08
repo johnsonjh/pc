@@ -739,7 +739,7 @@ static char *
 convert_base_string(ULONG value, int base, char *buf, int buf_size)
 {
   const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  char *ptr = &buf[buf_size - 1];
+  char *ptr = &buf[(size_t)buf_size - 1];
 
   *ptr = '\0';
 

@@ -67,6 +67,14 @@ test "${CH:?}" != "true" \
     rm -f ./ch.c > /dev/null 2>&1
   }
 
+# Cppi
+CPPI="$(command -v cppi 2> /dev/null || printf '%s\n' true)"
+test "${CPPI:?}" != "true" && {
+  xline
+  printf '%s\n' "Cppi..."
+}
+"${CPPI:?}" -ac ./pc.c
+
 # ShellCheck
 SHELLCHECK="$(command -v shellcheck 2> /dev/null || printf '%s\n' true)"
 test "${SHELLCHECK:?}" != "true" && {

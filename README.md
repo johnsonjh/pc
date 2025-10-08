@@ -111,7 +111,7 @@ more, in exactly the way C programmers expect on their system.
 ### Build
 
 * You can try it out `pc` by **executing [`./pc.c`](pc.c) directly**,
-  and it will *just run* (through the magic of polyglot programming), or,
+  and it will *just run* (using magic), or,
 * Build it with `make`.  Standard environment variables  (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
 

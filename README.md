@@ -102,21 +102,11 @@
 
 ## Portability
 
-* Runs on nearly every **POSIX**-*ish* system with a *C99* compiler.
+* Portable to any **POSIX**-*ish* system with a *C99* compiler.
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, and
   **Windows** (*MinGW-w64*).
-
-## Testing
-
-* **Linting**:
-  * C code must pass [**Cppcheck**](https://cppcheck.sourceforge.io/), [**Clang Analyzer**](https://clang-analyzer.llvm.org/), **GCC Analyzer**,
-    **PVS-Studio**, [**NetBSD Lint**](https://man.netbsd.org/lint.1), [**Oracle Lint**](https://www.oracle.com/application-development/developerstudio/), [**Flawfinder**](https://dwheeler.com/flawfinder/) (*`-m3`*),
-    [**Cppi**](https://www.gnu.org/software/cppi/), [**Ch**](https://www.softintegration.com/), and [**`clang -Weverything`**](.lint.sh) analysis.
-  * All shell code in the repository must pass [**ShellCheck**](https://www.shellcheck.net/), and the
-    `Makefile` is compatible with `POSIX`, `AIX`, `BSD`, and `GNU` style
-    `make` tools.
 
 ## Usage
 
@@ -127,6 +117,16 @@
   * `a = 0x1234; a & 0xFF`
   * `. + 4` (add to previous result)
   * Semicolon suppresses regular output
+
+## Testing
+
+* **Linting**:
+  * C code must pass [Cppcheck](https://cppcheck.sourceforge.io/), [Clang Analyzer](https://clang-analyzer.llvm.org/), [GCC Analyzer](https://gcc.gnu.org/onlinedocs/gcc/Static-Analyzer-Options.html),
+    **PVS-Studio**, [NetBSD Lint](https://man.netbsd.org/lint.1), [Oracle Lint](https://www.oracle.com/application-development/developerstudio/), [Flawfinder](https://dwheeler.com/flawfinder/) (*`-m3`*),
+    [Cppi](https://www.gnu.org/software/cppi/), [Ch](https://www.softintegration.com/), and [`clang -Weverything`](.lint.sh) linting and static analysis.
+  * All shell code in the repository must pass [ShellCheck](https://www.shellcheck.net/), and the
+    `Makefile` is compatible with `POSIX`, `AIX`, `BSD`, and `GNU` style
+    `make` tools.
 
 ## License
 

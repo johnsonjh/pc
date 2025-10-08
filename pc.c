@@ -198,6 +198,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #include <ctype.h>  /* isalnum, isalpha, isdigit, isprint, isspace ... */
 #include <errno.h>  /* errno ...                                       */
 #include <limits.h> /* LONG_MIN, ULONG_MAX ...                         */
+#include <stddef.h> /* ptrdiff_t ...                                   */
 #include <stdio.h>  /* fprintf, NULL, printf, stderr, fgets, stdin ... */
 #include <stdlib.h> /* free, malloc, exit, abort, rand, realloc ...    */
 #include <string.h> /* strncmp, strlen, strcmp, strdup, strncat ...    */
@@ -281,9 +282,12 @@ static const int never = 0;
 #endif
 
 /*
- * Define #define USE_LONG_LONG if your compiler supports the the long long
- * type and your printf supports the '%lld' format specifier.  Otherwise,
+ * Keep '# define USE_LONG_LONG' if your compiler supports the the "long long"
+ * type and your printf supports the '%lld' format specifier.  If it doesn't
  * just comment out the #define below and pc will make due with plain longs.
+ *
+ * If happen to have a compiler that supports a "long long" type and printf
+ * without "%lld', you could try using https://github.com/johnsonjh/dpsprintf
  */
 
 #if !defined (USE_LONG_LONG)
@@ -1109,7 +1113,7 @@ truncate_register(const char *name, ULONG value)
   if (strcmp(name, "GS") == 0)
     return (unsigned short)value;
 
-  if (strcmp(name, "GI") == 0)
+  if (strcmp(name, "GI") == 0) /*LINTED: E_CAST_INT_TO_SMALL_INT */
     return (unsigned int)value;
 
   if (strcmp(name, "GL") == 0)
@@ -1244,7 +1248,7 @@ list_regs(void)
   variable *v;
   int i;
   int count = 0;
-  var_entry entries[5];
+  var_entry entries[5] = { 0 };
 
   for (v = vars; v; v = v->next)
     if (v->name && is_register(v->name))
@@ -1467,11 +1471,11 @@ main(int argc, char *argv[])
 {
   (void)set_var_lookup_hook(builtin_vars);
 
-  add_var("GC" , 0);
-  add_var("GS",  0);
-  add_var("GI",  0);
-  add_var("GL",  0);
-  add_var("GLL", 0);
+  (void)add_var("GC" , 0);
+  (void)add_var("GS",  0);
+  (void)add_var("GI",  0);
+  (void)add_var("GL",  0);
+  (void)add_var("GLL", 0);
 
   if (argc > 1)
     parse_args(argc, argv);
@@ -2285,7 +2289,8 @@ get_value(char **str)
 
       if (errno)
         (void)fprintf(stderr, "Warning converting input '%.*s': %s\n",
-                      (int)(*str - orig_str), orig_str, strerror(errno));
+                      /*LINTED: E_CAST_INT_TO_SMALL_INT, E_PTRDIFF_OVERFLOW*/
+                      (int)((ptrdiff_t)(*str - orig_str)), orig_str, strerror(errno));
 
       *str = skipwhite(*str);
     }

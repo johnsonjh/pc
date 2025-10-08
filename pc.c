@@ -121,7 +121,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 1
-#define PC_VERSION_PATCH 0
+#define PC_VERSION_PATCH 1
 #define PC_VERSION_OSHIT 0
 
 #if defined (STR_HELPER)

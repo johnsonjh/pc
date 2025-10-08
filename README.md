@@ -7,15 +7,8 @@
 * `pc` is a highly portable and greatly enhanced fork of the venerable
   (*SGI*→*Be*→*Haiku*) `pc` programmers calculator—the ultimate
   integer calculator for C programmers, supporting casts, modulo, shifts,
-  bitwise operations, and more, in exactly the way C programmers expect.
-
-## Portability
-
-* Runs on nearly every **POSIX**-*ish* system with a *C99* compiler.
-* Currently developed on IBM **AIX**, and regularly tested on
-  **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
-  **OpenBSD**, **Solaris**, **illumos**, **Haiku**, and
-  **Windows** (*MinGW-w64*).
+  bitwise operations, and more, in exactly the way C programmers expect
+  on their system.
 
 ## Syntax and operators
 
@@ -108,6 +101,24 @@
     GLL              = 18446744073709551615  0xffffffffffffffff  sign: -1
     ```
 
+## Portability
+
+* Runs on nearly every **POSIX**-*ish* system with a *C99* compiler.
+* Currently developed on IBM **AIX**, and regularly tested on
+  **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
+  **OpenBSD**, **Solaris**, **illumos**, **Haiku**, and
+  **Windows** (*MinGW-w64*).
+
+## Testing
+
+* **Linting**:
+  * C code must pass [**Cppcheck**](https://cppcheck.sourceforge.io/), [**Clang Analyzer**](https://clang-analyzer.llvm.org/), **GCC Analyzer**,
+    **PVS-Studio**, [**NetBSD Lint**](https://man.netbsd.org/lint.1), [**Oracle Lint**](https://www.oracle.com/application-development/developerstudio/), [**Flawfinder**](https://dwheeler.com/flawfinder/) (*`-m3`*),
+    [**Cppi**](https://www.gnu.org/software/cppi/), [**Ch**](https://www.softintegration.com/), and [**`clang -Weverything`**](.lint.sh) analysis.
+  * All shell code in the repository must pass [**ShellCheck**](https://www.shellcheck.net/), and the
+    `Makefile` is compatible with `POSIX`, `AIX`, `BSD`, and `GNU` style
+    `make` tools.
+
 ## Usage
 
 * Supports **interactive**, **command-line** (`pc 1+1`), and **piped** usage
@@ -117,3 +128,8 @@
   * `a = 0x1234; a & 0xFF`
   * `. + 4` (add to previous result)
   * Semicolon suppresses regular output
+
+## License
+
+* `pc` is distributed under the terms of the [**MIT License**](LICENSE).
+* The repository is complaint with version 3.3 of the [REUSE](https://reuse.software/) specification.

@@ -2,16 +2,16 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2025 Jeffrey H. Johnson -->
 <!-- scspell-id: 498fb4ee-a43d-11f0-aae1-80ee73e9b8e7 -->
-# `pc2`: programmers calculator
+# `pc`: programmers calculator
 
-* `pc2` is highly portable and greatly enhanced fork of the venerable
+* `pc` is a highly portable and greatly enhanced fork of the venerable
   (*SGI*→*Be*→*Haiku*) `pc` programmers calculator—the ultimate
   integer calculator for C programmers, supporting casts, modulo, shifts,
   bitwise operations, and more, in exactly the way C programmers expect.
 
 ## Portability
 
-* Should run on any **POSIX**-like system with a *C99* compiler.
+* Runs on nearly every **POSIX**-*ish* system with a *C99* compiler.
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, and
@@ -51,6 +51,9 @@
       (use `~` for bitwise negation).
 
 * **Parentheses:** Full support for grouping and nesting.
+
+* **Diagnostics:** Warnings for **overflow**, **underflow**,
+  **bad shifts**, **division**/**modulo** **by** **zero**, etc.
 
 ## User variables, builtins, and registers
 

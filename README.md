@@ -108,6 +108,13 @@
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, and
   **Windows** (*MinGW-w64*).
 
+### Build
+
+* You can try it out `pc` by **executing [`./pc.c`](pc.c) directly**,
+  and it will *just run* (through the magic of polyglot programming), or,
+* Build it with `make`.  Standard environment variables  (*e.g.*, `CC`,
+  `CFLAGS`, `LDFLAGS`) are respected.
+
 ## Usage
 
 * Supports **interactive**, **command-line** (`pc 1+1`), and **piped** usage

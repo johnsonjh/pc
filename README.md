@@ -4,10 +4,10 @@
 <!-- scspell-id: 498fb4ee-a43d-11f0-aae1-80ee73e9b8e7 -->
 # `pc2`: programmers calculator
 
-“`pc2`” is highly portable and greatly enhanced fork of the venerable
-(**SGI** *→* **Be** *→* **Haiku**) “`pc`” programmers calculator—the ultimate
-integer calculator for C programmers, supporting casts, modulo, shifts,
-bitwise operations, and more, exactly in the way C programmers expect.
+* `pc2` is highly portable and greatly enhanced fork of the venerable
+  (*SGI*→*Be*→*Haiku*) `pc` programmers calculator—the ultimate
+  integer calculator for C programmers, supporting casts, modulo, shifts,
+  bitwise operations, and more, in exactly the way C programmers expect.
 
 ## Portability
 
@@ -47,8 +47,8 @@ bitwise operations, and more, exactly in the way C programmers expect.
 
 * **Assignment operators:**
   * `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `|=`, `<<=`, `>>=`
-  * **Logical negation:** `!` is *logical*, not *bitwise*
-    (use `~` for bitwise negation).
+    * **Logical negation:** `!` is *logical*, not *bitwise*
+      (use `~` for bitwise negation).
 
 * **Parentheses:** Full support for grouping and nesting.
 
@@ -64,6 +64,24 @@ bitwise operations, and more, exactly in the way C programmers expect.
     * `x = y = 10`
     * `x = (y + 5) * 2`
     * `(y * 2) + (x & 0xffeef)`
+    * 
+      ```
+      x = 5
+                         5  0x00000005
+      x = y = 10
+                        10  0x0000000a
+      x = (y + 5) * 2
+                        30  0x0000001e
+      (y * 2) + (x & 0xffeef)
+                        34  0x00000022          char: ......."
+      vars
+      User variables:
+        x                =                   30  0x0000001e
+        y                =                   10  0x0000000a
+      x=y=
+      Variable 'y' unset
+      Variable 'x' unset
+      ```
 
 * **Builtins:**
   * Builtins provide access to **50** or more system constants and runtime

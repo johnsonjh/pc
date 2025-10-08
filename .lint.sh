@@ -46,7 +46,7 @@ test "${CODESPELL:?}" != "true" && {
   xline
   printf '%s\n' "Codespell..."
 }
-"${CODESPELL:?}" .
+"${CODESPELL:?}" -L PASE .
 
 # REUSE
 REUSE="$(command -v reuse 2> /dev/null || printf '%s\n' true)"

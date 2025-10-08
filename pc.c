@@ -120,8 +120,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
-#define PC_VERSION_MINOR 1
-#define PC_VERSION_PATCH 1
+#define PC_VERSION_MINOR 2
+#define PC_VERSION_PATCH 0
 #define PC_VERSION_OSHIT 0
 
 #if defined (STR_HELPER)
@@ -206,8 +206,13 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #include <unistd.h> /* getpid, getuid, getgid ...                      */
 
 /* cppcheck-suppress preprocessorErrorDirective */
-#if defined(__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
+#if defined (__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
 # include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
+#endif
+
+#include <locale.h>
+#if defined (__APPLE__)
+# include <xlocale.h>
 #endif
 
 #if defined (__MVS__) && !defined (__clang_version__)
@@ -241,7 +246,27 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define USE_LAST_RESULT '.'
 #define XOR             '^'
 
-#if defined(FREE)
+#define PFC_INT8 "%c%c%c%c%c%c%c%c"
+
+#define PBI_8(i)                \
+  (((i) & 0x80ll) ? '1' : '0'), \
+  (((i) & 0x40ll) ? '1' : '0'), \
+  (((i) & 0x20ll) ? '1' : '0'), \
+  (((i) & 0x10ll) ? '1' : '0'), \
+  (((i) & 0x08ll) ? '1' : '0'), \
+  (((i) & 0x04ll) ? '1' : '0'), \
+  (((i) & 0x02ll) ? '1' : '0'), \
+  (((i) & 0x01ll) ? '1' : '0')
+
+#define PFC_INT16 PFC_INT8  PFC_INT8
+#define PFC_INT32 PFC_INT16 PFC_INT16
+#define PFC_INT64 PFC_INT32 PFC_INT32
+
+#define PBI_16(i) PBI_8((i)  >>  8), PBI_8(i)
+#define PBI_32(i) PBI_16((i) >> 16), PBI_16(i)
+#define PBI_64(i) PBI_32((i) >> 32), PBI_32(i)
+
+#if defined (FREE)
 # undef FREE
 #endif
 
@@ -258,12 +283,12 @@ static const int never = 0;
 /* Determine sane size for input buffers */
 
 /* Always calculate our own INPUT_BUFF */
-#if defined(INPUT_BUFF)
+#if defined (INPUT_BUFF)
 # undef INPUT_BUFF
 #endif
 
 /* Always calculate our own INPUT_BUFF_FB */
-#if defined(INPUT_BUFF_FB)
+#if defined (INPUT_BUFF_FB)
 # undef INPUT_BUFF_FB
 #endif
 
@@ -300,6 +325,61 @@ static const int never = 0;
 #else
 # define LONG  long
 # define ULONG unsigned long
+#endif
+
+#if !defined (NO_LOCALE)
+# define XSTR_EMAXLEN 32767
+
+static const char *
+xstrerror_l (int errnum)
+{
+  int saved = errno;
+  const char * ret = NULL;
+  static /* __thread */ char buf [XSTR_EMAXLEN];
+
+# if defined (__APPLE__) || defined (_AIX) || defined (__MINGW32__) || defined (__MINGW64__)
+#  if defined (__MINGW32__) || defined (__MINGW64__)
+  if (0 == strerror_s (buf, sizeof (buf), errnum)) /*LINTOK: xstrerror_l*/
+    ret = buf;
+#  else
+  if (0 == strerror_r (errnum, buf, sizeof (buf))) /*LINTOK: xstrerror_l*/
+    ret = buf;
+#  endif
+# else
+#  if defined (__NetBSD__)
+  locale_t loc = LC_GLOBAL_LOCALE;
+#  else
+  locale_t loc = uselocale ((locale_t)0);
+#  endif
+  locale_t copy = loc;
+  if (LC_GLOBAL_LOCALE == copy)
+    copy = duplocale (copy);
+
+  if ((locale_t)0 != copy)
+    {
+      ret = strerror_l (errnum, copy); /*LINTOK: xstrerror_l*/
+      if (LC_GLOBAL_LOCALE == loc)
+        freelocale (copy);
+    }
+# endif
+
+  if (! ret)
+    {
+      int n_buf = snprintf (buf, sizeof (buf), "Unknown error %d", errnum);
+      if (0 > n_buf || (size_t)n_buf >= sizeof (buf))
+        {
+          (void)fprintf (stderr, "FATAL: snprintf buffer overflow at %s[%s:%d]\n", __func__, __FILE__, __LINE__);
+          exit (EXIT_FAILURE);
+        }
+
+      ret = buf;
+    }
+
+  errno = saved;
+  return ret;
+}
+#else
+# define xstrerror_l strerror
 #endif
 
 static ULONG
@@ -349,7 +429,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
               if (next >= 0 && next < 36) //-V560
                 {
                   base = 36;
-                  p += 2;
+                  p   += 2;
                 }
               else
                 base = 0; //-V1048
@@ -370,7 +450,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
               if (next >= 0 && next < 16)
                 {
                   base = 16;
-                  p += 2;
+                  p   += 2;
                 }
               else
                 base = 0; //-V1048
@@ -387,7 +467,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
               if (next >= 0 && next < 2) //-V560
                 {
                   base = 2;
-                  p += 2;
+                  p   += 2;
                 }
               else
                 base = 0; //-V1048
@@ -404,7 +484,25 @@ xstrtoUL (char *nptr, char **endptr, int base)
               if (next >= 0 && next < 3) //-V560
                 {
                   base = 3;
-                  p += 2;
+                  p   += 2;
+                }
+              else
+                base = 0; //-V1048
+            }
+
+          else if ((p[1] == 'o' || p[1] == 'O'))
+            {
+              int next;
+
+              if (p[2] >= '0' && p[2] <= '7')
+                next = p[2] - '0';
+              else
+                next = -1;
+
+              if (next >= 0 && next < 8) //-V560
+                {
+                  base = 8;
+                  p   += 2;
                 }
               else
                 base = 0; //-V1048
@@ -486,11 +584,11 @@ xstrtoUL (char *nptr, char **endptr, int base)
       any = 1;
 
 #if defined (USE_LONG_LONG)
-      if (result > ULLONG_MAX / (unsigned long long)base ||
+      if (result  > ULLONG_MAX / (unsigned long long)base ||
          (result == ULLONG_MAX / (unsigned long long)base &&
          (unsigned long long)d > ULLONG_MAX % (unsigned long long)base))
 #else
-      if (result > ULONG_MAX / (unsigned long)base ||
+      if (result  > ULONG_MAX / (unsigned long)base ||
          (result == ULONG_MAX / (unsigned long)base &&
          (unsigned long)d > ULONG_MAX % (unsigned long)base))
 #endif
@@ -557,18 +655,18 @@ xstrtoUL (char *nptr, char **endptr, int base)
 
 static ULONG do_assignment_operator(char **str, char *var_name);
 static ULONG parse_expression(char *str);  /* Top-level interface to parser */
-static ULONG assignment_expr(char **str);  /* Assignments =, +=, *=, etc */
-static ULONG logical_or_expr(char **str);  /* Logical OR  '||' */
-static ULONG logical_and_expr(char **str); /* Logical AND  '&&' */
-static ULONG or_expr(char **str);          /* OR  '|' */
-static ULONG xor_expr(char **str);         /* XOR '^' */
-static ULONG and_expr(char **str);         /* AND '&' */
-static ULONG equality_expr(char **str);    /* Equality ==, != */
-static ULONG relational_expr(char **str);  /* Relational <, >, <=, >= */
-static ULONG shift_expr(char **str);       /* Shifts <<, >> */
-static ULONG add_expression(char **str);   /* Addition/Subtraction +, - */
+static ULONG assignment_expr(char **str);  /* Assignments =, +=, *=, etc    */
+static ULONG logical_or_expr(char **str);  /* Logical OR '||'               */
+static ULONG logical_and_expr(char **str); /* Logical AND '&&'              */
+static ULONG or_expr(char **str);          /* OR  '|'                       */
+static ULONG xor_expr(char **str);         /* XOR '^'                       */
+static ULONG and_expr(char **str);         /* AND '&'                       */
+static ULONG equality_expr(char **str);    /* Equality ==, !=               */
+static ULONG relational_expr(char **str);  /* Relational <, >, <=, >=       */
+static ULONG shift_expr(char **str);       /* Shifts <<, >>                 */
+static ULONG add_expression(char **str);   /* Addition/Subtraction +, -     */
 static ULONG term(char **str);             /* Multiplication/Division *,%,/ */
-static ULONG factor(char **str);           /* Negation, Logical NOT ~, ! */
+static ULONG factor(char **str);           /* Negation, Logical NOT ~, !    */
 static ULONG get_value(char **str);
 
 /*
@@ -633,96 +731,134 @@ static int(
  * expressions can refer to it as '.' (just like bc).
  */
 
-static ULONG last_result = 0;
+static ULONG last_result   = 0;
 static int suppress_output = 0;
-static int unset_silent = 0;
+static int unset_silent    = 0;
 
-/*
- * This function prints the result of the expression.
- * It tries to be smart about printing numbers so it
- * only uses the necessary number of digits.  If you
- * have long long (i.e. 64 bit numbers) it's very
- * annoying to have lots of leading zeros when they
- * aren't necessary.  By doing the somewhat bizarre
- * casting and comparisons we can determine if a value
- * will fit in a 32 bit quantity and only print that.
- */
+static char *
+convert_base_string(ULONG value, int base, char *buf, int buf_size)
+{
+  const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  char *ptr = &buf[buf_size - 1];
+
+  *ptr = '\0';
+
+  if (value == 0)
+    {
+      *(--ptr) = '0';
+
+      return ptr;
+    }
+
+  while (value > 0 && ptr > buf)
+    {
+      *(--ptr) = digits[(unsigned char)(value % (ULONG)base)];
+      value /= (ULONG)base;
+    }
+
+  return ptr;
+}
+
+static char *
+get_binary_string(ULONG value)
+{
+  static char bin_buf[65];
+  char *ptr = bin_buf;
+
+  (void)snprintf(bin_buf, sizeof(bin_buf), PFC_INT64, PBI_64(value));
+
+  while (*ptr == '0' && *(ptr + 1) != '\0')
+    ptr++;
+
+  return ptr;
+}
 
 static void
 print_result(ULONG value)
 {
+  char dec_str[30];
+  char hex_str[20];
+  char oct_str[25];
+  char ternary_str_buf[45];
+  char base36_str_buf[16];
+  char ternary_display_buf[50];
+  char base36_display_buf[20];
+  char extra_info[100] = "";
+  char char_repr[sizeof(ULONG) + 1];
   int i;
-  ULONG ch, shift;
-  int use_short_format = 0;
-  int has_printable_char = 0;
-  char dec_buf[30];
-  char hex_buf[30];
-  char sign_buf[40] = "";
+  int has_signed_info = 0;
+  int printable_chars_count = 0;
+  const char *ternary_val;
+  const char *base36_val;
 
-#if defined (USE_LONG_LONG)
-  if (value <= 0xffffffffUL && (signed LONG)value >= 0) //-V560
-    use_short_format = 1;
-  else if ((signed LONG)value >= -0x80000000L && (signed LONG)value <= 0x7fffffffL)
-    use_short_format = 1;
-#else
-  use_short_format = 1;
-#endif
-
-  if (use_short_format)
-    {
-      (void)snprintf(dec_buf, sizeof(dec_buf), "%20lu", (unsigned long)value);
-      (void)snprintf(hex_buf, sizeof(hex_buf), "0x%.8lx", (unsigned long)value);
-    }
+  /*LINTED: E_CONSTANT_CONDITION*/
+  if (sizeof(ULONG) == 8)
+    (void)snprintf(dec_str, sizeof(dec_str), "%llu", value);
   else
-    {
-      (void)snprintf(dec_buf, sizeof(dec_buf), "%20llu", value);
-      (void)snprintf(hex_buf, sizeof(hex_buf), "0x%.16llx", value);
-    }
+    (void)snprintf(dec_str, sizeof(dec_str), "%lu", (unsigned long)value);
 
-  if ((signed LONG)value < 0)
-    {
-      if (use_short_format)
-        (void)snprintf(sign_buf, sizeof(sign_buf), "sign: %20ld", (signed long)value);
+
+  if ((LONG)value < 0)
+    { /*LINTED: E_CONSTANT_CONDITION*/
+      if (sizeof(ULONG) == 8)
+        (void)snprintf(extra_info, sizeof(extra_info), " (signed: %lld)", (LONG)value);
       else
-        (void)snprintf(sign_buf, sizeof(sign_buf), "sign: %20lld", (signed LONG)value);
+        (void)snprintf(extra_info, sizeof(extra_info), " (signed: %ld)", (long)value);
+
+      has_signed_info = 1;
     }
 
-  for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
+  for (i = 0; i < (int)sizeof(ULONG); i++)
     {
-      shift = (ULONG)i * (LONG)CHAR_BIT;
-      ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
+      ULONG ch = (value >> (i * CHAR_BIT)) & 0xFF;
 
       if (isprint((unsigned char)ch))
         {
-          has_printable_char = 1;
-          break;
+          char_repr[sizeof(ULONG) - 1 - (size_t)i] = (char)ch;
+          printable_chars_count++;
         }
+      else
+        char_repr[sizeof(ULONG) - 1 - (size_t)i] = '.';
     }
 
-  if (has_printable_char)
-    (void)printf("%s  %-18s", dec_buf, hex_buf);
-  else
-    (void)printf("%s  %s", dec_buf, hex_buf);
+  char_repr[sizeof(ULONG)] = '\0';
 
-  if (sign_buf[0])
-    (void)printf("  %s", sign_buf);
-
-  if (has_printable_char)
+  if (printable_chars_count > 0)
     {
-      (void)printf("  char: ");
-      for (i = sizeof ( ULONG ) - 1; i >= 0; i--)
-        {
-          shift = (ULONG)i * (LONG)CHAR_BIT;
-          ch = ((ULONG)value & ((ULONG)0xff << shift )) >> shift;
-
-          if (isprint((unsigned char)ch))
-            (void)printf("%c", (char)(ch));
-          else
-            (void)printf(".");
-        }
+      if (has_signed_info)
+        (void)snprintf(extra_info + strlen(extra_info), sizeof(extra_info) - strlen(extra_info), " (char: '%s')", char_repr);
+      else
+        (void)snprintf(extra_info, sizeof(extra_info), " (char: '%s')", char_repr);
     }
 
-  (void)printf("\n");
+  (void)printf("    DEC: %s%s\n", dec_str, extra_info);
+
+  (void)snprintf(oct_str, sizeof(oct_str), "0o%llo", value);
+
+  (void)printf("    OCT: %s\n", oct_str);
+
+  if (value == 0)
+    (void)snprintf(hex_str, sizeof(hex_str), "0x0");
+  else if (value <= 0xFFFFFFFFUL)
+    (void)snprintf(hex_str, sizeof(hex_str), "0x%lx", (unsigned long)value);
+  else
+    (void)snprintf(hex_str, sizeof(hex_str), "0x%llx", value);
+
+  (void)printf("    HEX: %s\n", hex_str);
+
+  ternary_val = convert_base_string(value, 3, ternary_str_buf, sizeof(ternary_str_buf));
+
+  (void)snprintf(ternary_display_buf, sizeof(ternary_display_buf), "0t%s", ternary_val);
+
+  (void)printf("    TER: 0t%s\n", ternary_val);
+
+  base36_val = convert_base_string(value, 36, base36_str_buf, sizeof(base36_str_buf));
+
+  (void)snprintf(base36_display_buf, sizeof(base36_display_buf), "0z%s", base36_val);
+
+  (void)printf("    B36: 0z%s\n", base36_val);
+
+  (void)printf("    BIN: 0b%s\n", get_binary_string(value));
 }
 
 static int
@@ -969,6 +1105,7 @@ resize_var_entries(var_entry *entries, int count, int *capacity)
         {
           (void)fprintf(stderr, "ERROR: memory reallocation failed\n");
           FREE(entries);
+
           return NULL;
         }
 
@@ -1015,6 +1152,7 @@ add_var(char *name, ULONG value)
   if (is_reserved_name(name))
     {
       (void)fprintf(stderr, "ERROR: can't assign/create '%s', is a reserved name.\n", name);
+
       return NULL;
     }
 
@@ -1024,6 +1162,7 @@ add_var(char *name, ULONG value)
     if (external_var_lookup(name, &tmp) != 0)
       {
         (void)fprintf(stderr, "Can't assign/create '%s', it is a read-only variable\n", name);
+
         return NULL;
       }
 
@@ -1032,6 +1171,7 @@ add_var(char *name, ULONG value)
   if (v == NULL)
     {
       (void)fprintf(stderr, "No memory to add variable '%s'\n", name);
+
       return NULL;
     }
 
@@ -1080,6 +1220,7 @@ get_var(const char *name, ULONG *val)
   if (v != NULL)
     {
       *val = v->value;
+
       return 1;
     }
   else if (external_var_lookup != NULL)
@@ -1094,10 +1235,10 @@ is_register(const char *name)
   if (name == NULL)
     return 0;
 
-  if (strcmp(name, "GC") == 0
-   || strcmp(name, "GS") == 0
-   || strcmp(name, "GI") == 0
-   || strcmp(name, "GL") == 0
+  if (strcmp(name, "GC")  == 0
+   || strcmp(name, "GS")  == 0
+   || strcmp(name, "GI")  == 0
+   || strcmp(name, "GL")  == 0
    || strcmp(name, "GLL") == 0)
     return 1;
 
@@ -1113,13 +1254,12 @@ truncate_register(const char *name, ULONG value)
   if (strcmp(name, "GS") == 0)
     return (unsigned short)value;
 
-  if (strcmp(name, "GI") == 0) /*LINTED: E_CAST_INT_TO_SMALL_INT */
+  if (strcmp(name, "GI") == 0) /*LINTED: E_CAST_INT_TO_SMALL_INT*/
     return (unsigned int)value;
 
   if (strcmp(name, "GL") == 0)
     return (unsigned long)value;
 
-  /* No truncation for GLL (it's a ULONG) */
   return value;
 }
 
@@ -1137,6 +1277,7 @@ list_vars(varquery_type type)
   if (entries == NULL)
     {
       (void)fprintf(stderr, "ERROR: memory allocation failed\n");
+
       return;
     }
 
@@ -1187,6 +1328,7 @@ list_vars(varquery_type type)
         {
           (void)printf("No user variables defined.\n");
           FREE(entries);
+
           return;
         }
 
@@ -1203,7 +1345,7 @@ list_vars(varquery_type type)
 
   for (i = 0; i < count; i++)
     {
-      (void)printf("  %-16s = ", entries[i].name);
+      (void)printf("  %s:\n", entries[i].name);
       print_result(entries[i].value);
     }
 
@@ -1265,7 +1407,7 @@ list_regs(void)
 
   for (i = 0; i < count; i++)
     {
-      (void)printf("  %-16s = ", entries[i].name);
+      (void)printf("  %s:\n", entries[i].name);
       print_result(entries[i].value);
     }
 }
@@ -1292,6 +1434,7 @@ squash(const char *s)
  if (s == NULL)
    {
      buf[0] = '\0';
+
      return buf;
    }
 
@@ -1323,9 +1466,9 @@ squash(const char *s)
 static void
 print_herald(void)
 {
-  char oshitbuf[6]; /* "-N" + NULL */
+  char oshitbuf[6];
 
-#if defined(__clang_version__)
+#if defined (__clang_version__)
 # pragma clang diagnostic push
 # pragma clang diagnostic ignored "-Wunreachable-code"
 #endif
@@ -1343,7 +1486,7 @@ print_herald(void)
                 (void *)PC_SOFTWARE_DATE ? ")" : "");
 
 
-#if defined(__clang_version__)
+#if defined (__clang_version__)
 # pragma clang diagnostic pop
 #endif
 }
@@ -1441,6 +1584,7 @@ parse_args(int argc, char *argv[])
     {
       list_user_vars();
       FREE(buff);
+
       return;
     }
 
@@ -1448,6 +1592,7 @@ parse_args(int argc, char *argv[])
     {
       list_regs();
       FREE(buff);
+
       return;
     }
 
@@ -1455,6 +1600,7 @@ parse_args(int argc, char *argv[])
     {
       list_builtin_vars();
       FREE(buff);
+
       return;
     }
 
@@ -1469,6 +1615,10 @@ parse_args(int argc, char *argv[])
 int
 main(int argc, char *argv[])
 {
+#if !defined(NO_LOCALE)
+  (void)setlocale (LC_ALL, "");
+#endif
+
   (void)set_var_lookup_hook(builtin_vars);
 
   (void)add_var("GC" , 0);
@@ -1481,7 +1631,9 @@ main(int argc, char *argv[])
     parse_args(argc, argv);
   else
     {
-      print_herald();
+      if (isatty(STDIN_FILENO))
+        print_herald();
+
       do_input();
     }
 
@@ -1528,6 +1680,7 @@ parse_expression(char *str)
     }
 
   last_result = val;
+
   return val;
 }
 
@@ -1588,6 +1741,7 @@ get_var_name(char **str)
           if (tmpbuff == NULL)
             {
               FREE(buff);
+
               return NULL;
             }
 
@@ -1621,6 +1775,7 @@ assignment_expr(char **str)
   if (var_name == NULL)
     {
       *str = orig_str;
+
       return logical_or_expr(str);
     }
 
@@ -1746,25 +1901,17 @@ do_assignment_operator(char **str, char *var_name)
   if (operator == PLUS)
     {
       if (v->value > (ULONG)-1 - val)
-        {
-          errno = ERANGE;
-          (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
-        }
+        errno = ERANGE;
 
       v->value += val;
     }
   else if (operator == MINUS)
     {
       if ((LONG)val > 0 && (LONG)v->value < LLONG_MIN + (LONG)val)
-        {
-          errno = ERANGE;
-          (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
-        }
+        errno = ERANGE;
       else if ((LONG)val < 0 && (LONG)v->value > LLONG_MAX + (LONG)val)
-        {
-          errno = ERANGE;
-          (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
-        }
+        errno = ERANGE;
+
       v->value -= val;
     }
   else if (operator == AND)
@@ -1778,7 +1925,7 @@ do_assignment_operator(char **str, char *var_name)
       if (val >= sizeof(ULONG) * CHAR_BIT)
         {
           errno = EINVAL;
-          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
         }
 
       v->value <<= val;
@@ -1788,7 +1935,7 @@ do_assignment_operator(char **str, char *var_name)
       if (val >= sizeof(ULONG) * CHAR_BIT)
         {
           errno = EINVAL;
-          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
         }
 
       v->value >>= val;
@@ -1796,19 +1943,16 @@ do_assignment_operator(char **str, char *var_name)
   else if (operator == TIMES)
     {
       if (val != 0 && v->value > (ULONG)-1 / val)
-        {
-          errno = ERANGE;
-          (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
-        }
+        errno = ERANGE;
 
       v->value *= val;
     }
   else if (operator == DIVISION)
     {
-      if (val == 0) /* Check for it, but still get the result */
+      if (val == 0) /* Check, but still get the result! */
         {
           errno = EDOM;
-          (void)fprintf(stderr, "Warning: %s (Division by zero)\n", strerror(errno));
+          (void)fprintf(stderr, "Warning: %s (Division by zero)\n", xstrerror_l(errno));
           v->value = 0;
         }
       else
@@ -1816,10 +1960,10 @@ do_assignment_operator(char **str, char *var_name)
     }
   else if (operator == MODULO)
     {
-      if (val == 0) /* check for it, but still get the result */
+      if (val == 0) /* Check, but still get the result! */
         {
           errno = EDOM;
-          (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", strerror(errno));
+          (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", xstrerror_l(errno));
           v->value = 0;
         }
       else
@@ -1987,12 +2131,11 @@ relational_expr(char **str)
 
       /*
        * Notice that we do the relational expressions as signed
-       * comparisons.  This is because of expressions like:
-       *      0 > -1
-       * which would not return the expected value if we did the
-       * comparison as unsigned.  This may not always be the
-       * desired behavior, but aside from adding casting to
-       * epxressions, there isn't much of a way around it.
+       * comparisons.  This is because of expressions like
+       * '0 > -1' which would not return the expected value if
+       * we did the comparison as unsigned.  This may not always
+       * be the desired behavior, but aside from adding casting to
+       * expressions, there isn't much of a way around it.
        */
 
       if (op == LESS_THAN && equal_to == 0)
@@ -2027,7 +2170,7 @@ shift_expr(char **str)
       if (val >= sizeof(ULONG) * CHAR_BIT)
         {
           errno = EINVAL;
-          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", strerror(errno));
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
         }
 
       if (op == SHIFT_L)
@@ -2058,25 +2201,15 @@ add_expression(char **str)
       if (op == PLUS)
         {
           if (sum > (ULONG)-1 - val)
-            {
-              errno = ERANGE;
-              (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
-            }
+            errno = ERANGE;
 
           sum += val;
         }
       else if (op == MINUS) //-V547
         {
           if ((LONG)val > 0 && (LONG)sum < LLONG_MIN + (LONG)val)
-            {
-              errno = ERANGE;
-              (void)fprintf(stderr, "Warning: %s (Underflow)\n", strerror(errno));
-            }
-          else if ((LONG)val < 0 && (LONG)sum > LLONG_MAX + (LONG)val)
-            {
-              errno = ERANGE;
-              (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
-            }
+            errno = ERANGE;
+
           sum -= val;
         }
     }
@@ -2102,10 +2235,7 @@ term(char **str)
       if (op == TIMES)
         {
           if (val != 0 && sum > (ULONG)-1 / val)
-            {
-              errno = ERANGE;
-              (void)fprintf(stderr, "Warning: %s (Overflow)\n", strerror(errno));
-            }
+            errno = ERANGE;
 
           sum *= val;
         }
@@ -2114,7 +2244,7 @@ term(char **str)
           if (val == 0)
             {
               errno = EDOM;
-              (void)fprintf(stderr, "Warning: %s (Division by zero)\n", strerror(errno));
+              (void)fprintf(stderr, "Warning: %s (Division by zero)\n", xstrerror_l(errno));
               sum = 0;
             }
           else
@@ -2125,7 +2255,7 @@ term(char **str)
           if (val == 0)
             {
               errno = EDOM;
-              (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", strerror(errno));
+              (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", xstrerror_l(errno));
               sum = 0;
             }
           else
@@ -2148,6 +2278,7 @@ term(char **str)
       && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0')) //-V526
     {
       (void)fprintf(stderr, "Parsing stopped: unknown operator '%s'\n", *str);
+
       return sum;
     }
 
@@ -2191,6 +2322,7 @@ factor(char **str)
       if (var_name == NULL)
         {
           (void)fprintf(stderr, "Can only use ++/-- on variables.\n");
+
           return val;
         }
 
@@ -2201,6 +2333,7 @@ factor(char **str)
           if (v == NULL)
             {
               FREE(var_name);
+
               return val;
             }
         }
@@ -2262,6 +2395,7 @@ get_value(char **str)
               if (!**str)
                 {
                   (void)fprintf(stderr, "Invalid escape sequence.\n");
+
                   return 0;
                 }
             }
@@ -2288,9 +2422,9 @@ get_value(char **str)
       val = xstrtoUL(orig_str, str, 0);
 
       if (errno)
-        (void)fprintf(stderr, "Warning converting input '%.*s': %s\n",
+        (void)fprintf(stderr, "Warning when converting input '%.*s': %s\n",
                       /*LINTED: E_CAST_INT_TO_SMALL_INT, E_PTRDIFF_OVERFLOW*/
-                      (int)((ptrdiff_t)(*str - orig_str)), orig_str, strerror(errno));
+                      (int)((ptrdiff_t)(*str - orig_str)), orig_str, xstrerror_l(errno));
 
       *str = skipwhite(*str);
     }
@@ -2314,6 +2448,7 @@ get_value(char **str)
       if (( var_name = get_var_name(str)) == NULL)
         {
           (void)fprintf(stderr, "Can't get var name!\n");
+
           return 0;
         }
 
@@ -2356,6 +2491,7 @@ get_value(char **str)
     {
       (void)fprintf(stderr, "Expecting left paren, unary op, constant or variable.");
       (void)fprintf(stderr, "  Got: '%s'\n", *str);
+
       return 0;
     }
 

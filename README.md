@@ -44,9 +44,6 @@ more, in exactly the way C programmers expect on their system.
 
 * **Parentheses:** Full support for grouping and nesting.
 
-* **Diagnostics:** Warnings for **overflow**, **underflow**,
-  **bad shifts**, **division**/**modulo** **by** **zero**, etc.
-
 ## User variables, builtins, and registers
 
 * **Variables:**
@@ -59,24 +56,6 @@ more, in exactly the way C programmers expect on their system.
     * `x = y = 10`
     * `x = (y + 5) * 2`
     * `(y * 2) + (x & 0xffeef)`
-    * 
-      ```
-      x = 5
-                         5  0x00000005
-      x = y = 10
-                        10  0x0000000a
-      x = (y + 5) * 2
-                        30  0x0000001e
-      (y * 2) + (x & 0xffeef)
-                        34  0x00000022          char: ......."
-      vars
-      User variables:
-        x                =                   30  0x0000001e
-        y                =                   10  0x0000000a
-      x=y=
-      Variable 'y' unset
-      Variable 'x' unset
-      ```
 
 * **Builtins:**
   * Builtins provide access to **50** or more system constants and runtime
@@ -88,17 +67,6 @@ more, in exactly the way C programmers expect on their system.
     that can be listed with `regs`.
     * Stores to registers clamp and mask to register width
     * Loads from registers reflect the masked value
-  * **Example:**
-    ```
-    GLL=GL=GI=GS=GC=-1;
-    regs
-    Registers:
-    GC               =                  255  0x000000ff
-    GS               =                65535  0x0000ffff
-    GI               =           4294967295  0xffffffff
-    GL               = 18446744073709551615  0xffffffffffffffff  sign: -1
-    GLL              = 18446744073709551615  0xffffffffffffffff  sign: -1
-    ```
 
 ## Portability
 

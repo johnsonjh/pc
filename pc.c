@@ -1,5 +1,5 @@
 #/* \
-PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v gcc 2>/dev/null || command -v clang 2>/dev/null || command -v c99 2>/dev/null || :)"; case "$(uname -s 2>/dev/null || :)" in AIX) export OBJECT_MODE=64; case "${cc:-cc}" in *gcc*) CFLAGS="${CFLAGS:-} -maix64" ;; esac ;; esac; if "${cc:-cc}" ${CFLAGS:-} ${LDFLAGS-} -o "${p:?}.out.${PID:?}" "${p:?}"; then case "${p:?}" in *"/"*) dir=${0%"/"*} ;; *) dir=. ;; esac; PATH="${dir:?}:${PATH:-.}"; "${rlwrap:-env}" "${p:?}.out.${PID:?}" "$@"; rm -f "${p:?}.out.${PID:?}" > /dev/null 2>&1; exit 0;fi;exit 1
+PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v gcc 2>/dev/null || command -v clang 2>/dev/null || command -v c99 2>/dev/null || command -v ibm-clang 2>/dev/null || :)"; case "$(uname -s 2>/dev/null || :)" in AIX) export OBJECT_MODE=64; case "${cc:-cc}" in *gcc*) CFLAGS="${CFLAGS:-} -maix64" ;; esac ;; esac; if "${cc:-cc}" ${CFLAGS:-} ${LDFLAGS-} -o "${p:?}.out.${PID:?}" "${p:?}"; then case "${p:?}" in *"/"*) dir=${0%"/"*} ;; *) dir=. ;; esac; PATH="${dir:?}:${PATH:-.}"; "${rlwrap:-env}" "${p:?}.out.${PID:?}" "$@"; rm -f "${p:?}.out.${PID:?}" > /dev/null 2>&1; exit 0;fi;exit 1
 #*/ /* Remove from this line to the top of the file for SoftIntegration Ch. */
 
 /*
@@ -67,7 +67,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * masking/shifting as you do when working on kernel type code.  It's
  * also handy for doing quick conversions between decimal, hex and ascii
  * (and if you want to see octal for some reason, just put it in the
- * printf string).
+ * fprintf string).
  *
  * The parser is completely separable and could be spliced into other
  * code very easy.  The routine parse_expression() just expects a char
@@ -199,7 +199,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #include <errno.h>  /* errno ...                                       */
 #include <limits.h> /* LONG_MIN, ULONG_MAX ...                         */
 #include <stddef.h> /* ptrdiff_t ...                                   */
-#include <stdio.h>  /* fprintf, NULL, printf, stderr, fgets, stdin ... */
+#include <stdio.h>  /* fprintf, NULL, stderr, fgets, stdin ...         */
 #include <stdlib.h> /* free, malloc, exit, abort, rand, realloc ...    */
 #include <string.h> /* strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>   /* time ...                                        */
@@ -210,9 +210,34 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
 #endif
 
-#include <locale.h>
-#if defined (__APPLE__)
-# include <xlocale.h>
+#if defined (_CH_)
+# if !defined (NO_LOCALE)
+#  define NO_LOCALE
+# endif
+#endif
+
+#if !defined (NO_LOCALE)
+# include <locale.h>
+# if defined (__APPLE__)
+#  include <xlocale.h>
+# endif
+#endif
+
+#if (defined (WITH_LIBEDIT) + defined (WITH_READLINE) + defined (WITH_LINENOISE)) > 1
+# error "Only one of WITH_LIBEDIT, WITH_READLINE, or WITH_LINENOISE can be defined."
+#endif
+
+#if defined (WITH_READLINE)
+# include <readline/readline.h>
+# include <readline/history.h>
+#endif
+
+#if defined (WITH_LIBEDIT)
+# include <editline/readline.h>
+#endif
+
+#if defined (WITH_LINENOISE)
+# include <linenoise.h>
 #endif
 
 #if defined (__MVS__) && !defined (__clang_version__)
@@ -308,10 +333,10 @@ static const int never = 0;
 
 /*
  * Keep '# define USE_LONG_LONG' if your compiler supports the the "long long"
- * type and your printf supports the '%lld' format specifier.  If it doesn't
+ * type and your fprintf supports the '%lld' format specifier.  If it doesn't
  * just comment out the #define below and pc will make due with plain longs.
  *
- * If happen to have a compiler that supports a "long long" type and printf
+ * If happen to have a compiler that supports a "long long" type and fprintf
  * without "%lld', you could try using https://github.com/johnsonjh/dpsprintf
  */
 
@@ -781,7 +806,7 @@ print_result(ULONG value)
   char hex_str[25];
   char ter_str[50];
   char b36_str[20];
-  char bin_str[70];
+  char bin_str[80];
   char extra_info[100] = "";
   char char_repr[sizeof(ULONG) + 1];
   int i;
@@ -789,8 +814,7 @@ print_result(ULONG value)
   int printable_chars_count = 0;
   const char *ternary_val;
   const char *base36_val;
-  const char *fields[7];
-  int line_len = 4;
+  size_t line_len = 4;
 
   /*LINTED: E_CONSTANT_CONDITION*/
   if (sizeof(ULONG) == 8)
@@ -852,33 +876,37 @@ print_result(ULONG value)
 
   (void)snprintf(bin_str, sizeof(bin_str), "BIN: 0b%s", get_binary_string(value));
 
-  fields[0] = dec_str;
-  fields[1] = oct_str;
-  fields[2] = hex_str;
-  fields[3] = ter_str;
-  fields[4] = b36_str;
-  fields[5] = bin_str;
-  fields[6] = NULL;
+  const char *fields[] = {
+    dec_str, oct_str,
+    hex_str, ter_str,
+    b36_str, bin_str,
+    NULL
+  };
 
-  (void)printf("    ");
+  (void)fprintf(stdout, "    ");
 
   for (i = 0; fields[i] != NULL; i++)
     {
-      int field_len = (int)strlen(fields[i]);
-      if (line_len > 4 && line_len + (int)strlen(fields[i]) > 80)
+      size_t field_len = strlen(fields[i]);
+
+      if (line_len > 4 && line_len + field_len > 80)
         {
-          (void)printf("\n    ");
+          (void)fprintf(stdout, "\n    ");
           line_len = 4;
         }
-      (void)printf("%s", fields[i]);
+
+      (void)fprintf(stdout, "%s", fields[i]);
+
       line_len += field_len;
+
       if (fields[i+1] != NULL)
         {
-          (void)printf(" ");
+          (void)fprintf(stdout, " ");
           line_len++;
         }
     }
-  (void)printf("\n");
+
+  (void)fprintf(stdout, "\n");
 }
 
 static int
@@ -1259,7 +1287,8 @@ is_register(const char *name)
    || strcmp(name, "GS")  == 0
    || strcmp(name, "GI")  == 0
    || strcmp(name, "GL")  == 0
-   || strcmp(name, "GLL") == 0)
+   || strcmp(name, "GLL") == 0
+   || strcmp(name, "GT")  == 0)
     return 1;
 
   return 0;
@@ -1346,16 +1375,16 @@ list_vars(varquery_type type)
     {
       if (count == 0)
         {
-          (void)printf("No user variables defined.\n");
+          (void)fprintf(stdout, "No user variables defined.\n");
           FREE(entries);
 
           return;
         }
 
-      (void)printf("User variables:\n");
+      (void)fprintf(stdout, "User variables:\n");
     }
   else if (type == BUILTIN_VARS) //-V547
-    (void)printf("The following read-only builtin variables are defined:\n");
+    (void)fprintf(stdout, "The following read-only builtin variables are defined:\n");
   else
     {
       (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
@@ -1365,11 +1394,42 @@ list_vars(varquery_type type)
 
   for (i = 0; i < count; i++)
     {
-      (void)printf("  %s:\n", entries[i].name);
+      (void)fprintf(stdout, "  %s:\n", entries[i].name);
       print_result(entries[i].value);
     }
 
   FREE(entries);
+}
+
+/* Special formatting of GT time register */
+
+static void
+print_time_reg(const char *name, ULONG value)
+{
+  time_t time_val = (time_t)value;
+  struct tm *tm_info = localtime(&time_val);
+  size_t size = 64;
+  char *buf = NULL;
+  char *new_buf = NULL;
+  size_t len;
+
+  do {
+    new_buf = realloc(buf, size);
+
+    if (new_buf == NULL) {
+      FREE(buf);
+      print_result(value);
+
+      return;
+    }
+
+    buf = new_buf;
+    len = strftime(buf, size, "%c", tm_info);
+    size *= 2;
+  } while (len == 0);
+
+  (void)fprintf(stdout, "  %s: %s\n", name, buf);
+  FREE(buf);
 }
 
 /* Custom sort order for registers */
@@ -1377,31 +1437,34 @@ list_vars(varquery_type type)
 static int
 get_reg_order(const char *name)
 {
-    if (strcmp(name, "GC") == 0)
-      return 0;
+  if (strcmp(name, "GC") == 0)
+    return 0;
 
-    if (strcmp(name, "GS") == 0)
-      return 1;
+  if (strcmp(name, "GS") == 0)
+    return 1;
 
-    if (strcmp(name, "GI") == 0)
-      return 2;
+  if (strcmp(name, "GI") == 0)
+    return 2;
 
-    if (strcmp(name, "GL") == 0)
-      return 3;
+  if (strcmp(name, "GL") == 0)
+    return 3;
 
-    if (strcmp(name, "GLL") == 0)
-      return 4;
+  if (strcmp(name, "GLL") == 0)
+    return 4;
 
+  if (strcmp(name, "GT") == 0)
     return 5;
+
+  return 6;
 }
 
 static int
 compare_reg_entries(const void *a, const void *b)
 {
-    const var_entry *var_a = (const var_entry *)a;
-    const var_entry *var_b = (const var_entry *)b;
+  const var_entry *var_a = (const var_entry *)a;
+  const var_entry *var_b = (const var_entry *)b;
 
-    return get_reg_order(var_a->name) - get_reg_order(var_b->name);
+  return get_reg_order(var_a->name) - get_reg_order(var_b->name);
 }
 
 static void
@@ -1410,11 +1473,11 @@ list_regs(void)
   variable *v;
   int i;
   int count = 0;
-  var_entry entries[5] = { 0 };
+  var_entry entries[6] = {0};
 
   for (v = vars; v; v = v->next)
     if (v->name && is_register(v->name))
-      if (count < 5)
+      if (count < 6)
         {
           entries[count].name = v->name;
           entries[count].value = v->value;
@@ -1423,12 +1486,19 @@ list_regs(void)
 
   qsort(entries, (size_t)count, sizeof(var_entry), compare_reg_entries);
 
-  (void)printf("Registers:\n");
+  (void)fprintf(stdout, "Registers:\n");
 
   for (i = 0; i < count; i++)
     {
-      (void)printf("  %s:\n", entries[i].name);
-      print_result(entries[i].value);
+      if (strcmp(entries[i].name, "GT") == 0)
+        {
+          print_time_reg(entries[i].name, entries[i].value);
+        }
+      else
+        {
+          (void)fprintf(stdout, "  %s:\n", entries[i].name);
+          print_result(entries[i].value);
+        }
     }
 }
 
@@ -1499,7 +1569,7 @@ print_herald(void)
   else /*NOTREACHED*/ /* unreachable */
     oshitbuf[0] = '\0';
 
-  (void)fprintf(stdout, "%s %d.%d.%d%s%s%s%s ready.\n",
+  (void)fprintf(stdout, "%s v%d.%d.%d%s%s%s%s ready.\n",
                 PC_SOFTWARE_NAME, PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
                 oshitbuf, (void *)PC_SOFTWARE_DATE ? " (" : "",
                 (void *)PC_SOFTWARE_DATE ? squash(PC_SOFTWARE_DATE) : "",
@@ -1515,53 +1585,76 @@ static void
 do_input(void)
 {
   ULONG value;
-  char buff[INPUT_BUFF], *ptr, *end;
+#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+  char *line;
 
-  while (fgets(buff, INPUT_BUFF, stdin) != NULL)
+  while ((line = readline("")) != NULL)
     {
-      if (strlen(buff) >= PIPE_BUF - 1)
-        (void)fprintf(stderr, "Warning: Input truncated at %d characters.\n", INPUT_BUFF);
+      char *ptr = line;
+#elif defined(WITH_LINENOISE)
+  char *line;
 
-      if (buff[0] != '\0' && buff[strlen(buff) - 1] == '\n') //-V557
-        buff[strlen(buff) - 1] = '\0'; //-V557 /* Kill the newline character */
+  while ((line = linenoise("")) != NULL)
+    {
+      char *ptr = line;
+#else
+    char buff[INPUT_BUFF];
 
-      for (ptr = buff; *ptr && isspace((unsigned char)*ptr); ptr++); /* Skip whitespace */
+    while (fgets(buff, INPUT_BUFF, stdin) != NULL)
+      {
+        char *ptr = buff;
 
-      if (*ptr == '\0') /* Hmmm, an empty line, just skip it */
-        continue;
+        if (strlen(ptr) > 0 && ptr[strlen(ptr) - 1] == '\n')
+          ptr[strlen(ptr) - 1] = '\0';
+#endif
 
-      end = ptr + strlen(ptr) - 1;
+        while (*ptr && isspace((unsigned char)*ptr))
+          ptr++;
 
-      while (end > ptr && isspace((unsigned char)*end))
-        *end-- = '\0';
+        if (*ptr == '\0')
+          {
+#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+            FREE(line);
+#elif defined(WITH_LINENOISE)
+            linenoiseFree(line);
+#endif
+            continue;
+          }
 
-      /* List user variables */
-      if (strcmp(ptr, "vars") == 0)
-        {
+        char *end = ptr + strlen(ptr) - 1;
+
+        while (end > ptr && isspace((unsigned char)*end))
+          *end-- = '\0';
+
+#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+        add_history(line);
+#elif defined(WITH_LINENOISE)
+        linenoiseHistoryAdd(line);
+#endif
+
+        if (strcmp(ptr, "vars") == 0)
           list_user_vars();
-          continue;
-        }
-
-      /* List registers */
-      if (strcmp(ptr, "regs") == 0)
-        {
+        else if (strcmp(ptr, "regs") == 0)
           list_regs();
-          continue;
-        }
+        else if (strcmp(ptr, "help") == 0)
+          {
+            list_builtin_vars();
+            list_regs();
+            list_user_vars();
+          }
+        else
+          {
+            value = parse_expression(ptr);
 
-      /* List builtins and show other help */
-      if (strcmp(ptr, "help") == 0)
-        {
-          list_builtin_vars();
-          list_regs();
-          list_user_vars();
-          continue;
-        }
+            if (!suppress_output)
+              print_result(value);
+          }
 
-      value = parse_expression(buff);
-
-      if (!suppress_output)
-        print_result(value);
+#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+        FREE(line);
+#elif defined(WITH_LINENOISE)
+        linenoiseFree(line);
+#endif
     }
 }
 
@@ -1646,6 +1739,7 @@ main(int argc, char *argv[])
   (void)add_var("GI",  0);
   (void)add_var("GL",  0);
   (void)add_var("GLL", 0);
+  (void)add_var("GT",  0);
 
   if (argc > 1)
     parse_args(argc, argv);
@@ -1680,8 +1774,16 @@ parse_expression(char *str)
 
   ptr = skipwhite(ptr);
 
-  if (ptr != NULL && (*ptr == '\0'))
+  if (ptr == NULL || *ptr == '\0')
     return last_result;
+
+  if (strcmp(ptr, "GT") == 0)
+    if (get_var("GT", &val))
+      {
+        print_time_reg("GT", val);
+        suppress_output = 1;
+        return val;
+      }
 
   val = assignment_expr(&ptr);
   ptr = skipwhite(ptr);
@@ -1825,7 +1927,7 @@ assignment_expr(char **str)
               existed = remove_var(var_name);
 
               if (existed && !unset_silent)
-                (void)printf("Variable '%s' unset\n", var_name);
+                (void)fprintf(stdout, "Variable '%s' unset.\n", var_name);
               else if (!existed && !unset_silent)
                 (void)fprintf(stderr, "Warning: No such variable '%s'.\n", var_name);
 
@@ -1843,7 +1945,7 @@ assignment_expr(char **str)
               int existed = remove_var(var_name);
 
               if (existed && !unset_silent)
-                (void)printf("Variable '%s' unset\n", var_name);
+                (void)fprintf(stdout, "Variable '%s' unset.\n", var_name);
             }
           else /* RHS was a normal expression */
             {
@@ -1862,10 +1964,10 @@ assignment_expr(char **str)
         }
     }
   else if (*str != NULL && ((( **str == PLUS || **str == MINUS
-           || **str == OR || **str == TIMES || **str == DIVISION
-           || **str == MODULO || **str == AND
-           || **str == XOR ) && *( *str + 1 ) == EQUAL )
-           || strncmp(*str, "<<=", 3) == 0 || strncmp(*str, ">>=", 3) == 0))
+        || **str == OR || **str == TIMES || **str == DIVISION
+        || **str == MODULO || **str == AND
+        || **str == XOR ) && *( *str + 1 ) == EQUAL )
+        || strncmp(*str, "<<=", 3) == 0 || strncmp(*str, ">>=", 3) == 0))
     val = do_assignment_operator(str, var_name);
   else
     {
@@ -1885,9 +1987,7 @@ assignment_expr(char **str)
     }
 
   if (var_name) //-V547
-    {
-      FREE(var_name);
-    }
+    FREE(var_name);
 
   return val;
 }

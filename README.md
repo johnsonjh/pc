@@ -76,7 +76,7 @@
   * Perform time formatting or casting by storing to special purpose registers
     (*i.e.*, *unsigned* C types `char`, `short`, `int`, `long`, `long long`),
     list via the `regs` command).
-    * Stores to sized registers clamp and mask to register width
+    * Stores to registers clamp and mask to the register width.
 
 ## Portability
 

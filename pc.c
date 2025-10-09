@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 5
+#define PC_VERSION_PATCH 6
 #define PC_VERSION_OSHIT 0
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -979,14 +979,14 @@ print_result(ULONG value)
       if (sizeof(ULONG) == 8)
 #if defined (USE_LONG_LONG)
         (void)snprintf(extra_info, sizeof(extra_info),
-                       " (signed: %lld)", (LONG)value);
+                       " signed: %lld", (LONG)value);
 #else
         (void)snprintf(extra_info, sizeof(extra_info),
-                       " (signed: %ld)", (LONG)value);
+                       " signed: %ld", (LONG)value);
 #endif
       else
         (void)snprintf(extra_info, sizeof(extra_info),
-                       " (signed: %ld)", (long)value);
+                       " signed: %ld", (long)value);
 
       has_signed_info = 1;
     }
@@ -1011,10 +1011,10 @@ print_result(ULONG value)
       if (has_signed_info)
         (void)snprintf(extra_info + strlen(extra_info),
                        sizeof(extra_info) - strlen(extra_info),
-                       " (char: '%s')", char_repr);
+                       " char: '%s'", char_repr);
       else
         (void)snprintf(extra_info, sizeof(extra_info),
-                       " (char: '%s')", char_repr);
+                       " char: '%s'", char_repr);
     }
 
   (void)strncat(dec_str, extra_info, sizeof(dec_str) - strlen(dec_str) - 1);

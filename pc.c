@@ -1437,22 +1437,22 @@ print_time_reg(const char *name, ULONG value)
 static int
 get_reg_order(const char *name)
 {
-  if (strcmp(name, "GC") == 0)
+  if (strcmp(name, "GT") == 0)
     return 0;
 
-  if (strcmp(name, "GS") == 0)
+  if (strcmp(name, "GC") == 0)
     return 1;
 
-  if (strcmp(name, "GI") == 0)
+  if (strcmp(name, "GS") == 0)
     return 2;
 
-  if (strcmp(name, "GL") == 0)
+  if (strcmp(name, "GI") == 0)
     return 3;
 
-  if (strcmp(name, "GLL") == 0)
+  if (strcmp(name, "GL") == 0)
     return 4;
 
-  if (strcmp(name, "GT") == 0)
+  if (strcmp(name, "GLL") == 0)
     return 5;
 
   return 6;

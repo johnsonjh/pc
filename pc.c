@@ -1789,7 +1789,12 @@ print_herald(void)
 }
 
 #if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
-static char *
+static
+# if defined(__APPLE__) && defined(HAVE_EDITLINE_READLINE_H)
+int
+# else
+char *
+# endif
 editor_completion(const char *text, int state)
 {
   (void)text;

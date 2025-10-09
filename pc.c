@@ -776,13 +776,12 @@ get_binary_string(ULONG value)
 static void
 print_result(ULONG value)
 {
-  char dec_str[30];
-  char hex_str[20];
-  char oct_str[25];
-  char ternary_str_buf[45];
-  char base36_str_buf[16];
-  char ternary_display_buf[50];
-  char base36_display_buf[20];
+  char dec_str[128];
+  char oct_str[30];
+  char hex_str[25];
+  char ter_str[50];
+  char b36_str[20];
+  char bin_str[70];
   char extra_info[100] = "";
   char char_repr[sizeof(ULONG) + 1];
   int i;
@@ -790,13 +789,14 @@ print_result(ULONG value)
   int printable_chars_count = 0;
   const char *ternary_val;
   const char *base36_val;
+  const char *fields[7];
+  int line_len = 4;
 
   /*LINTED: E_CONSTANT_CONDITION*/
   if (sizeof(ULONG) == 8)
-    (void)snprintf(dec_str, sizeof(dec_str), "%llu", value);
+    (void)snprintf(dec_str, sizeof(dec_str), "DEC: %llu", value);
   else
-    (void)snprintf(dec_str, sizeof(dec_str), "%lu", (unsigned long)value);
-
+    (void)snprintf(dec_str, sizeof(dec_str), "DEC: %lu", (unsigned long)value);
 
   if ((LONG)value < 0)
     { /*LINTED: E_CONSTANT_CONDITION*/
@@ -831,34 +831,54 @@ print_result(ULONG value)
         (void)snprintf(extra_info, sizeof(extra_info), " (char: '%s')", char_repr);
     }
 
-  (void)printf("    DEC: %s%s\n", dec_str, extra_info);
+  (void)strncat(dec_str, extra_info, sizeof(dec_str) - strlen(dec_str) - 1);
 
-  (void)snprintf(oct_str, sizeof(oct_str), "0o%llo", value);
-
-  (void)printf("    OCT: %s\n", oct_str);
+  (void)snprintf(oct_str, sizeof(oct_str), "OCT: 0o%llo", value);
 
   if (value == 0)
-    (void)snprintf(hex_str, sizeof(hex_str), "0x0");
+    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x0");
   else if (value <= 0xFFFFFFFFUL)
-    (void)snprintf(hex_str, sizeof(hex_str), "0x%lx", (unsigned long)value);
+    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x%lx", (unsigned long)value);
   else
-    (void)snprintf(hex_str, sizeof(hex_str), "0x%llx", value);
+    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x%llx", value);
 
-  (void)printf("    HEX: %s\n", hex_str);
-
+  char ternary_str_buf[45];
   ternary_val = convert_base_string(value, 3, ternary_str_buf, sizeof(ternary_str_buf));
+  (void)snprintf(ter_str, sizeof(ter_str), "TER: 0t%s", ternary_val);
 
-  (void)snprintf(ternary_display_buf, sizeof(ternary_display_buf), "0t%s", ternary_val);
-
-  (void)printf("    TER: 0t%s\n", ternary_val);
-
+  char base36_str_buf[16];
   base36_val = convert_base_string(value, 36, base36_str_buf, sizeof(base36_str_buf));
+  (void)snprintf(b36_str, sizeof(b36_str), "B36: 0z%s", base36_val);
 
-  (void)snprintf(base36_display_buf, sizeof(base36_display_buf), "0z%s", base36_val);
+  (void)snprintf(bin_str, sizeof(bin_str), "BIN: 0b%s", get_binary_string(value));
 
-  (void)printf("    B36: 0z%s\n", base36_val);
+  fields[0] = dec_str;
+  fields[1] = oct_str;
+  fields[2] = hex_str;
+  fields[3] = ter_str;
+  fields[4] = b36_str;
+  fields[5] = bin_str;
+  fields[6] = NULL;
 
-  (void)printf("    BIN: 0b%s\n", get_binary_string(value));
+  (void)printf("    ");
+
+  for (i = 0; fields[i] != NULL; i++)
+    {
+      int field_len = (int)strlen(fields[i]);
+      if (line_len > 4 && line_len + (int)strlen(fields[i]) > 80)
+        {
+          (void)printf("\n    ");
+          line_len = 4;
+        }
+      (void)printf("%s", fields[i]);
+      line_len += field_len;
+      if (fields[i+1] != NULL)
+        {
+          (void)printf(" ");
+          line_len++;
+        }
+    }
+  (void)printf("\n");
 }
 
 static int

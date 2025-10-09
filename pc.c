@@ -1087,8 +1087,8 @@ print_result(ULONG value)
 
       if (line_len > 4 && line_len + field_len > 80)
         {
-          (void)fprintf(stdout, "\n    ");
-          line_len = 4;
+          (void)fprintf(stdout, "\n     ");
+          line_len = 5;
         }
 
       (void)fprintf(stdout, "%s", fields[i]);
@@ -1815,7 +1815,7 @@ editor_completion_function (const char *text, int start, int end)
 #endif
 
 static void
-do_input(void)
+do_input(int echo)
 {
   ULONG value;
 #if defined (WITH_READLINE) || defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
@@ -1843,6 +1843,9 @@ do_input(void)
   while (fgets(buff, INPUT_BUFF, stdin) != NULL)
 #endif
     {
+
+      if (echo)
+        (void)fprintf(stdout, "%s\n", line);
 
 #if !defined (WITH_READLINE) && !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
       if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
@@ -2021,7 +2024,7 @@ main(int argc, char *argv[])
       if (isatty(STDIN_FILENO))
         print_herald();
 
-      do_input();
+      do_input(!isatty(STDIN_FILENO));
     }
 
   return EXIT_SUCCESS;

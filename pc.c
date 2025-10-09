@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 1
+#define PC_VERSION_PATCH 3
 #define PC_VERSION_OSHIT 0
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -914,17 +914,18 @@ convert_to_roman(ULONG value)
   if (value == 0 || value > 3999)
     return NULL;
 
-  (void)strcpy(ptr, m[value / 1000]);
-  ptr += strlen(m[value / 1000]);
+#define APPEND(ptr, s)               \
+  do                                 \
+    {                                \
+      size_t len__ = strlen(s);      \
+      (void)strncpy (ptr, s, len__); \
+      ptr += len__;                  \
+    } while (never)
 
-  (void)strcpy(ptr, c[(value % 1000) / 100]);
-  ptr += strlen(c[(value % 1000) / 100]);
-
-  (void)strcpy(ptr, x[(value % 100) / 10]);
-  ptr += strlen(x[(value % 100) / 10]);
-
-  (void)strcpy(ptr, i[value % 10]);
-  ptr += strlen(i[value % 10]);
+  APPEND(ptr, m[value / 1000]);
+  APPEND(ptr, c[(value % 1000) / 100]);
+  APPEND(ptr, x[(value % 100) / 10]);
+  APPEND(ptr, i[value % 10]);
 
   *ptr = '\0';
 

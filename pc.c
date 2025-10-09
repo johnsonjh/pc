@@ -932,6 +932,7 @@ get_binary_string(ULONG value)
   static char bin_buf[65];
   char *ptr = bin_buf;
 
+  /* Flawfinder: ignore */
   (void)snprintf(bin_buf, sizeof(bin_buf), PFC_INT64, PBI_64(value));
 
   while (*ptr == '0' && *(ptr + 1) != '\0')

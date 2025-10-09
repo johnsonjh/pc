@@ -1,3 +1,5 @@
+# Calculate the date of Easter and check if today is the day.
+
 # Convert epoch to component day, month, year
 spd = 86400;
 z = time / spd + 719468;
@@ -7,8 +9,12 @@ yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;
 y = yoe + era * 400;
 doy = doe - (365*yoe + yoe/4 - yoe/100);
 mp = (5*doy + 2) / 153;
+
+### Current day:
 day = doy - (153*mp + 2)/5 + 1;
+### Current month:
 month = mp + 3 - 12 * ((mp + 10) / 13);
+### Current year:
 year = y + (month <= 2);
 
 # Easter calculations

@@ -13,7 +13,8 @@
 # Environment variables supported by the build:
 #   WITH_TERNARY   - Enable ternary (base 3) output
 #   WITH_BASE36    - Enable base 36 output
-#   WITHOUT_EDITOR - Turns off line editor autodetection
+#   WITHOUT_ROMAN  - Enable Roman numeral output
+#   WITHOUT_EDITOR - Disable line editor autodetection
 #   WITH_LIBEDIT   - Enable libedit (if not autodetected)
 #   WITH_READLINE  - Enable readline (if not autodetected)
 #   WITH_LINENOISE - Enable linenoise
@@ -37,6 +38,9 @@ pc: pc.c
 	fi; \
 	if [ -n "$${WITH_BASE36:-}" ]; then \
 		_CFLAGS="$${_CFLAGS:-} -DWITH_BASE36=1"; \
+	fi; \
+	if [ -n "$${WITHOUT_ROMAN:-}" ]; then \
+		_CFLAGS="$${_CFLAGS:-} -DWITHOUT_ROMAN=1"; \
 	fi; \
 	if [ -n "$${WITHOUT_EDITOR:-}" ]; then \
 		_HAVE_RL=1; \

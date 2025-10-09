@@ -16,6 +16,11 @@
 # shellcheck disable=SC2015,SC3040
 (set -o pipefail || :) > /dev/null 2>&1 && set -o pipefail > /dev/null 2>&1 || :
 
+# Setup
+
+export WITH_TERNARY=1
+export WITH_BASE36=1
+
 xline()
 {
   cols=$(tput cols 2> /dev/null || printf '%s\n' 80)
@@ -94,6 +99,7 @@ test "${ORSTLINT:?}" != "true" && {
 "${ORSTLINT:?}" -std=c99 -err=warn -errtags=yes -errfmt=src \
   -errchk=structarg,longptr64,parentheses,locfmtchk \
   -errsecurity=extended -errshort=full -fd \
+  -DWITH_TERNARY=1 -DWITH_BASE36=1 \
   -erroff=E_SEC_STRNCPY_WARN,E_SEC_RAND_WARN pc.c
 
 # NetBSD Lint
@@ -105,7 +111,7 @@ NetBSD)
       xline
       printf '%s\n' "NetBSD Lint..."
     }
-    lint -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 \
+    lint -DWITH_TERNARY=1 -DWITH_BASE36=1 -S -a -aa -b -c -e -g -h -P -r -u -z pc.c 2>&1 \
       | grep -Ev '(^lint: cannot find llib-lc\.ln$|^pc\.c:$)' || :
   }
   ;;
@@ -136,7 +142,7 @@ Darwin) : ;; # GCC might not be real GCC on Darwin
   test "${GCC:?}" != "true" && {
     xline
     printf '%s\n' "GCC Analyzer..."
-    "${GCC:?}" -fanalyzer -std=c99 -Wall -Wextra -Wpedantic -Werror -O3 pc.c -o pc.gcc
+    "${GCC:?}" -fanalyzer -DWITH_TERNARY=1 -DWITH_BASE36=1 -std=c99 -Wall -Wextra -Wpedantic -Werror -O3 pc.c -o pc.gcc
     rm -f ./pc.gcc > /dev/null 2>&1
   }
 } ;;
@@ -161,10 +167,10 @@ test "${CPPCHECK:?}" != "true" && {
   -DFREE=free -DHAS_INCLUDE=0 -D_DARWIN_C_SOURCE -D_GNU_SOURCE \
   -D_NETBSD_SOURCE -D_OPENBSD_SOURCE -D_POSIX_C_SOURCE=200809L \
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
-  -D__EXTENSIONS__ --quiet pc.c
+  -D__EXTENSIONS__ -DWITH_TERNARY=1 -DWITH_BASE36=1 --quiet pc.c
 
 # Clang -Weverything - manual run because it's ridiculous
-# clang -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+# clang -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
 
 # Final xline
 xline

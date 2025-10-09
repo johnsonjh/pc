@@ -104,12 +104,17 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * Do you want to see output in unbalanced ternary (base 3) or base 36?  If so,
- * uncomment one or both of the following defines, or define when compiling pc.
+ * Do you want to see output in ternary or base 36?
  */
 
-/* #define WANT_TERNARY */
-/* #define WANT_BASE36 */
+/* #define WITH_TERNARY */
+/* #define WITH_BASE36 */
+
+/*
+ * Don't like Roman numeral output?
+ */
+
+/* #define WITHOUT_ROMAN */
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -131,6 +136,12 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 /*
  * Hopefully no user servicable parts below.
  */
+
+#if !defined (WITHOUT_ROMAN)
+# if !defined (WITH_ROMAN)
+#  define WITH_ROMAN
+# endif
+#endif
 
 #if defined (STR_HELPER)
 # undef STR_HELPER
@@ -404,10 +415,96 @@ xstrerror_l (int errnum)
 # define xstrerror_l strerror
 #endif
 
+static const struct
+roman_map
+{
+  const char *symbol;
+  int value;
+  int max_repetitions;
+}
+roman_table[] =
+{
+  { "M", 1000, 3 }, { "CM", 900, 1 }, { "D", 500, 1 }, { "CD", 400, 1 },
+  { "C",  100, 3 }, { "XC",  90, 1 }, { "L",  50, 1 }, { "XL",  40, 1 },
+  { "X",   10, 3 }, { "IX",   9, 1 }, { "V",   5, 1 }, { "IV",   4, 1 },
+  { "I",    1, 3 }, { NULL,   0, 0 }
+};
+
+static ULONG
+parse_roman(char **s)
+{
+  ULONG result = 0;
+  char *p = *s;
+  const struct roman_map *map;
+  const struct roman_map *prev_map_entry = NULL;
+  int current_repetition_count = 0;
+  int last_value = 1001;
+
+  while (*p)
+    {
+      int found = 0;
+
+      for (map = roman_table; map->symbol != NULL; map++)
+        {
+          size_t len = strlen(map->symbol);
+
+          if (strncmp(p, map->symbol, len) == 0)
+            {
+              if (map->value > last_value)
+                {
+                   errno = EINVAL;
+
+                   return 0;
+                }
+
+              if (prev_map_entry != NULL && strcmp(map->symbol, prev_map_entry->symbol) == 0)
+                {
+                  current_repetition_count++;
+
+                  if (current_repetition_count > map->max_repetitions)
+                    {
+                      errno = EINVAL;
+
+                      return 0;
+                    }
+                }
+              else
+                {
+                  current_repetition_count = 1;
+                }
+
+              result += (ULONG)map->value;
+              p += len;
+              last_value = map->value;
+              prev_map_entry = map;
+              found = 1;
+              break;
+            }
+        }
+
+      if (!found)
+        {
+          if (*p != '\0')
+            {
+              errno = EINVAL;
+
+              return 0;
+            }
+
+          break;
+        }
+    }
+
+  *s = p;
+
+  return result;
+}
+
 static ULONG
 xstrtoUL (char *nptr, char **endptr, int base)
 {
   char *p = nptr;
+  char *start_p;
   ULONG result = 0;
   int any = 0;
   int neg = 0;
@@ -528,6 +625,17 @@ xstrtoUL (char *nptr, char **endptr, int base)
                 }
               else
                 base = 0; //-V1048
+            }
+          else if ((p[1] == 'r' || p[1] == 'R'))
+            {
+              p += 2;
+              start_p = p;
+              result = parse_roman(&p);
+
+              if (p > start_p)
+                any = 1;
+
+              goto end_parsing;
             }
 
           if (base == 0)
@@ -654,6 +762,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
 #endif
     }
 
+end_parsing:
   if (!any)
     {
       if (endptr)
@@ -757,7 +866,7 @@ static ULONG last_result   = 0;
 static int suppress_output = 0;
 static int unset_silent    = 0;
 
-#if defined(WANT_BASE36)
+#if defined (WITH_BASE36) || defined (WITH_TERNARY)
 static char *
 convert_base_string(ULONG value, int base, char *buf, int buf_size)
 {
@@ -783,6 +892,46 @@ convert_base_string(ULONG value, int base, char *buf, int buf_size)
 }
 #endif
 
+#if defined (WITH_ROMAN)
+static char *
+convert_to_roman(ULONG value)
+{
+  static char roman_buf[16];
+  char *ptr = roman_buf;
+
+  const char *m[] =
+    { "", "M", "MM", "MMM" };
+
+  const char *c[] =
+    { "", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM" };
+
+  const char *x[] =
+    { "", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC" };
+
+  const char *i[] =
+    { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" };
+
+  if (value == 0 || value > 3999)
+    return NULL;
+
+  (void)strcpy(ptr, m[value / 1000]);
+  ptr += strlen(m[value / 1000]);
+
+  (void)strcpy(ptr, c[(value % 1000) / 100]);
+  ptr += strlen(c[(value % 1000) / 100]);
+
+  (void)strcpy(ptr, x[(value % 100) / 10]);
+  ptr += strlen(x[(value % 100) / 10]);
+
+  (void)strcpy(ptr, i[value % 10]);
+  ptr += strlen(i[value % 10]);
+
+  *ptr = '\0';
+
+  return roman_buf;
+}
+#endif
+
 static char *
 get_binary_string(ULONG value)
 {
@@ -804,27 +953,31 @@ print_result(ULONG value)
   char oct_str[30];
   char hex_str[25];
   char bin_str[80];
+#if defined (WITH_ROMAN)
+  char roman_str[23];
+  char *roman_value_converted;
+#endif
   char extra_info[100] = "";
   char char_repr[sizeof(ULONG) + 1];
   int i;
   int has_signed_info = 0;
   int printable_chars_count = 0;
   size_t line_len = 4;
-#if !defined(_CH_)
+#if !defined (_CH_)
   const
 #endif
-  char *fields[7];
+  char *fields[8];
   int field_index = 0;
 
   /*LINTED: E_CONSTANT_CONDITION*/
   if (sizeof(ULONG) == 8)
 #if defined (USE_LONG_LONG)
-    (void)snprintf(dec_str, sizeof(dec_str), "DEC: %llu", value);
+    (void)snprintf(dec_str, sizeof(dec_str), "dec: %llu", value);
 #else
-    (void)snprintf(dec_str, sizeof(dec_str), "DEC: %lu", value);
+    (void)snprintf(dec_str, sizeof(dec_str), "dec: %lu", value);
 #endif
   else
-    (void)snprintf(dec_str, sizeof(dec_str), "DEC: %lu", (unsigned long)value);
+    (void)snprintf(dec_str, sizeof(dec_str), "dec: %lu", (unsigned long)value);
 
   if ((LONG)value < 0)
     { /*LINTED: E_CONSTANT_CONDITION*/
@@ -872,48 +1025,61 @@ print_result(ULONG value)
   (void)strncat(dec_str, extra_info, sizeof(dec_str) - strlen(dec_str) - 1);
 
 #if defined (USE_LONG_LONG)
-  (void)snprintf(oct_str, sizeof(oct_str), "OCT: 0o%llo", value);
+  (void)snprintf(oct_str, sizeof(oct_str), "oct: 0o%llo", value);
 #else
-  (void)snprintf(oct_str, sizeof(oct_str), "OCT: 0o%lo", value);
+  (void)snprintf(oct_str, sizeof(oct_str), "oct: 0o%lo", value);
 #endif
 
   if (value == 0)
-    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x0");
+    (void)snprintf(hex_str, sizeof(hex_str), "hex: 0x0");
   else if (value <= 0xFFFFFFFFUL)
-    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x%lx",
+    (void)snprintf(hex_str, sizeof(hex_str), "hex: 0x%lx",
                    (unsigned long)value);
   else
 #if defined (USE_LONG_LONG)
     (void)snprintf(hex_str, sizeof(hex_str),
-                   "HEX: 0x%llx", value);
+                   "hex: 0x%llx", value);
 #else
     (void)snprintf(hex_str, sizeof(hex_str),
-                   "HEX: 0x%lx", value);
+                   "hex: 0x%lx", value);
 #endif
 
   fields[field_index++] = dec_str;
   fields[field_index++] = oct_str;
   fields[field_index++] = hex_str;
 
-#if defined (WANT_TERNARY)
+#if defined (WITH_ROMAN)
+  if (value > 0 && value < 4000)
+    {
+      roman_value_converted = convert_to_roman(value);
+      if (NULL != roman_value_converted)
+        {
+          (void)snprintf(roman_str, sizeof(roman_str),
+                         "rom: 0r%s", roman_value_converted);
+          fields[field_index++] = roman_str;
+        }
+    }
+#endif
+
+#if defined (WITH_TERNARY)
   char ter_str[50];
   char ternary_str_buf[45];
-  (void)snprintf(ter_str, sizeof(ter_str), "TER: 0t%s",
+  (void)snprintf(ter_str, sizeof(ter_str), "ter: 0t%s",
                  convert_base_string(value, 3, ternary_str_buf,
                                      sizeof(ternary_str_buf)));
   fields[field_index++] = ter_str;
 #endif
 
-#if defined (WANT_BASE36)
+#if defined (WITH_BASE36)
   char b36_str[20];
   char base36_str_buf[16];
-  (void)snprintf(b36_str, sizeof(b36_str), "B36: 0z%s",
+  (void)snprintf(b36_str, sizeof(b36_str), "b36: 0z%s",
                  convert_base_string(value, 36, base36_str_buf,
                                      sizeof(base36_str_buf)));
   fields[field_index++] = b36_str;
 #endif
 
-  (void)snprintf(bin_str, sizeof(bin_str), "BIN: 0b%s",
+  (void)snprintf(bin_str, sizeof(bin_str), "bin: 0b%s",
                  get_binary_string(value));
   fields[field_index++] = bin_str;
   fields[field_index] = NULL;
@@ -2637,10 +2803,14 @@ get_value(char **str)
       val = xstrtoUL(orig_str, str, 0);
 
       if (errno)
-        (void)fprintf(stderr, "Warning when converting input '%.*s': %s\n",
-                      /*LINTED: E_CAST_INT_TO_SMALL_INT, E_PTRDIFF_OVERFLOW*/
-                      (int)((ptrdiff_t)(*str - orig_str)), orig_str,
-                      xstrerror_l(errno));
+        {
+          /*LINTED: E_PTRDIFF_OVERFLOW */
+          ptrdiff_t len = *str - orig_str;
+          (void)fprintf(stderr, "Warning when converting input%s%.*s%s: %s\n",
+                        /*LINTED: E_CAST_INT_TO_SMALL_INT*/
+                        len > 0 ? " '" : "", (int)len, orig_str,
+                        len > 0 ? "'" : "", xstrerror_l(errno));
+        }
 
       *str = skipwhite(*str);
     }

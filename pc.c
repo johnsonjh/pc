@@ -2816,7 +2816,7 @@ get_value(char **str)
 
       if (errno)
         {
-          /*LINTED: E_PTRDIFF_OVERFLOW */
+          /*LINTED: E_PTRDIFF_OVERFLOW*/
           ptrdiff_t len = *str - orig_str;
           (void)fprintf(stderr, "Warning when converting input%s%.*s%s: %s\n",
                         /*LINTED: E_CAST_INT_TO_SMALL_INT*/

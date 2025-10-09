@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 7
+#define PC_VERSION_PATCH 8
 #define PC_VERSION_OSHIT 0
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -713,13 +713,13 @@ xstrtoUL (char *nptr, char **endptr, int base)
       any = 1;
 
 #if defined (USE_LONG_LONG)
-      if (result  > ULLONG_MAX / (unsigned long long)base ||
-         (result == ULLONG_MAX / (unsigned long long)base &&
-         (unsigned long long)d > ULLONG_MAX % (unsigned long long)base))
+      if (result  > ULLONG_MAX / (ULONG)base ||
+         (result == ULLONG_MAX / (ULONG)base &&
+         (ULONG)d > ULLONG_MAX % (ULONG)base))
 #else
-      if (result  > ULONG_MAX / (unsigned long)base ||
-         (result == ULONG_MAX / (unsigned long)base &&
-         (unsigned long)d > ULONG_MAX % (unsigned long)base))
+      if (result  > ULONG_MAX / (ULONG)base ||
+         (result == ULONG_MAX / (ULONG)base &&
+         (ULONG)d > ULONG_MAX % (ULONG)base))
 #endif
         {
           errno = ERANGE;
@@ -754,11 +754,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
 #endif
         }
 
-#if defined (USE_LONG_LONG)
-      result = result * (unsigned long long)base + (unsigned long long)d;
-#else
-      result = result * (unsigned long)base + (unsigned long)d;
-#endif
+      result = result * (ULONG)base + (ULONG)d;
     }
 
 end_parsing:
@@ -771,11 +767,7 @@ end_parsing:
     }
 
   if (neg)
-#if defined (USE_LONG_LONG)
-    result = (unsigned long long)(-(long long)result);
-#else
-    result = (unsigned long)(-(long)result);
-#endif
+    result = (ULONG)(-(LONG)result);
 
   if (endptr)
     *endptr = p;
@@ -1256,7 +1248,7 @@ builtin_vars(const char *name, ULONG *val)
   else if (strcmp(name, "sizeof_long") == 0)
     *val = (ULONG)sizeof(long);
   else if (strcmp(name, "sizeof_ll") == 0)
-    *val = (ULONG)sizeof(long long);
+    *val = (ULONG)sizeof(LONG);
   else if (strcmp(name, "sizeof_void") == 0)
     *val = (ULONG)sizeof(void *);
   else
@@ -1878,8 +1870,15 @@ do_input(int echo)
 #endif
     {
 
-      if (echo)
-        (void)fprintf(stdout, "%s\n", line);
+  if (echo)
+    {
+      size_t len = strlen(line);
+
+      while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
+        line[--len] = '\0';
+
+      (void)fprintf(stdout, "%s\n", line);
+    }
 
 #if !defined (WITH_READLINE) && !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
       if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
@@ -2781,7 +2780,11 @@ factor(char **str)
     switch (op)
       {
         case NEGATIVE:
-          val *= -(unsigned long long)1LL;
+#if defined (USE_LONG_LONG)
+          val *= -(ULONG)1LL;
+#else
+          val *= -(ULONG)1L;
+#endif
           break;
 
         case BANG:

@@ -14,7 +14,7 @@ more, in exactly the way C programmers expect on their system.
 * **Automatic input and output base conversions:**:
   * Binary (base 2): `0b111101001101001`
   * Octal (base 8): `0o75151` (or `0075151`)
-  * Binary (base 10): `31337`
+  * Decimal (base 10): `31337`
   * Hex (base 16): `0x7a69`
   * Roman: `0rMCCCXXXVII`
   * ASCII: `'zi'`

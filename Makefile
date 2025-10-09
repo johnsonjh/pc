@@ -10,11 +10,50 @@
 # Copyright (c) 2022-2025 The DPS8M Development Team
 # scspell-id: 805354da-a39e-11f0-8637-80ee73e9b8e7
 
+PKG-CONFIG=pkg-config
 RM=rm -f
-XCC=$$(command -v gcc 2> /dev/null || command -v clang 2> /dev/null || command -v c99 2> /dev/null || printf '%s\n' cc)
+XCC=$$(\
+  command -v gcc 2> /dev/null || \
+  command -v clang 2> /dev/null || \
+  command -v c99 2> /dev/null || \
+  command -v ibm-clang 2> /dev/null || \
+  printf '%s\n' cc \
+)
 
 pc: pc.c
-	@XCC="$(XCC)"; CFLAGS="$(CFLAGS)"; case "$$(uname -s 2> /dev/null || :)" in AIX) OM="OBJECT_MODE=64"; ;; esac; test "$$(command -v "$$CC" 2> /dev/null)" && { XCC="$$CC"; }; test "$$OM" && case "$$XCC" in *gcc*) CFLAGS="$${CFLAGS:-} -maix64"; ;; esac; set -x; env $${OM:-} $${XCC:?} $${CFLAGS:-} $(LDFLAGS) pc.c -o pc
+	@XCC="$(XCC)"; \
+	_CFLAGS="$(CFLAGS)"; \
+	_LDFLAGS="$(LDFLAGS)"; \
+	if [ -n "$${WITH_LIBEDIT:-}" ]; then \
+		_HAVE_RL=1; \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_LIBEDIT=1"; \
+		_LDFLAGS="$${_LDFLAGS:-} -ledit"; \
+	fi; \
+	if [ -n "$${WITH_READLINE:-}" ]; then \
+		_HAVE_RL=1; \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_READLINE=1"; \
+		_LDFLAGS="$${_LDFLAGS:-} -lreadline"; \
+	fi; \
+	if [ -n "$${WITH_LINENOISE:-}" ]; then \
+		_HAVE_RL=1; \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_LINENOISE=1"; \
+		_LDFLAGS="$${_LDFLAGS:-} -llinenoise"; \
+	fi; \
+	if [ "$${_HAVE_RL:-0}" -ne 1 ] && $(PKG-CONFIG) --cflags --libs libedit > /dev/null 2>&1; then \
+		_HAVE_RL=1; \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_LIBEDIT=1 $$($(PKG-CONFIG) --cflags libedit 2> /dev/null)"; \
+		_LDFLAGS="$${_LDFLAGS:-} $$($(PKG-CONFIG) --libs libedit 2> /dev/null)"; \
+	fi; \
+	if [ "$${_HAVE_RL:-0}" -ne 1 ] && $(PKG-CONFIG) --cflags --libs readline > /dev/null 2>&1; then \
+		_HAVE_RL=1; \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_READLINE=1 $$($(PKG-CONFIG) --cflags readline 2> /dev/null)"; \
+		_LDFLAGS="$${_LDFLAGS:-} $$($(PKG-CONFIG) --libs readline 2> /dev/null)"; \
+	fi; \
+	case "$$(uname -s 2> /dev/null || :)" in AIX) OM="OBJECT_MODE=64"; ;; esac; \
+	test "$$(command -v "$${CC:-}" 2> /dev/null)" && { XCC="$${CC:-}"; }; \
+	test "$${OM:-}" && case "$${XCC:?}" in *gcc*) _CFLAGS="$${_CFLAGS:-} -maix64"; ;; esac; \
+	set -x; \
+	env $${OM:-} $${XCC:?} $${_CFLAGS:-} $${_LDFLAGS} pc.c -o pc
 
 all: pc
 

@@ -1827,6 +1827,7 @@ do_input(void)
   char *input_line;
   char *saveptr;
   char *token;
+  char *comment_ptr;
 
 #if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
   rl_completion_entry_function = editor_completion;
@@ -1866,6 +1867,10 @@ do_input(void)
         if (*line)
           linenoiseHistoryAdd(line);
 #endif
+
+        comment_ptr = strchr(input_line, '#');
+        if (comment_ptr != NULL)
+          *comment_ptr = '\0';
 
         token = strtok_r(input_line, ";", &saveptr);
 

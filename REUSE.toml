@@ -16,7 +16,7 @@ SPDX-PackageSupplier = "Jeffrey H. Johnson <trnsz@pobox.com>"
 SPDX-PackageDownloadLocation = "https://github.com/johnsonjh/pc"
 
 [[annotations]]
-path = [".whitesource", "easter.pc"]
+path = [".whitesource", "easter.pc", "easter.txt"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022-2025 Jeffrey H. Johnson"
 SPDX-License-Identifier = "MIT"

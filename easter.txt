@@ -1,0 +1,116 @@
+# Calculate the date of Easter and check if today is the day.
+
+# Convert epoch to component day, month, year
+now = time;
+    dec: 1760046058 char: '....h.+.' oct: 0o15072025752 hex: 0x68e82bea 
+     ter: 0t11112122211121022001 b36: 0zT3VW8A 
+     bin: 0b1101000111010000010101111101010
+bitshift = (sizeof_ll * CHAR_BIT) - 1;
+    dec: 63 char: '.......?' oct: 0o77 hex: 0x3f rom: 0rLXIII ter: 0t2100 
+     b36: 0z1R bin: 0b111111
+spd = 86400;
+    dec: 86400 char: '......Q.' oct: 0o250600 hex: 0x15180 ter: 0t11101112000 
+     b36: 0z1UO0 bin: 0b10101000110000000
+top = (1 << bitshift);
+    dec: 9223372036854775808 signed: -9223372036854775808 
+     oct: 0o1000000000000000000000 hex: 0x8000000000000000 
+     ter: 0t2021110011022210012102010021220101220222 b36: 0z1Y2P0IJ32E8E 
+     bin: 0b1000000000000000000000000000000000000000000000000000000000000000
+low = (now & (top - 1));
+    dec: 1760046058 char: '....h.+.' oct: 0o15072025752 hex: 0x68e82bea 
+     ter: 0t11112122211121022001 b36: 0zT3VW8A 
+     bin: 0b1101000111010000010101111101010
+high = (now & top);
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+s = low - high;
+    dec: 1760046058 char: '....h.+.' oct: 0o15072025752 hex: 0x68e82bea 
+     ter: 0t11112122211121022001 b36: 0zT3VW8A 
+     bin: 0b1101000111010000010101111101010
+sign = s >> bitshift;
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+negmag = top - low;
+    dec: 9223372035094729750 oct: 0o777777777762705752026 
+     hex: 0x7fffffff9717d416 ter: 0t2021110011022210012020120122001210121221 
+     b36: 0z1Y2P0II9YIC5 
+     bin: 0b111111111111111111111111111111110010111000101111101010000010110
+ceil_neg = (negmag + (spd - 1)) / spd;
+    dec: 106751991146930 char: '..a."...' oct: 0o3021344240564662 
+     hex: 0x61172282e9b2 ter: 0t111222222101112210212101122022 b36: 0z11U96R9VAQ 
+     bin: 0b11000010001011100100010100000101110100110110010
+qpos = low / spd;
+    dec: 20370 char: '......O.' oct: 0o47622 hex: 0x4f92 ter: 0t1000221110 
+     b36: 0zFPU bin: 0b100111110010010
+qneg = 0 - ceil_neg;
+    dec: 18446637321718404686 signed: -106751991146930 char: '.....}.N' 
+     oct: 0o1777774756433537213116 hex: 0xffff9ee8dd7d164e 
+     ter: 0t11112220022010120102102200202221102012122 b36: 0z3W5CZ6SZDILH 
+     bin: 0b1111111111111111100111101110100011011101011111010001011001001110
+q = (qpos & (0 - (sign ^ 1))) | (qneg & (0 - sign));
+    dec: 20370 char: '......O.' oct: 0o47622 hex: 0x4f92 ter: 0t1000221110 
+     b36: 0zFPU bin: 0b100111110010010
+z = q + 719468;
+    dec: 739838 char: '......I.' oct: 0o2644776 hex: 0xb49fe 
+     ter: 0t1101120212102 b36: 0zFUV2 bin: 0b10110100100111111110
+era = (z - ((z < 0) * 146096)) / 146097;
+    dec: 5 oct: 0o5 hex: 0x5 rom: 0rV ter: 0t12 b36: 0z5 bin: 0b101
+doe = z - era * 146097;
+    dec: 9353 char: '......$.' oct: 0o22211 hex: 0x2489 ter: 0t110211102 
+     b36: 0z77T bin: 0b10010010001001
+yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;
+    dec: 25 oct: 0o31 hex: 0x19 rom: 0rXXV ter: 0t221 b36: 0zP bin: 0b11001
+y = yoe + era * 400;
+    dec: 2025 oct: 0o3751 hex: 0x7e9 rom: 0rMMXXV ter: 0t2210000 b36: 0z1K9 
+     bin: 0b11111101001
+doy = doe - (365*yoe + yoe/4 - yoe/100);
+    dec: 222 oct: 0o336 hex: 0xde rom: 0rCCXXII ter: 0t22020 b36: 0z66 
+     bin: 0b11011110
+mp = (5*doy + 2) / 153;
+    dec: 7 oct: 0o7 hex: 0x7 rom: 0rVII ter: 0t21 b36: 0z7 bin: 0b111
+
+### Current day:
+day = doy - (153*mp + 2)/5 + 1
+    dec: 9 oct: 0o11 hex: 0x9 rom: 0rIX ter: 0t100 b36: 0z9 bin: 0b1001
+### Current month:
+month = mp + 3 - 12 * ((mp + 2) / 12)
+    dec: 10 oct: 0o12 hex: 0xa rom: 0rX ter: 0t101 b36: 0zA bin: 0b1010
+### Current year:
+year = y + (month <= 2)
+    dec: 2025 oct: 0o3751 hex: 0x7e9 rom: 0rMMXXV ter: 0t2210000 b36: 0z1K9 
+     bin: 0b11111101001
+
+# Easter calculations
+a = year % 19;
+    dec: 11 oct: 0o13 hex: 0xb rom: 0rXI ter: 0t102 b36: 0zB bin: 0b1011
+b = year / 100;
+    dec: 20 oct: 0o24 hex: 0x14 rom: 0rXX ter: 0t202 b36: 0zK bin: 0b10100
+c = year % 100;
+    dec: 25 oct: 0o31 hex: 0x19 rom: 0rXXV ter: 0t221 b36: 0zP bin: 0b11001
+d = b / 4;
+    dec: 5 oct: 0o5 hex: 0x5 rom: 0rV ter: 0t12 b36: 0z5 bin: 0b101
+e = b % 4;
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+f = (b + 8) / 25;
+    dec: 1 oct: 0o1 hex: 0x1 rom: 0rI ter: 0t1 b36: 0z1 bin: 0b1
+g = (b - f + 1) / 3;
+    dec: 6 oct: 0o6 hex: 0x6 rom: 0rVI ter: 0t20 b36: 0z6 bin: 0b110
+h = (19 * a + b - d - g + 15) % 30;
+    dec: 23 oct: 0o27 hex: 0x17 rom: 0rXXIII ter: 0t212 b36: 0zN bin: 0b10111
+i = c / 4;
+    dec: 6 oct: 0o6 hex: 0x6 rom: 0rVI ter: 0t20 b36: 0z6 bin: 0b110
+k = c % 4;
+    dec: 1 oct: 0o1 hex: 0x1 rom: 0rI ter: 0t1 b36: 0z1 bin: 0b1
+l = (32 + 2 * e + 2 * i - h - k) % 7;
+    dec: 6 oct: 0o6 hex: 0x6 rom: 0rVI ter: 0t20 b36: 0z6 bin: 0b110
+m = (a + 11 * h + 22 * l) / 451;
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+
+### Easter's month:
+emonth = (h + l - 7 * m + 114) / 31
+    dec: 4 oct: 0o4 hex: 0x4 rom: 0rIV ter: 0t11 b36: 0z4 bin: 0b100
+### Easter's day:
+eday = ((h + l - 7 * m + 114) % 31) + 1
+    dec: 20 oct: 0o24 hex: 0x14 rom: 0rXX ter: 0t202 b36: 0zK bin: 0b10100
+
+### Is it today?  (0 is false, 1 is true)
+day == eday && month == emonth
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0

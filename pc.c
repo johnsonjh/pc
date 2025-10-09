@@ -962,7 +962,7 @@ print_result(ULONG value)
   int i;
   int has_signed_info = 0;
   int printable_chars_count = 0;
-  size_t line_len = 4;
+  long line_len = 4;
 #if !defined (_CH_)
   const
 #endif

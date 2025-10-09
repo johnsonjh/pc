@@ -1417,7 +1417,8 @@ print_time_reg(const char *name, ULONG value)
     new_buf = realloc(buf, size);
 
     if (new_buf == NULL) {
-      FREE(buf);
+      if (buf)
+        FREE(buf);
       print_result(value);
 
       return;
@@ -1585,71 +1586,90 @@ static void
 do_input(void)
 {
   ULONG value;
-#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+#if defined(WITH_READLINE) || defined(WITH_LIBEDIT) || defined(WITH_LINENOISE)
   char *line;
-
-  while ((line = readline("")) != NULL)
-    {
-      char *ptr = line;
-#elif defined(WITH_LINENOISE)
-  char *line;
-
-  while ((line = linenoise("")) != NULL)
-    {
-      char *ptr = line;
 #else
-    char buff[INPUT_BUFF];
-
-    while (fgets(buff, INPUT_BUFF, stdin) != NULL)
-      {
-        char *ptr = buff;
-
-        if (strlen(ptr) > 0 && ptr[strlen(ptr) - 1] == '\n')
-          ptr[strlen(ptr) - 1] = '\0';
+  char buff[INPUT_BUFF];
+  char *line = buff;
 #endif
-
-        while (*ptr && isspace((unsigned char)*ptr))
-          ptr++;
-
-        if (*ptr == '\0')
-          {
-#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
-            FREE(line);
-#elif defined(WITH_LINENOISE)
-            linenoiseFree(line);
-#endif
-            continue;
-          }
-
-        char *end = ptr + strlen(ptr) - 1;
-
-        while (end > ptr && isspace((unsigned char)*end))
-          *end-- = '\0';
 
 #if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
-        add_history(line);
+  while ((line = readline("")) != NULL)
 #elif defined(WITH_LINENOISE)
-        linenoiseHistoryAdd(line);
+  while ((line = linenoise("")) != NULL)
+#else
+  while (fgets(buff, INPUT_BUFF, stdin) != NULL)
+#endif
+    {
+
+#if !defined(WITH_READLINE) && !defined(WITH_LIBEDIT) && !defined(WITH_LINENOISE)
+      if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
+        line[strlen(line) - 1] = '\0';
 #endif
 
-        if (strcmp(ptr, "vars") == 0)
-          list_user_vars();
-        else if (strcmp(ptr, "regs") == 0)
-          list_regs();
-        else if (strcmp(ptr, "help") == 0)
-          {
-            list_builtin_vars();
-            list_regs();
-            list_user_vars();
-          }
-        else
-          {
-            value = parse_expression(ptr);
+      char *input_line = strdup(line);
+      if (input_line == NULL)
+        {
+#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+          FREE(line);
+#elif defined(WITH_LINENOISE)
+          linenoiseFree(line);
+#endif
+          continue;
+        }
 
-            if (!suppress_output)
-              print_result(value);
+#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+        if (*line)
+          add_history(line);
+#elif defined(WITH_LINENOISE)
+        if (*line)
+          linenoiseHistoryAdd(line);
+#endif
+
+        char *saveptr;
+        char *token = strtok_r(input_line, ";", &saveptr);
+
+        while (token != NULL)
+          {
+            char *t_ptr = token;
+
+            while (*t_ptr && isspace((unsigned char)*t_ptr))
+              t_ptr++;
+
+            char *end = t_ptr + strlen(t_ptr) - 1;
+
+            while (end > t_ptr && isspace((unsigned char)*end))
+              *end-- = '\0';
+
+            if (*t_ptr == '\0')
+              {
+                token = strtok_r(NULL, ";", &saveptr);
+                continue;
+              }
+
+            if (strcmp(t_ptr, "vars") == 0)
+              list_user_vars();
+            else if (strcmp(t_ptr, "regs") == 0)
+              list_regs();
+            else if (strcmp(t_ptr, "help") == 0)
+              {
+                list_builtin_vars();
+                list_regs();
+                list_user_vars();
+              }
+            else
+              {
+                suppress_output = (strtok_r(NULL, ";", &saveptr) == NULL && line[strlen(line)-1] == ';');
+                value = parse_expression(t_ptr);
+
+                if (!suppress_output)
+                  print_result(value);
+              }
+
+            token = strtok_r(NULL, ";", &saveptr);
           }
 
+        FREE(input_line);
 #if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
         FREE(line);
 #elif defined(WITH_LINENOISE)
@@ -1662,7 +1682,7 @@ static void
 parse_args(int argc, char *argv[])
 {
   size_t i, len;
-  char *buff, *ptr, *end;
+  char *buff;
   ULONG value;
 
   for (i = 1, len = 0; i < (size_t)argc; i++)
@@ -1683,44 +1703,48 @@ parse_args(int argc, char *argv[])
       (void)strncat(buff, " ", len - strlen(buff) - 1);
     }
 
-  ptr = buff;
+    char *saveptr;
+    char *token = strtok_r(buff, ";", &saveptr);
 
-  while (*ptr && isspace((unsigned char)*ptr))
-    ptr++;
+    while (token != NULL)
+      {
+        char *t_ptr = token;
 
-  end = ptr + strlen(ptr) - 1;
+        while (*t_ptr && isspace((unsigned char)*t_ptr))
+          t_ptr++;
 
-  while (end > ptr && isspace((unsigned char)*end))
-    *end-- = '\0';
+        char *end = t_ptr + strlen(t_ptr) - 1;
 
-  if (strcmp(ptr, "vars") == 0)
-    {
-      list_user_vars();
-      FREE(buff);
+        while (end > t_ptr && isspace((unsigned char)*end))
+          *end-- = '\0';
 
-      return;
-    }
+        if (*t_ptr == '\0')
+          {
+            token = strtok_r(NULL, ";", &saveptr);
+            continue;
+          }
 
-  if (strcmp(ptr, "regs") == 0)
-    {
-      list_regs();
-      FREE(buff);
+        if (strcmp(t_ptr, "vars") == 0)
+          list_user_vars();
+        else if (strcmp(t_ptr, "regs") == 0)
+            list_regs();
+        else if (strcmp(t_ptr, "help") == 0)
+          {
+            list_builtin_vars();
+            list_regs();
+            list_user_vars();
+          }
+        else
+          {
+            suppress_output = 0;
+            value = parse_expression(t_ptr);
 
-      return;
-    }
+            if (!suppress_output)
+              print_result(value);
+          }
 
-  if (strcmp(ptr, "help") == 0)
-    {
-      list_builtin_vars();
-      FREE(buff);
-
-      return;
-    }
-
-  value = parse_expression(buff);
-
-  if (!suppress_output)
-    print_result(value);
+        token = strtok_r(NULL, ";", &saveptr);
+      }
 
   FREE(buff);
 }
@@ -1786,21 +1810,6 @@ parse_expression(char *str)
       }
 
   val = assignment_expr(&ptr);
-  ptr = skipwhite(ptr);
-
-  while (ptr != NULL && (*ptr == SEMI_COLON))
-    {
-      ptr++;
-
-      if (*ptr == '\0') /* Reached the end of the string, stop parsing */
-        {
-          suppress_output = 1;
-          break;
-        }
-
-      val = assignment_expr(&ptr);
-    }
-
   last_result = val;
 
   return val;
@@ -2581,7 +2590,11 @@ get_value(char **str)
           v   = add_var(var_name, val);
 
           if (v == NULL)
-            return 0;
+            {
+              FREE(var_name);
+
+              return 0;
+            }
         }
 
       *str = skipwhite(*str);

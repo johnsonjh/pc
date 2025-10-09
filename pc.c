@@ -914,12 +914,12 @@ convert_to_roman(ULONG value)
   if (value == 0 || value > 3999)
     return NULL;
 
-#define APPEND(ptr, s)               \
-  do                                 \
-    {                                \
-      size_t len__ = strlen(s);      \
-      (void)strncpy (ptr, s, len__); \
-      ptr += len__;                  \
+#define APPEND(ptr, s)          \
+  do                            \
+    {                           \
+      size_t len__ = strlen(s); \
+      memcpy (ptr, s, len__);   \
+      ptr += len__;             \
     } while (never)
 
   APPEND(ptr, m[value / 1000]);

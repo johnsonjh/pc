@@ -484,13 +484,6 @@ parse_roman(char **s)
 
       if (!found)
         {
-          if (*p != '\0')
-            {
-              errno = EINVAL;
-
-              return 0;
-            }
-
           break;
         }
     }
@@ -1001,7 +994,7 @@ print_result(ULONG value)
     {
       ULONG ch = (value >> (i * CHAR_BIT)) & 0xFF;
 
-      if (isprint((unsigned char)ch))
+      if (ch >= 32 && ch <= 126)
         {
           char_repr[sizeof(ULONG) - 1 - (size_t)i] = (char)ch;
           printable_chars_count++;

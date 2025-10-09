@@ -4,10 +4,7 @@
 <!-- scspell-id: 498fb4ee-a43d-11f0-aae1-80ee73e9b8e7 -->
 # `pc`: programmers calculator
 
-`pc` is a greatly enhanced fork of the venerable SGI→Be→Haiku
-`pc` programmers calculator—the ultimate integer calculator for C
-programmers, supporting casts, modulo, shifts, bitwise operations, and
-more, in exactly the way C programmers expect on their system.
+`pc` is an enhanced fork of the SGI/Be/Haiku programmers calculator.
 
 ## Syntax and operators
 
@@ -87,7 +84,7 @@ more, in exactly the way C programmers expect on their system.
 
 ## Usage
 
-* Supports **interactive**, **command-line** (`pc 1+1`), and **piped** usage
+* Supports **interactive**, **command-line** (`pc 1+1`), and **piped**/**redirected** usage
 * **Examples:**
   * `0xFF & 0x0F`
   * `1 << 12`

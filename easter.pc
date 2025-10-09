@@ -13,7 +13,8 @@ mp = (5*doy + 2) / 153;
 ### Current day:
 day = doy - (153*mp + 2)/5 + 1;
 ### Current month:
-month = mp + 3 - 12 * ((mp + 10) / 13);
+month = mp + 3 - 12 * ((mp + 2) / 12);
+
 ### Current year:
 year = y + (month <= 2);
 

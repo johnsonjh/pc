@@ -4,7 +4,7 @@
 <!-- scspell-id: 498fb4ee-a43d-11f0-aae1-80ee73e9b8e7 -->
 # `pc`: programmers calculator
 
-`pc` is a greatly enhanced fork of the venerable (*SGI*→*Be*→*Haiku*)
+`pc` is a greatly enhanced fork of the venerable SGI→Be→Haiku
 `pc` programmers calculator—the ultimate integer calculator for C
 programmers, supporting casts, modulo, shifts, bitwise operations, and
 more, in exactly the way C programmers expect on their system.
@@ -12,14 +12,14 @@ more, in exactly the way C programmers expect on their system.
 ## Syntax and operators
 
 * **Automatic input and output base conversions:**:
-  * Binary (base 2): `0b111101001101001`
-  * Octal (base 8): `0075151`
+  * Binary (base 2): **`0b`**`111101001101001`
+  * Octal (base 8): **`0o`**`75151` (or **`00`**`75151`)
   * Binary (base 10): `31337`
-  * Hex (base 16): `0x7a69`
-  * ASCII: `'zi'`
+  * Hex (base 16): **`0x`**`7a69`
+  * ASCII: **`'`**`zi`**`'`**
 * **Optional support for:**
-  * Ternary (base 3): `0t1120222122`
-  * Base 36: `0zO6H`
+  * Ternary (base 3): **`0t`**`1120222122`
+  * Base 36: **`0z`**`O6H`
 
 * **Operators:**
   * `++`, `--`, `~`, `!`, `*`, `/`, `%`, `+`, `-`, `<<`, `>>`, `<`, `>`,
@@ -60,12 +60,12 @@ more, in exactly the way C programmers expect on their system.
 
 * **Builtins:**
   * Builtins provide access to **50** or more system constants and runtime
-    values, which can be listed with `help`.
+    values, which can be listed with the `help` command.
 
 * **Registers:**
   * Perform time formatting or casts by storing into special purpose registers
     (*i.e.*, *unsigned* C types `char`, `short`, `int`, `long`, `long long`),
-    that can be listed with `regs`.
+    list via the `regs` command).
     * Stores to sized registers clamp and mask to register width
 
 ## Portability

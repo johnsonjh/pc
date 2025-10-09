@@ -311,8 +311,8 @@ static const int never = 0;
  * uncomment one or both of the following defines, or define when compiling pc.
  */
 
-#define WANT_TERNARY
-#define WANT_BASE36
+/* #define WANT_TERNARY */
+/* #define WANT_BASE36 */
 
 /*
  * Keep '# define USE_LONG_LONG' if your compiler supports the the "long long"
@@ -745,6 +745,7 @@ static ULONG last_result   = 0;
 static int suppress_output = 0;
 static int unset_silent    = 0;
 
+#if defined(WANT_BASE36)
 static char *
 convert_base_string(ULONG value, int base, char *buf, int buf_size)
 {
@@ -768,6 +769,7 @@ convert_base_string(ULONG value, int base, char *buf, int buf_size)
 
   return ptr;
 }
+#endif
 
 static char *
 get_binary_string(ULONG value)
@@ -854,14 +856,17 @@ print_result(ULONG value)
     (void)snprintf(hex_str, sizeof(hex_str),
                    "HEX: 0x%llx", value);
 
-  const char *fields[7];
+#if !defined(_CH_)
+  const
+#endif
+  char *fields[7];
   int field_index = 0;
 
   fields[field_index++] = dec_str;
   fields[field_index++] = oct_str;
   fields[field_index++] = hex_str;
 
-#if defined(WANT_TERNARY)
+#if defined (WANT_TERNARY)
   char ter_str[50];
   char ternary_str_buf[45];
   (void)snprintf(ter_str, sizeof(ter_str), "TER: 0t%s",
@@ -870,7 +875,7 @@ print_result(ULONG value)
   fields[field_index++] = ter_str;
 #endif
 
-#if defined(WANT_BASE36)
+#if defined (WANT_BASE36)
   char b36_str[20];
   char base36_str_buf[16];
   (void)snprintf(b36_str, sizeof(b36_str), "B36: 0z%s",
@@ -1587,27 +1592,56 @@ print_herald(void)
 #endif
 }
 
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+static char *
+editor_completion(const char *text, int state)
+{
+  (void)text;
+  (void)state;
+
+  return NULL;
+}
+#endif
+
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+static char **
+editor_completion_function (const char *text, int start, int end)
+{
+  (void)text;
+  (void)start;
+  (void)end;
+
+  return NULL;
+}
+#endif
+
 static void
 do_input(void)
 {
   ULONG value;
-#if defined(WITH_READLINE) || defined(WITH_LIBEDIT) || defined(WITH_LINENOISE)
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
   char *line;
 #else
   char buff[INPUT_BUFF];
   char *line = buff;
 #endif
 
-#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+  rl_completion_entry_function = editor_completion;
+  rl_attempted_completion_function = editor_completion_function;
+#endif
+
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
   while ((line = readline("")) != NULL)
-#elif defined(WITH_LINENOISE)
-  while ((line = linenoise("")) != NULL)
+#elif defined (WITH_LINENOISE)
+  /* NB: An empty ("") prompt is not supported with upstream linenoise */
+  while ((line = linenoise(">")) != NULL)
 #else
   while (fgets(buff, INPUT_BUFF, stdin) != NULL)
 #endif
     {
 
-#if !defined(WITH_READLINE) && !defined(WITH_LIBEDIT) && !defined(WITH_LINENOISE)
+#if !defined (WITH_READLINE) && !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
       if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
         line[strlen(line) - 1] = '\0';
 #endif
@@ -1615,18 +1649,18 @@ do_input(void)
       char *input_line = strdup(line);
       if (input_line == NULL)
         {
-#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
           FREE(line);
-#elif defined(WITH_LINENOISE)
+#elif defined (WITH_LINENOISE)
           linenoiseFree(line);
 #endif
           continue;
         }
 
-#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
         if (*line)
           add_history(line);
-#elif defined(WITH_LINENOISE)
+#elif defined (WITH_LINENOISE)
         if (*line)
           linenoiseHistoryAdd(line);
 #endif
@@ -1676,9 +1710,9 @@ do_input(void)
           }
 
         FREE(input_line);
-#if defined(WITH_READLINE) || defined(WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
         FREE(line);
-#elif defined(WITH_LINENOISE)
+#elif defined (WITH_LINENOISE)
         linenoiseFree(line);
 #endif
     }
@@ -1758,7 +1792,7 @@ parse_args(int argc, char *argv[])
 int
 main(int argc, char *argv[])
 {
-#if !defined(NO_LOCALE)
+#if !defined (NO_LOCALE)
   (void)setlocale (LC_ALL, "");
 #endif
 

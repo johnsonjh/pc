@@ -11,14 +11,15 @@ more, in exactly the way C programmers expect on their system.
 
 ## Syntax and operators
 
-* **Automatic input and output base conversions**:
+* **Automatic input and output base conversions:**:
   * Binary (base 2): `0b111101001101001`
-  * Ternary (base 3): `0t1120222122`
   * Octal (base 8): `0075151`
   * Binary (base 10): `31337`
   * Hex (base 16): `0x7a69`
-  * Base 36: `0zO6H`
   * ASCII: `'zi'`
+* **Optional support for:**
+  * Ternary (base 3): `0t1120222122`
+  * Base 36: `0zO6H`
 
 * **Operators:**
   * `++`, `--`, `~`, `!`, `*`, `/`, `%`, `+`, `-`, `<<`, `>>`, `<`, `>`,

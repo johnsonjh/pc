@@ -10,6 +10,14 @@
 # Copyright (c) 2022-2025 The DPS8M Development Team
 # scspell-id: 805354da-a39e-11f0-8637-80ee73e9b8e7
 
+# Environment variables supported by the build:
+#   WITH_TERNARY   - Enable ternary (base 3) output
+#   WITH_BASE36    - Enable base 36 output
+#   WITHOUT_EDITOR - Turns off line editor autodetection
+#   WITH_LIBEDIT   - Enable libedit (if not autodetected)
+#   WITH_READLINE  - Enable readline (if not autodetected)
+#   WITH_LINENOISE - Enable linenoise
+
 PKG-CONFIG=pkg-config
 RM=rm -f
 XCC=$$(\
@@ -24,6 +32,15 @@ pc: pc.c
 	@XCC="$(XCC)"; \
 	_CFLAGS="$(CFLAGS)"; \
 	_LDFLAGS="$(LDFLAGS)"; \
+	if [ -n "$${WITH_TERNARY:-}" ]; then \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_TERNARY=1"; \
+	fi; \
+	if [ -n "$${WITH_BASE36:-}" ]; then \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_BASE36=1"; \
+	fi; \
+	if [ -n "$${WITHOUT_EDITOR:-}" ]; then \
+		_HAVE_RL=1; \
+	fi; \
 	if [ -n "$${WITH_LIBEDIT:-}" ]; then \
 		_HAVE_RL=1; \
 		_CFLAGS="$${_CFLAGS:-} -DWITH_LIBEDIT=1"; \

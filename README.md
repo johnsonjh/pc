@@ -16,6 +16,7 @@ more, in exactly the way C programmers expect on their system.
   * Octal (base 8): **`0o`**`75151` (or **`00`**`75151`)
   * Binary (base 10): `31337`
   * Hex (base 16): **`0x`**`7a69`
+  * Roman: **`0r`**`MCCCXXXVII`
   * ASCII: **`'`**`zi`**`'`**
 * **Optional support for:**
   * Ternary (base 3): **`0t`**`1120222122`
@@ -82,6 +83,7 @@ more, in exactly the way C programmers expect on their system.
   and it will *just run* (using magic), or,
 * Build it with `make`.  Standard environment variables (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
+* Review the [`Makefile`](Makefile) to see available build options.
 
 ## Usage
 

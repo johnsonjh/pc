@@ -11,7 +11,7 @@ more, in exactly the way C programmers expect on their system.
 
 ## Syntax and operators
 
-* **Automatic input base conversion**:
+* **Automatic input and output base conversions**:
   * Binary (base 2): `0b111101001101001`
   * Ternary (base 3): `0t1120222122`
   * Octal (base 8): `0075151`
@@ -62,11 +62,10 @@ more, in exactly the way C programmers expect on their system.
     values, which can be listed with `help`.
 
 * **Registers:**
-  * Perform casts by storing into explicitly sized registers
+  * Perform time formatting or casts by storing into special purpose registers
     (*i.e.*, *unsigned* C types `char`, `short`, `int`, `long`, `long long`),
     that can be listed with `regs`.
-    * Stores to registers clamp and mask to register width
-    * Loads from registers reflect the masked value
+    * Stores to sized registers clamp and mask to register width
 
 ## Portability
 
@@ -80,7 +79,7 @@ more, in exactly the way C programmers expect on their system.
 
 * You can try it out `pc` by **executing [`./pc.c`](pc.c) directly**,
   and it will *just run* (using magic), or,
-* Build it with `make`.  Standard environment variables  (*e.g.*, `CC`,
+* Build it with `make`.  Standard environment variables (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
 
 ## Usage

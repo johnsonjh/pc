@@ -1090,7 +1090,7 @@ print_result(ULONG value)
     {
       size_t field_len = strlen(fields[i]);
 
-      if (line_len > 4 && line_len + (long)field_len > 80)
+      if (line_len > 4 && line_len + field_len > 80)
         {
           (void)fprintf(stdout, "\n    ");
           line_len = 4;

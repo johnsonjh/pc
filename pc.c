@@ -93,11 +93,44 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  *      +=, -=, *=, /=, %=, &=, ^=, |=, <<=, and >>=
  */
 
+///////////////////////////////////////////////////////////////////////////////
+
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
 #define PC_VERSION_PATCH 1
 #define PC_VERSION_OSHIT 0
+
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * Do you want to see output in unbalanced ternary (base 3) or base 36?  If so,
+ * uncomment one or both of the following defines, or define when compiling pc.
+ */
+
+/* #define WANT_TERNARY */
+/* #define WANT_BASE36 */
+
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * Keep '# define USE_LONG_LONG' if your compiler supports the the "long long"
+ * type and your fprintf supports the '%lld' format specifier.  If it doesn't
+ * just comment out the #define below and pc will make due with plain longs.
+ *
+ * If happen to have a compiler that supports a "long long" type but fprintf
+ * without "%lld', you could try using https://github.com/johnsonjh/dpsprintf
+ */
+
+#if !defined (USE_LONG_LONG)
+# define USE_LONG_LONG
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * Hopefully no user servicable parts below.
+ */
 
 #if defined (STR_HELPER)
 # undef STR_HELPER
@@ -246,26 +279,6 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define USE_LAST_RESULT '.'
 #define XOR             '^'
 
-#define PFC_INT8 "%c%c%c%c%c%c%c%c"
-
-#define PBI_8(i)                \
-  (((i) & 0x80ll) ? '1' : '0'), \
-  (((i) & 0x40ll) ? '1' : '0'), \
-  (((i) & 0x20ll) ? '1' : '0'), \
-  (((i) & 0x10ll) ? '1' : '0'), \
-  (((i) & 0x08ll) ? '1' : '0'), \
-  (((i) & 0x04ll) ? '1' : '0'), \
-  (((i) & 0x02ll) ? '1' : '0'), \
-  (((i) & 0x01ll) ? '1' : '0')
-
-#define PFC_INT16 PFC_INT8  PFC_INT8
-#define PFC_INT32 PFC_INT16 PFC_INT16
-#define PFC_INT64 PFC_INT32 PFC_INT32
-
-#define PBI_16(i) PBI_8((i)  >>  8), PBI_8(i)
-#define PBI_32(i) PBI_16((i) >> 16), PBI_16(i)
-#define PBI_64(i) PBI_32((i) >> 32), PBI_32(i)
-
 #if defined (FREE)
 # undef FREE
 #endif
@@ -306,27 +319,6 @@ static const int never = 0;
 # define INPUT_BUFF INPUT_BUFF_FB
 #endif
 
-/*
- * Do you want to see output in unbalanced ternary (base 3) or base 36? If so,
- * uncomment one or both of the following defines, or define when compiling pc.
- */
-
-/* #define WANT_TERNARY */
-/* #define WANT_BASE36 */
-
-/*
- * Keep '# define USE_LONG_LONG' if your compiler supports the the "long long"
- * type and your fprintf supports the '%lld' format specifier.  If it doesn't
- * just comment out the #define below and pc will make due with plain longs.
- *
- * If happen to have a compiler that supports a "long long" type and fprintf
- * without "%lld', you could try using https://github.com/johnsonjh/dpsprintf
- */
-
-#if !defined (USE_LONG_LONG)
-# define USE_LONG_LONG
-#endif
-
 #if defined (USE_LONG_LONG)
 # define LONG  long long
 # define ULONG unsigned long long
@@ -334,6 +326,26 @@ static const int never = 0;
 # define LONG  long
 # define ULONG unsigned long
 #endif
+
+#define PFC_INT8 "%c%c%c%c%c%c%c%c"
+
+#define PBI_8(i)               \
+  (((i) & 0x80l) ? '1' : '0'), \
+  (((i) & 0x40l) ? '1' : '0'), \
+  (((i) & 0x20l) ? '1' : '0'), \
+  (((i) & 0x10l) ? '1' : '0'), \
+  (((i) & 0x08l) ? '1' : '0'), \
+  (((i) & 0x04l) ? '1' : '0'), \
+  (((i) & 0x02l) ? '1' : '0'), \
+  (((i) & 0x01l) ? '1' : '0')
+
+#define PFC_INT16 PFC_INT8  PFC_INT8
+#define PFC_INT32 PFC_INT16 PFC_INT16
+#define PFC_INT64 PFC_INT32 PFC_INT32
+
+#define PBI_16(i) PBI_8((i)  >>  8), PBI_8(i)
+#define PBI_32(i) PBI_16((i) >> 16), PBI_16(i)
+#define PBI_64(i) PBI_32((i) >> 32), PBI_32(i)
 
 #if !defined (NO_LOCALE)
 # define XSTR_EMAXLEN 32767
@@ -798,18 +810,32 @@ print_result(ULONG value)
   int has_signed_info = 0;
   int printable_chars_count = 0;
   size_t line_len = 4;
+#if !defined(_CH_)
+  const
+#endif
+  char *fields[7];
+  int field_index = 0;
 
   /*LINTED: E_CONSTANT_CONDITION*/
   if (sizeof(ULONG) == 8)
+#if defined (USE_LONG_LONG)
     (void)snprintf(dec_str, sizeof(dec_str), "DEC: %llu", value);
+#else
+    (void)snprintf(dec_str, sizeof(dec_str), "DEC: %lu", value);
+#endif
   else
     (void)snprintf(dec_str, sizeof(dec_str), "DEC: %lu", (unsigned long)value);
 
   if ((LONG)value < 0)
     { /*LINTED: E_CONSTANT_CONDITION*/
       if (sizeof(ULONG) == 8)
+#if defined (USE_LONG_LONG)
         (void)snprintf(extra_info, sizeof(extra_info),
                        " (signed: %lld)", (LONG)value);
+#else
+        (void)snprintf(extra_info, sizeof(extra_info),
+                       " (signed: %ld)", (LONG)value);
+#endif
       else
         (void)snprintf(extra_info, sizeof(extra_info),
                        " (signed: %ld)", (long)value);
@@ -845,7 +871,11 @@ print_result(ULONG value)
 
   (void)strncat(dec_str, extra_info, sizeof(dec_str) - strlen(dec_str) - 1);
 
+#if defined (USE_LONG_LONG)
   (void)snprintf(oct_str, sizeof(oct_str), "OCT: 0o%llo", value);
+#else
+  (void)snprintf(oct_str, sizeof(oct_str), "OCT: 0o%lo", value);
+#endif
 
   if (value == 0)
     (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x0");
@@ -853,14 +883,13 @@ print_result(ULONG value)
     (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x%lx",
                    (unsigned long)value);
   else
+#if defined (USE_LONG_LONG)
     (void)snprintf(hex_str, sizeof(hex_str),
                    "HEX: 0x%llx", value);
-
-#if !defined(_CH_)
-  const
+#else
+    (void)snprintf(hex_str, sizeof(hex_str),
+                   "HEX: 0x%lx", value);
 #endif
-  char *fields[7];
-  int field_index = 0;
 
   fields[field_index++] = dec_str;
   fields[field_index++] = oct_str;
@@ -1625,6 +1654,9 @@ do_input(void)
   char buff[INPUT_BUFF];
   char *line = buff;
 #endif
+  char *input_line;
+  char *saveptr;
+  char *token;
 
 #if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
   rl_completion_entry_function = editor_completion;
@@ -1646,7 +1678,7 @@ do_input(void)
         line[strlen(line) - 1] = '\0';
 #endif
 
-      char *input_line = strdup(line);
+      input_line = strdup(line);
       if (input_line == NULL)
         {
 #if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
@@ -1665,17 +1697,17 @@ do_input(void)
           linenoiseHistoryAdd(line);
 #endif
 
-        char *saveptr;
-        char *token = strtok_r(input_line, ";", &saveptr);
+        token = strtok_r(input_line, ";", &saveptr);
 
         while (token != NULL)
           {
             char *t_ptr = token;
+            char *end;
 
             while (*t_ptr && isspace((unsigned char)*t_ptr))
               t_ptr++;
 
-            char *end = t_ptr + strlen(t_ptr) - 1;
+            end = t_ptr + strlen(t_ptr) - 1;
 
             while (end > t_ptr && isspace((unsigned char)*end))
               *end-- = '\0';
@@ -1724,6 +1756,8 @@ parse_args(int argc, char *argv[])
   size_t i, len;
   char *buff;
   ULONG value;
+  char *saveptr;
+  char *token;
 
   for (i = 1, len = 0; i < (size_t)argc; i++)
     len += strlen(argv[i]) + 1;
@@ -1743,17 +1777,17 @@ parse_args(int argc, char *argv[])
       (void)strncat(buff, " ", len - strlen(buff) - 1);
     }
 
-    char *saveptr;
-    char *token = strtok_r(buff, ";", &saveptr);
+    token = strtok_r(buff, ";", &saveptr);
 
     while (token != NULL)
       {
         char *t_ptr = token;
+        char *end;
 
         while (*t_ptr && isspace((unsigned char)*t_ptr))
           t_ptr++;
 
-        char *end = t_ptr + strlen(t_ptr) - 1;
+        end = t_ptr + strlen(t_ptr) - 1;
 
         while (end > t_ptr && isspace((unsigned char)*end))
           *end-- = '\0';

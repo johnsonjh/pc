@@ -19,103 +19,78 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * Copyright (c) 2022-2025 Jeffrey H. Johnson <trnsz@pobox.com>
  * Copyright (c) 2022-2025 The DPS8M Development Team
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the
- * Software, and to permit persons to whom the Software is furnished
- * to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 /*
- * This program implements a simple recursive descent parser that
- * understands pretty much all standard C language math and logic
- * expressions.  It handles the usual add, subtract, multiply, divide,
- * and mod sort of stuff.  It can also deal with logical/relational
- * operations and expressions.  The logic/relational operations AND, OR,
- * NOT, and EXCLUSIVE OR, &&, ||, ==, !=, <, >, <=, and >= are all
- * supported.  It also handles parens and nested expressions as well as
- * left and right shifts.  There are variables and assignments (as well
- * as assignment operators like "*=").
+ * This program implements a simple recursive descent parser that understands
+ * pretty much all standard C language math and logic expressions.  It handles
+ * the usual add, subtract, multiply, divide, and mod sort of stuff.  It can
+ * also deal with logical/relational operations and expressions.  The
+ * logic/relational operations AND, OR, NOT, and EXCLUSIVE OR, &&, ||, ==, !=,
+ * <, >, <=, and >= are all supported.  It also handles parens and nested
+ * expressions as well as left and right shifts.  There are variables and
+ * assignments (as well as assignment operators like "*=").
  *
- * The other useful feature is that you can use "." in an expression
- * to refer to the value from the previous expression (just like bc).
+ * The other useful feature is that you can use "." in an expression to refer
+ * to the value from the previous expression (just like bc).
  *
- * Multiple statements can be separated by semi-colons (;) on a single
- * line (though a single statement can't span multiple lines).
+ * Multiple statements can be separated by semi-colons (;) on a single line
+ * (though a single statement can't span multiple lines).
  *
- * This calculator is mainly a programmers calculator because it
- * doesn't work in floating point and only deals with integers.
+ * This calculator is mainly a programmers calculator because it doesn't work
+ * in floating point and only deals with integers.
  *
- * I wrote this because the standard unix calculator (bc) doesn't
- * offer a useful modulo, it doesn't have left and right shifts and
- * sometimes it is a pain in the ass to use (but I still use bc for
- * things that require any kind of floating point).  This program is
- * great when you have to do address calculations and bit-wise
- * masking/shifting as you do when working on kernel type code.  It's
- * also handy for doing quick conversions between decimal, hex and ascii
- * (and if you want to see octal for some reason, just put it in the
- * fprintf string).
+ * I wrote this because the standard unix calculator (bc) doesn't offer a
+ * useful modulo, it doesn't have left and right shifts and sometimes it is
+ * a pain in the ass to use (but I still use bc for things that require any
+ * kind of floating point).  This program is great when you have to do address
+ * calculations and bit-wise masking/shifting as you do when working on kernel
+ * type code.  It's also handy for doing quick conversions between octal,
+ * decimal, binary, hex and ascii.  Unbalanced ternary and Base36 support can
+ * be enabled as well.
  *
- * The parser is completely separable and could be spliced into other
- * code very easy.  The routine parse_expression() just expects a char
- * pointer and returns the value.  Implementing command line editing
- * would be easy using a readline() type of library.
- *
- * This isn't the world's best parser or anything, but it works and
- * suits my needs.  It faithfully implements C style precedence of
- * operators for:
+ * This isn't the world's best parser or anything, but it works and suits my
+ * needs.  It faithfully implements C style precedence of operators for:
  *
  *      ++ -- ~ ! * / % + - << >> < > <= >= == != & ^ | && ||
  *
  * (in that order, from greatest to least precedence).
  *
- * Note: The ! unary operator is a logical negation, not a bitwise
- * negation (if you want bitwise negation, use ~).
+ * Note: The ! unary operator is a logical negation, not a bitwise negation
+ * (if you want bitwise negation, use ~).
  *
- * I've been working on adding variables and assignments, and I've
- * just (10/26/94) got it working right and with code I'm not ashamed of.
- * Now you can have variables (no restrictions on length) and assign to
- * them and use them in expressions.  Variable names have the usual C
- * rules (i.e. alpha or underscore followed by alphanumeric and
- * underscore).  Variables are initialized to zero and created as needed.
- * You can have any number of variables. Here are some examples:
+ * Now you can have variables (no restrictions on length) and assign to them
+ * and use them in expressions.  Variable names have the usual C rules
+ * (i.e. alpha or underscore followed by alphanumeric and underscore).
+ * Variables are initialized to zero and created as needed.  You can have any
+ * number of variables. Here are some examples:
  *
  *      x = 5
  *      x = y = 10
  *      x = (y + 5) * 2
  *      (y * 2) + (x & 0xffeef)
  *
- * Assignment operators also work.  The allowable assignment operators
- * are (just as in C):
+ * Assignment operators also work.  The allowable assignment operators are
+ * (just as in C):
  *
  *      +=, -=, *=, /=, %=, &=, ^=, |=, <<=, and >>=
- *
- * The basic ideas for this code came from the book "Compiler Design
- * in C", by Allen I. Holub, but I've extended them significantly.
- *
- * If you find bugs or parsing bogosites, I'd like to know about them
- * so I can fix them.  Other comments and criticism of the code are
- * welcome as well.
- *
- * Thanks go to Joel Tesler (joel@engr.sgi.com) for adding the ability
- * to pass command line arguments and have pc evaluate them instead of reading
- * from stdin.
- *
- *      Dominic Giampaolo
- *      dbg@be.com (though this was written while I was at sgi)
  */
 
 #define PC_SOFTWARE_NAME "pc2"
@@ -332,6 +307,14 @@ static const int never = 0;
 #endif
 
 /*
+ * Do you want to see output in unbalanced ternary (base 3) or base 36? If so,
+ * uncomment one or both of the following defines, or define when compiling pc.
+ */
+
+#define WANT_TERNARY
+#define WANT_BASE36
+
+/*
  * Keep '# define USE_LONG_LONG' if your compiler supports the the "long long"
  * type and your fprintf supports the '%lld' format specifier.  If it doesn't
  * just comment out the #define below and pc will make due with plain longs.
@@ -393,7 +376,9 @@ xstrerror_l (int errnum)
       int n_buf = snprintf (buf, sizeof (buf), "Unknown error %d", errnum);
       if (0 > n_buf || (size_t)n_buf >= sizeof (buf))
         {
-          (void)fprintf (stderr, "FATAL: snprintf buffer overflow at %s[%s:%d]\n", __func__, __FILE__, __LINE__);
+          (void)fprintf (stderr,
+                         "FATAL: snprintf buffer overflow at %s[%s:%d]\n",
+                         __func__, __FILE__, __LINE__);
           exit (EXIT_FAILURE);
         }
 
@@ -695,10 +680,10 @@ static ULONG factor(char **str);           /* Negation, Logical NOT ~, !    */
 static ULONG get_value(char **str);
 
 /*
- * Variables are kept in a simple singly-linked list. Not high
- * performance, but it's also an extremely small implementation.
- * New variables get added to the head of the list.  Variables
- * can be unset/removed by assigning no value (e.g. 'var=').
+ * Variables are kept in a simple singly-linked list. Not high performance,
+ * but it's also an extremely small implementation.  New variables get added
+ * to the head of the list.  Variables can be unset/removed by assigning no
+ * value (e.g. 'var=').
  */
 
 typedef struct variable
@@ -714,26 +699,26 @@ static variable dummy = {
 static variable *vars = &dummy;
 
 /*
- * This is a hook for external read-only variables. If it is set and we
- * don't find a variable name in our name space, we call it to look for
- * the variable.  If it finds the name, it fills in val and returns 1.
+ * This is a hook for external read-only variables. If it is set and we don't
+ * find a variable name in our name space, we call it to look for the variable.
+ * If it finds the name, it fills in val and returns 1.
  * If it returns 0, it didn't find the variable.
  */
 
-static int (*external_var_lookup) (const char *name, ULONG *val) = (int (*)(const char *, ULONG *))NULL;
+static int (*external_var_lookup)
+  (const char *name, ULONG *val) = (int (*)(const char *, ULONG *))NULL;
 
 /*
- * This very ugly function declaration is for the function
- * set_var_lookup_hook which accepts one argument, "func", which
- * is a pointer to a function that returns int (and accepts a
- * char * and ULONG *).  set_var_lookup_hook returns a pointer to
- * a function that returns int and accepts char * and ULONG *.
+ * This very ugly function declaration is for the function set_var_lookup_hook
+ * which accepts one argument, "func", which is a pointer to a function that
+ * returns int (and accepts a char * and ULONG *).  set_var_lookup_hook
+ * returns a pointer to a function that returns int and accepts char *
+ * and ULONG *.
  *
- * It's very ugly looking but fairly basic in what it does.  You
- * pass in a function to set as the variable name lookup up hook
- * and it passes back to you the old function (which you should
- * call if it is non-NULL and your function fails to find the
- * variable name).
+ * It's very ugly looking but fairly basic in what it does.  You pass in a
+ * function to set as the variable name lookup up hook and it passes back to
+ * you the old function (which you should call if it is non-NULL and your
+ * function fails to find the variable name).
  */
 
 static int(
@@ -752,8 +737,8 @@ static int(
 }
 
 /*
- * last_result is equal to the result of the last expression and
- * expressions can refer to it as '.' (just like bc).
+ * last_result is equal to the result of the last expression and expressions
+ * can refer to it as '.' (just like bc).
  */
 
 static ULONG last_result   = 0;
@@ -804,16 +789,12 @@ print_result(ULONG value)
   char dec_str[128];
   char oct_str[30];
   char hex_str[25];
-  char ter_str[50];
-  char b36_str[20];
   char bin_str[80];
   char extra_info[100] = "";
   char char_repr[sizeof(ULONG) + 1];
   int i;
   int has_signed_info = 0;
   int printable_chars_count = 0;
-  const char *ternary_val;
-  const char *base36_val;
   size_t line_len = 4;
 
   /*LINTED: E_CONSTANT_CONDITION*/
@@ -825,9 +806,11 @@ print_result(ULONG value)
   if ((LONG)value < 0)
     { /*LINTED: E_CONSTANT_CONDITION*/
       if (sizeof(ULONG) == 8)
-        (void)snprintf(extra_info, sizeof(extra_info), " (signed: %lld)", (LONG)value);
+        (void)snprintf(extra_info, sizeof(extra_info),
+                       " (signed: %lld)", (LONG)value);
       else
-        (void)snprintf(extra_info, sizeof(extra_info), " (signed: %ld)", (long)value);
+        (void)snprintf(extra_info, sizeof(extra_info),
+                       " (signed: %ld)", (long)value);
 
       has_signed_info = 1;
     }
@@ -850,9 +833,12 @@ print_result(ULONG value)
   if (printable_chars_count > 0)
     {
       if (has_signed_info)
-        (void)snprintf(extra_info + strlen(extra_info), sizeof(extra_info) - strlen(extra_info), " (char: '%s')", char_repr);
+        (void)snprintf(extra_info + strlen(extra_info),
+                       sizeof(extra_info) - strlen(extra_info),
+                       " (char: '%s')", char_repr);
       else
-        (void)snprintf(extra_info, sizeof(extra_info), " (char: '%s')", char_repr);
+        (void)snprintf(extra_info, sizeof(extra_info),
+                       " (char: '%s')", char_repr);
     }
 
   (void)strncat(dec_str, extra_info, sizeof(dec_str) - strlen(dec_str) - 1);
@@ -862,26 +848,41 @@ print_result(ULONG value)
   if (value == 0)
     (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x0");
   else if (value <= 0xFFFFFFFFUL)
-    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x%lx", (unsigned long)value);
+    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x%lx",
+                   (unsigned long)value);
   else
-    (void)snprintf(hex_str, sizeof(hex_str), "HEX: 0x%llx", value);
+    (void)snprintf(hex_str, sizeof(hex_str),
+                   "HEX: 0x%llx", value);
 
+  const char *fields[7];
+  int field_index = 0;
+
+  fields[field_index++] = dec_str;
+  fields[field_index++] = oct_str;
+  fields[field_index++] = hex_str;
+
+#if defined(WANT_TERNARY)
+  char ter_str[50];
   char ternary_str_buf[45];
-  ternary_val = convert_base_string(value, 3, ternary_str_buf, sizeof(ternary_str_buf));
-  (void)snprintf(ter_str, sizeof(ter_str), "TER: 0t%s", ternary_val);
+  (void)snprintf(ter_str, sizeof(ter_str), "TER: 0t%s",
+                 convert_base_string(value, 3, ternary_str_buf,
+                                     sizeof(ternary_str_buf)));
+  fields[field_index++] = ter_str;
+#endif
 
+#if defined(WANT_BASE36)
+  char b36_str[20];
   char base36_str_buf[16];
-  base36_val = convert_base_string(value, 36, base36_str_buf, sizeof(base36_str_buf));
-  (void)snprintf(b36_str, sizeof(b36_str), "B36: 0z%s", base36_val);
+  (void)snprintf(b36_str, sizeof(b36_str), "B36: 0z%s",
+                 convert_base_string(value, 36, base36_str_buf,
+                                     sizeof(base36_str_buf)));
+  fields[field_index++] = b36_str;
+#endif
 
-  (void)snprintf(bin_str, sizeof(bin_str), "BIN: 0b%s", get_binary_string(value));
-
-  const char *fields[] = {
-    dec_str, oct_str,
-    hex_str, ter_str,
-    b36_str, bin_str,
-    NULL
-  };
+  (void)snprintf(bin_str, sizeof(bin_str), "BIN: 0b%s",
+                 get_binary_string(value));
+  fields[field_index++] = bin_str;
+  fields[field_index] = NULL;
 
   (void)fprintf(stdout, "    ");
 
@@ -1199,7 +1200,9 @@ add_var(char *name, ULONG value)
 
   if (is_reserved_name(name))
     {
-      (void)fprintf(stderr, "ERROR: can't assign/create '%s', is a reserved name.\n", name);
+      (void)fprintf(stderr,
+                    "ERROR: can't assign/create '%s', is a reserved name.\n",
+                    name);
 
       return NULL;
     }
@@ -1209,7 +1212,9 @@ add_var(char *name, ULONG value)
   if (external_var_lookup)
     if (external_var_lookup(name, &tmp) != 0)
       {
-        (void)fprintf(stderr, "Can't assign/create '%s', it is a read-only variable\n", name);
+        (void)fprintf(stderr,
+                      "Can't assign/create '%s', it is a read-only variable\n",
+                      name);
 
         return NULL;
       }
@@ -1233,8 +1238,8 @@ add_var(char *name, ULONG value)
 }
 
 /*
- * This routine and the companion get_var() are external
- * interfaces to the variable manipulation routines.
+ * This routine and the companion get_var() are external interfaces to the
+ * variable manipulation routines.
  */
 
 #if defined (EXTERNAL)
@@ -1253,10 +1258,8 @@ set_var(char *name, ULONG val)
 #endif
 
 /*
- * This function returns 1 on success of finding
- * a variable and 0 on failure to find a variable.
- * If a variable is found, val is filled with its
- * value.
+ * This function returns 1 on success of finding a variable and 0 on failure
+ * to find a variable.  If a variable is found, val is filled with its value.
  */
 
 static int
@@ -1364,7 +1367,8 @@ list_vars(varquery_type type)
     }
   else
     {
-      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+      (void)fprintf(stderr,
+                    "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
                     __FILE__, __func__, __LINE__);
       abort();
     }
@@ -1384,10 +1388,12 @@ list_vars(varquery_type type)
       (void)fprintf(stdout, "User variables:\n");
     }
   else if (type == BUILTIN_VARS) //-V547
-    (void)fprintf(stdout, "The following read-only builtin variables are defined:\n");
+    (void)fprintf(stdout,
+                  "The following read-only builtin variables are defined:\n");
   else
     {
-      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+      (void)fprintf(stderr,
+                    "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
                     __FILE__, __func__, __LINE__);
       abort();
     }
@@ -1570,12 +1576,11 @@ print_herald(void)
   else /*NOTREACHED*/ /* unreachable */
     oshitbuf[0] = '\0';
 
-  (void)fprintf(stdout, "%s v%d.%d.%d%s%s%s%s ready.\n",
-                PC_SOFTWARE_NAME, PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
+  (void)fprintf(stdout, "%s v%d.%d.%d%s%s%s%s ready.\n", PC_SOFTWARE_NAME,
+                PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
                 oshitbuf, (void *)PC_SOFTWARE_DATE ? " (" : "",
                 (void *)PC_SOFTWARE_DATE ? squash(PC_SOFTWARE_DATE) : "",
                 (void *)PC_SOFTWARE_DATE ? ")" : "");
-
 
 #if defined (__clang_version__)
 # pragma clang diagnostic pop
@@ -1659,7 +1664,8 @@ do_input(void)
               }
             else
               {
-                suppress_output = (strtok_r(NULL, ";", &saveptr) == NULL && line[strlen(line)-1] == ';');
+                suppress_output = (strtok_r(NULL, ";", &saveptr) == NULL &&
+                                            line[strlen(line)-1] == ';');
                 value = parse_expression(t_ptr);
 
                 if (!suppress_output)
@@ -1784,7 +1790,7 @@ skipwhite(char *str)
   if (str == NULL)
     return NULL;
 
-  while (*str && ( *str == ' ' || *str == '\t' || *str == '\n' || *str == '\f' ))
+  while (*str && (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\f'))
     str++;
 
   return str;
@@ -1885,7 +1891,8 @@ get_var_name(char **str)
 
   buff[i] = '\0'; /* NULL terminate */
 
-  while (isalnum((unsigned char)**str) || **str == '_') /* Skip over any remaining junk */
+  /* Skip over any remaining junk */
+  while (isalnum((unsigned char)**str) || **str == '_')
     *str = *str + 1;
 
   return buff;
@@ -1923,7 +1930,8 @@ assignment_expr(char **str)
         {
           if (is_register(var_name))
             {
-              (void)fprintf(stderr, "ERROR: Cannot unset register '%s'.\n", var_name);
+              (void)fprintf(stderr, "ERROR: Cannot unset register '%s'.\n",
+                            var_name);
               val  = 0;
               *str = peek;
               suppress_output = 1;
@@ -1938,7 +1946,8 @@ assignment_expr(char **str)
               if (existed && !unset_silent)
                 (void)fprintf(stdout, "Variable '%s' unset.\n", var_name);
               else if (!existed && !unset_silent)
-                (void)fprintf(stderr, "Warning: No such variable '%s'.\n", var_name);
+                (void)fprintf(stderr, "Warning: No such variable '%s'.\n",
+                              var_name);
 
               val  = 0;
               *str = peek;
@@ -1992,7 +2001,8 @@ assignment_expr(char **str)
         }
 
       if (**str == EQUAL)
-        (void)fprintf(stderr, "Left hand side of expression is not assignable.\n");
+        (void)fprintf(stderr,
+                      "Left hand side of expression is not assignable.\n");
     }
 
   if (var_name) //-V547
@@ -2054,7 +2064,8 @@ do_assignment_operator(char **str, char *var_name)
       if (val >= sizeof(ULONG) * CHAR_BIT)
         {
           errno = EINVAL;
-          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n",
+                        xstrerror_l(errno));
         }
 
       v->value <<= val;
@@ -2064,7 +2075,8 @@ do_assignment_operator(char **str, char *var_name)
       if (val >= sizeof(ULONG) * CHAR_BIT)
         {
           errno = EINVAL;
-          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n",
+                        xstrerror_l(errno));
         }
 
       v->value >>= val;
@@ -2081,7 +2093,8 @@ do_assignment_operator(char **str, char *var_name)
       if (val == 0) /* Check, but still get the result! */
         {
           errno = EDOM;
-          (void)fprintf(stderr, "Warning: %s (Division by zero)\n", xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Division by zero)\n",
+                        xstrerror_l(errno));
           v->value = 0;
         }
       else
@@ -2092,7 +2105,8 @@ do_assignment_operator(char **str, char *var_name)
       if (val == 0) /* Check, but still get the result! */
         {
           errno = EDOM;
-          (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n",
+                        xstrerror_l(errno));
           v->value = 0;
         }
       else
@@ -2290,7 +2304,8 @@ shift_expr(char **str)
   sum  = add_expression(str);
   *str = skipwhite(*str);
 
-  while (*str != NULL && ((strncmp(*str, "<<", 2) == 0) || (strncmp(*str, ">>", 2) == 0)))
+  while (*str != NULL && ((strncmp(*str, "<<", 2) == 0) ||
+                          (strncmp(*str, ">>", 2) == 0)))
     {
       op   = **str;
       *str = skipwhite(*str + 2); /* Advance over the operator */
@@ -2299,7 +2314,8 @@ shift_expr(char **str)
       if (val >= sizeof(ULONG) * CHAR_BIT)
         {
           errno = EINVAL;
-          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n",
+                        xstrerror_l(errno));
         }
 
       if (op == SHIFT_L)
@@ -2373,7 +2389,8 @@ term(char **str)
           if (val == 0)
             {
               errno = EDOM;
-              (void)fprintf(stderr, "Warning: %s (Division by zero)\n", xstrerror_l(errno));
+              (void)fprintf(stderr, "Warning: %s (Division by zero)\n",
+                            xstrerror_l(errno));
               sum = 0;
             }
           else
@@ -2384,7 +2401,8 @@ term(char **str)
           if (val == 0)
             {
               errno = EDOM;
-              (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", xstrerror_l(errno));
+              (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n",
+                            xstrerror_l(errno));
               sum = 0;
             }
           else
@@ -2553,7 +2571,8 @@ get_value(char **str)
       if (errno)
         (void)fprintf(stderr, "Warning when converting input '%.*s': %s\n",
                       /*LINTED: E_CAST_INT_TO_SMALL_INT, E_PTRDIFF_OVERFLOW*/
-                      (int)((ptrdiff_t)(*str - orig_str)), orig_str, xstrerror_l(errno));
+                      (int)((ptrdiff_t)(*str - orig_str)), orig_str,
+                      xstrerror_l(errno));
 
       *str = skipwhite(*str);
     }
@@ -2583,7 +2602,8 @@ get_value(char **str)
 
       if (get_var(var_name, &val) == 0)
         {
-          (void)fprintf(stderr, "No such variable: %s (assigning value of zero)\n",
+          (void)fprintf(stderr,
+                        "No such variable: %s (assigning value of zero)\n",
                         var_name);
 
           val = 0;
@@ -2622,8 +2642,10 @@ get_value(char **str)
     }
   else
     {
-      (void)fprintf(stderr, "Expecting left paren, unary op, constant or variable.");
-      (void)fprintf(stderr, "  Got: '%s'\n", *str);
+      (void)fprintf(stderr,
+                    "Expecting left paren, unary op, constant or variable.");
+      (void)fprintf(stderr,
+                    "  Got: '%s'\n", *str);
 
       return 0;
     }

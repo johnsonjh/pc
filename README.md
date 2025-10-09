@@ -18,11 +18,15 @@
 * **Optional support for:**
   * Ternary (base 3): `0t1120222122`
   * Base 36: `0zO6H`
+[]()
 
+[]()
 * **Operators:**
   * `++`, `--`, `~`, `!`, `*`, `/`, `%`, `+`, `-`, `<<`, `>>`, `<`, `>`,
     `<=`, `>=`, `==`, `!=`, `&`, `^`, `|`, `&&`, `||`
+[]()
 
+[]()
 * **Precedence (highest to lowest):**
   * `++`, `--`, `~`, `!`
   * `*`, `/`, `%`
@@ -35,12 +39,16 @@
   * `|`
   * `&&`
   * `||`
+[]()
 
+[]()
 * **Assignment operators:**
   * `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `|=`, `<<=`, `>>=`
     * **Logical negation:** `!` is *logical*, not *bitwise*
       (use `~` for bitwise negation).
+[]()
 
+[]()
 * **Parentheses:** Full support for grouping and nesting.
 
 ## User variables, builtins, and registers
@@ -55,11 +63,15 @@
     * `x = y = 10`
     * `x = (y + 5) * 2`
     * `(y * 2) + (x & 0xffeef)`
+[]()
 
+[]()
 * **Builtins:**
   * Builtins provide access to **50** or more system constants and runtime
     values, which can be listed with the `help` command.
+[]()
 
+[]()
 * **Registers:**
   * Perform time formatting or casting by storing to special purpose registers
     (*i.e.*, *unsigned* C types `char`, `short`, `int`, `long`, `long long`),

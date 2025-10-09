@@ -1100,7 +1100,7 @@ print_result(ULONG value)
 
       line_len += field_len;
 
-      if (fields[i+1] != NULL)
+      if (fields[(long)i+1] != NULL)
         {
           (void)fprintf(stdout, " ");
           line_len++;

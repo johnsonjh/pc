@@ -12,15 +12,15 @@ more, in exactly the way C programmers expect on their system.
 ## Syntax and operators
 
 * **Automatic input and output base conversions:**:
-  * Binary (base 2): **`0b`**`111101001101001`
-  * Octal (base 8): **`0o`**`75151` (or **`00`**`75151`)
+  * Binary (base 2): `0b111101001101001`
+  * Octal (base 8): `0o75151` (or `0075151`)
   * Binary (base 10): `31337`
-  * Hex (base 16): **`0x`**`7a69`
-  * Roman: **`0r`**`MCCCXXXVII`
-  * ASCII: **`'`**`zi`**`'`**
+  * Hex (base 16): `0x7a69`
+  * Roman: `0rMCCCXXXVII`
+  * ASCII: `'zi'`
 * **Optional support for:**
-  * Ternary (base 3): **`0t`**`1120222122`
-  * Base 36: **`0z`**`O6H`
+  * Ternary (base 3): `0t1120222122`
+  * Base 36: `0zO6H`
 
 * **Operators:**
   * `++`, `--`, `~`, `!`, `*`, `/`, `%`, `+`, `-`, `<<`, `>>`, `<`, `>`,

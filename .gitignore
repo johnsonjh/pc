@@ -21,5 +21,6 @@ log.pvs
 *.out
 pc
 pc.c.out.*
+pc.exe
 pvs.log
 pvsreport/

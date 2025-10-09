@@ -1,0 +1,34 @@
+# Convert epoch to component day, month, year
+spd = 86400;
+z = time / spd + 719468;
+era = (z - ((z < 0) * 146096)) / 146097;
+doe = z - era * 146097;
+yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;
+y = yoe + era * 400;
+doy = doe - (365*yoe + yoe/4 - yoe/100);
+mp = (5*doy + 2) / 153;
+day = doy - (153*mp + 2)/5 + 1;
+month = mp + 3 - 12 * ((mp + 10) / 13);
+year = y + (month <= 2);
+
+# Easter calculations
+a = year % 19;
+b = year / 100;
+c = year % 100;
+d = b / 4;
+e = b % 4;
+f = (b + 8) / 25;
+g = (b - f + 1) / 3;
+h = (19 * a + b - d - g + 15) % 30;
+i = c / 4;
+k = c % 4;
+l = (32 + 2 * e + 2 * i - h - k) % 7;
+m = (a + 11 * h + 22 * l) / 451;
+
+### Easter's month:
+emonth = (h + l - 7 * m + 114) / 31;
+### Easter's day:
+eday = ((h + l - 7 * m + 114) % 31) + 1;
+
+### Is it today?  (0 is false, 1 is true)
+day == eday && month == emonth

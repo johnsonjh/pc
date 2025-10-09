@@ -93,6 +93,7 @@ more, in exactly the way C programmers expect on their system.
   * `1 << 12`
   * `a = 0x1234; a & 0xFF`
   * `. + 4` (add to previous result)
+* [`easter.pc`](easter.pc) is a program that calculates the date of Easter (and checks if it's today).
 
 ## Testing
 

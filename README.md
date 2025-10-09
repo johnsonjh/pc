@@ -64,7 +64,7 @@ more, in exactly the way C programmers expect on their system.
     values, which can be listed with the `help` command.
 
 * **Registers:**
-  * Perform time formatting or casts by storing into special purpose registers
+  * Perform time formatting or casting by storing to special purpose registers
     (*i.e.*, *unsigned* C types `char`, `short`, `int`, `long`, `long long`),
     list via the `regs` command).
     * Stores to sized registers clamp and mask to register width

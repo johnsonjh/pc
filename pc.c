@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 8
+#define PC_VERSION_PATCH 9
 #define PC_VERSION_OSHIT 0
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,11 +248,11 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-#if (defined (WITH_LIBEDIT) + defined (WITH_READLINE) + defined (WITH_LINENOISE)) > 1
-# error "Only one of WITH_LIBEDIT, WITH_READLINE, or WITH_LINENOISE can be defined."
+#if (defined (WITH_LIBEDIT) + defined (WITH_EDITLINE) + defined (WITH_READLINE) + defined (WITH_LINENOISE)) > 1
+# error "Only one of WITH_LIBEDIT, WITH_EDITLINE, WITH_READLINE, or WITH_LINENOISE can be defined."
 #endif
 
-#if defined (WITH_READLINE)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE)
 # include <readline/readline.h>
 # include <readline/history.h>
 #endif
@@ -1828,7 +1828,7 @@ editor_completion(const char *text, int state)
 }
 #endif
 
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
 static char **
 editor_completion_function (const char *text, int start, int end)
 {
@@ -1844,7 +1844,7 @@ static void
 do_input(int echo)
 {
   ULONG value;
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
   char *line;
 #else
   char buff[INPUT_BUFF];
@@ -1855,12 +1855,12 @@ do_input(int echo)
   char *token;
   char *comment_ptr;
 
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
   rl_completion_entry_function = editor_completion;
   rl_attempted_completion_function = editor_completion_function;
 #endif
 
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
   while ((line = readline("")) != NULL)
 #elif defined (WITH_LINENOISE)
   /* NB: An empty ("") prompt is not supported with upstream linenoise */
@@ -1880,7 +1880,7 @@ do_input(int echo)
       (void)fprintf(stdout, "%s\n", line);
     }
 
-#if !defined (WITH_READLINE) && !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
+#if !defined (WITH_READLINE) && !defined (WITH_EDITLINE) && !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
       if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
         line[strlen(line) - 1] = '\0';
 #endif
@@ -1888,7 +1888,7 @@ do_input(int echo)
       input_line = strdup(line);
       if (input_line == NULL)
         {
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
           FREE(line);
 #elif defined (WITH_LINENOISE)
           linenoiseFree(line);
@@ -1896,7 +1896,7 @@ do_input(int echo)
           continue;
         }
 
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
         if (*line)
           add_history(line);
 #elif defined (WITH_LINENOISE)
@@ -1953,7 +1953,7 @@ do_input(int echo)
           }
 
         FREE(input_line);
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
         FREE(line);
 #elif defined (WITH_LINENOISE)
         linenoiseFree(line);

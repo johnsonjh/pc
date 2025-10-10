@@ -16,6 +16,7 @@
 #   WITHOUT_ROMAN  - Enable Roman numeral output
 #   WITHOUT_EDITOR - Disable line editor autodetection
 #   WITH_LIBEDIT   - Enable libedit (if not autodetected)
+#   WITH_EDITLINE  - Enable libeditline (if not autodetected)
 #   WITH_READLINE  - Enable readline (if not autodetected)
 #   WITH_LINENOISE - Enable linenoise
 
@@ -50,6 +51,11 @@ pc: pc.c
 		_CFLAGS="$${_CFLAGS:-} -DWITH_LIBEDIT=1"; \
 		_LDFLAGS="$${_LDFLAGS:-} -ledit"; \
 	fi; \
+	if [ -n "$${WITH_EDITLINE:-}" ]; then \
+		_HAVE_RL=1; \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_EDITLINE=1"; \
+		_LDFLAGS="$${_LDFLAGS:-} -leditline"; \
+	fi; \
 	if [ -n "$${WITH_READLINE:-}" ]; then \
 		_HAVE_RL=1; \
 		_CFLAGS="$${_CFLAGS:-} -DWITH_READLINE=1"; \
@@ -64,6 +70,11 @@ pc: pc.c
 		_HAVE_RL=1; \
 		_CFLAGS="$${_CFLAGS:-} -DWITH_LIBEDIT=1 $$($(PKG-CONFIG) --cflags libedit 2> /dev/null)"; \
 		_LDFLAGS="$${_LDFLAGS:-} $$($(PKG-CONFIG) --libs libedit 2> /dev/null)"; \
+	fi; \
+	if [ "$${_HAVE_RL:-0}" -ne 1 ] && $(PKG-CONFIG) --cflags --libs libeditline > /dev/null 2>&1; then \
+		_HAVE_RL=1; \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_EDITLINE=1 $$($(PKG-CONFIG) --cflags libeditline 2> /dev/null)"; \
+		_LDFLAGS="$${_LDFLAGS:-} $$($(PKG-CONFIG) --libs libeditline 2> /dev/null)"; \
 	fi; \
 	if [ "$${_HAVE_RL:-0}" -ne 1 ] && $(PKG-CONFIG) --cflags --libs readline > /dev/null 2>&1; then \
 		_HAVE_RL=1; \

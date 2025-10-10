@@ -92,6 +92,8 @@
   and it will *just run* (using magic), or,
 * Build it with `make`.  Standard environment variables (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
+* Common line editing packages (`libedit`, `editline`, `readline`, and `linenoise`) are
+  supported and usually automatically configured.
 * Review the [`Makefile`](Makefile) to see available build options.
 
 ## Usage

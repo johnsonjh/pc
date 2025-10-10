@@ -31,7 +31,7 @@ month = mp + 3 - 12 * ((mp + 2) / 12)
 # Current year:
 year = y + (month <= 2)
 
-# Easter calculations
+# Easter calculations:
 a = year % 19
 b = year / 100
 c = year % 100
@@ -51,7 +51,7 @@ emonth = (h + l - 7 * m + 114) / 31
 # Easter's day this year:
 eday = ((h + l - 7 * m + 114) % 31) + 1
 
-# Convert easter day, month, year back to epoch
+# Convert easter day, month, year back to epoch:
 adj = (emonth <= 2)
 y_adj = year - adj
 era = y_adj / 400

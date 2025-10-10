@@ -80,7 +80,7 @@ year = y + (month <= 2)
     dec: 2025 oct: 0o3751 hex: 0x7e9 rom: 0rMMXXV ter: 0t2210000 b36: 0z1K9
      bin: 0b11111101001
 
-# Easter calculations
+# Easter calculations:
 a = year % 19
     dec: 11 oct: 0o13 hex: 0xb rom: 0rXI ter: 0t102 b36: 0zB bin: 0b1011
 b = year / 100
@@ -114,7 +114,7 @@ emonth = (h + l - 7 * m + 114) / 31
 eday = ((h + l - 7 * m + 114) % 31) + 1
     dec: 20 oct: 0o24 hex: 0x14 rom: 0rXX ter: 0t202 b36: 0zK bin: 0b10100
 
-# Convert easter day, month, year back to epoch
+# Convert easter day, month, year back to epoch:
 adj = (emonth <= 2)
     dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
 y_adj = year - adj

@@ -1808,7 +1808,7 @@ print_herald(void)
 #endif
 }
 
-#if defined (WITH_READLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
 static
 # if defined(__APPLE__)
 int

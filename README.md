@@ -67,7 +67,7 @@
 
 []()
 * **Builtins:**
-  * Builtins provide access to **50** or more system constants and runtime
+  * Builtins provide access to about **50** system constants and runtime
     values, which can be listed with the `help` command.
 []()
 

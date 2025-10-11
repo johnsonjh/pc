@@ -116,7 +116,7 @@
 * [`easter.pc`](easter.pc) is a program that calculates the date of Easter
   (and checks if it's today).
   * You can modify the program itself or use something like
-    [libfaketime](https://github.com/wolfcw/libfaketime)
+    [`faketime`](https://github.com/wolfcw/libfaketime)
     (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to verify
     arbitrary dates.
   * You can see the [full output of this program here](easter.txt) (with

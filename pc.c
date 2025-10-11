@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 14
+#define PC_VERSION_PATCH 15
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -395,7 +395,10 @@ xstrerror_l (int errnum)
     {
       ret = strerror_l (errnum, copy); /*LINTOK: xstrerror_l*/
       if (LC_GLOBAL_LOCALE == loc)
-        freelocale (copy);
+          {
+            freelocale (copy);
+            copy = (locale_t)0;
+          }
     }
 # endif
 

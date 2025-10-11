@@ -4,9 +4,9 @@
 now = time
 bitshift = (sizeof_ll * CHAR_BIT) - 1
 spd = 86400
-top = (1 << bitshift)
-low = (now & (top - 1))
-high = (now & top)
+top = 1 << bitshift
+low = now & (top - 1)
+high = now & top
 s = low - high
 sign = s >> bitshift
 negmag = top - low
@@ -56,7 +56,7 @@ adj = (emonth <= 2)
 y_adj = year - adj
 era = y_adj / 400
 yoe = y_adj - era * 400
-gt2 = (emonth > 2)
+gt2 = emonth > 2
 mp1 = emonth + 9
 mp2 = emonth - 3
 mp = (mp1 & (0 - (gt2 ^ 1))) | (mp2 & (0 - gt2))

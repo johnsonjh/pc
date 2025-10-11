@@ -11,16 +11,16 @@ bitshift = (sizeof_ll * CHAR_BIT) - 1
 spd = 86400
     dec: 86400 char: '......Q.' oct: 0o250600 hex: 0x15180 ter: 0t11101112000
      b36: 0z1UO0 bin: 0b10101000110000000
-top = (1 << bitshift)
+top = 1 << bitshift
     dec: 9223372036854775808 signed: -9223372036854775808
      oct: 0o1000000000000000000000 hex: 0x8000000000000000
      ter: 0t2021110011022210012102010021220101220222 b36: 0z1Y2P0IJ32E8E
      bin: 0b1000000000000000000000000000000000000000000000000000000000000000
-low = (now & (top - 1))
+low = now & (top - 1)
     dec: 1760099725 char: '....h...' oct: 0o15072176615 hex: 0x68e8fd8d
      ter: 0t11112122221022220201 b36: 0zT3X1N1
      bin: 0b1101000111010001111110110001101
-high = (now & top)
+high = now & top
     dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
 s = low - high
     dec: 1760099725 char: '....h...' oct: 0o15072176615 hex: 0x68e8fd8d

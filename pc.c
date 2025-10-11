@@ -267,6 +267,10 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <linenoise.h>
 #endif
 
+#if defined(PC_FUNC)
+# undef PC_FUNC
+#endif
+
 #define AND             '&'
 #define BANG            '!'
 #define COMMA           ','
@@ -395,6 +399,14 @@ xstrerror_l (int errnum)
     }
 # endif
 
+# if !defined(__func__)
+#  define __func__ "xstrerror_l" /* //-V1059 */
+#  if defined(PC_FUNC)
+#   undef PC_FUNC
+#  endif
+#  define PC_FUNC
+# endif
+
   if (! ret)
     {
       int n_buf = snprintf (buf, sizeof (buf), "Unknown error %d", errnum);
@@ -405,6 +417,11 @@ xstrerror_l (int errnum)
                          __func__, __FILE__, __LINE__);
           exit (EXIT_FAILURE);
         }
+
+# if defined(PC_FUNC)
+#  undef __func__
+#  undef PC_FUNC
+# endif
 
       ret = buf;
     }
@@ -1549,6 +1566,14 @@ list_vars(varquery_type type)
       return;
     }
 
+#if !defined(__func__)
+# define __func__ "list_vars" /* //-V1059 */
+# if defined(PC_FUNC)
+#  undef PC_FUNC
+# endif
+# define PC_FUNC
+#endif
+
   if (type == USER_VARS)
     {
       for (v = vars; v; v = v->next)
@@ -1613,6 +1638,11 @@ list_vars(varquery_type type)
                     __FILE__, __func__, __LINE__);
       abort();
     }
+
+#if defined(PC_FUNC)
+# undef __func__
+# undef PC_FUNC
+#endif
 
   for (i = 0; i < count; i++)
     {
@@ -2200,6 +2230,14 @@ assignment_expr(char **str)
       *str = skipwhite(*str + 1); /* Skip the equal sign */
       peek = skipwhite(*str);
 
+#if !defined(__func__)
+# define __func__ "assignment_expr" /* //-V1059 */
+# if defined(PC_FUNC)
+#  undef PC_FUNC
+# endif
+# define PC_FUNC
+#endif
+
       if (peek != NULL && (*peek == '\0' || *peek == SEMI_COLON))
         {
           if (is_register(var_name))
@@ -2273,6 +2311,11 @@ assignment_expr(char **str)
                         __FILE__, __func__, __LINE__);
           abort();
         }
+
+#if defined(PC_FUNC)
+# undef __func__
+# undef PC_FUNC
+#endif
 
       if (**str == EQUAL)
         (void)fprintf(stderr,

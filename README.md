@@ -80,11 +80,16 @@
 
 ## Portability
 
-* Portable to any **POSIX**-*ish* system with a *C99* compiler (or [Ch](https://www.softintegration.com/) 8.5).
+* Portable to any **POSIX**-*ish* system with a *C99* compiler
+  (or [Ch](https://www.softintegration.com/) 8.5).
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
-  and **DOS** ([*DJGPP*](https://www.delorie.com/djgpp/), [*IA16-GCC*](https://gitlab.com/tkchia/build-ia16), [*Open Watcom V2*](https://github.com/open-watcom/open-watcom-v2)).
+  [**ELKS**](https://github.com/ghaerr/elks)
+  (*with* [*IA16-GCC*](https://gitlab.com/tkchia/build-ia16)),
+  and **DOS** (*with* [*DJGPP*](https://www.delorie.com/djgpp/),
+  [*IA16-GCC*](https://gitlab.com/tkchia/build-ia16),
+  [*Open Watcom V2*](https://github.com/open-watcom/open-watcom-v2)).
 
 ### Build
 
@@ -92,13 +97,14 @@
   and it will *just run* (using magic), or,
 * Build it with `make`.  Standard environment variables (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
-* Common line editing packages (`libedit`, `editline`, `readline`, and `linenoise`) are
-  supported and usually automatically configured.
+* Common line editing packages (`libedit`, `editline`, `readline`, and
+  `linenoise`) are supported and usually automatically configured.
 * Review the [`Makefile`](Makefile) to see available build options.
 
 ## Usage
 
-* Supports **interactive**, **command-line** (`pc 1+1`), and **piped**/**redirected** usage
+* Supports **interactive**, **command-line** (`pc 1+1`), and
+  **piped**/**redirected** usage
 * **Examples:**
   * `0xFF & 0x0F`
   * `1 << 12`
@@ -107,20 +113,31 @@
 []()
 
 []()
-* [`easter.pc`](easter.pc) is a program that calculates the date of Easter (and checks if it's today).
-  * You can see the [output of this program](easter.txt) (with all optional conversions enabled).
+* [`easter.pc`](easter.pc) is a program that calculates the date of Easter
+  (and checks if it's today).
+  * You can see the [output of this program](easter.txt) (with all optional
+    base conversions enabled).
 
 ## Testing
 
 * **Linting**:
-  * C code must pass [Cppcheck](https://cppcheck.sourceforge.io/), [Clang Analyzer](https://clang-analyzer.llvm.org/), [GCC Analyzer](https://gcc.gnu.org/onlinedocs/gcc/Static-Analyzer-Options.html),
-    [**PVS-Studio**](https://pvs-studio.com/), [NetBSD Lint](https://man.netbsd.org/lint.1), [Oracle Lint](https://www.oracle.com/application-development/developerstudio/), [Flawfinder](https://dwheeler.com/flawfinder/) (*`-m3`*),
-    [Cppi](https://www.gnu.org/software/cppi/), [Ch](https://www.softintegration.com/), and [`clang -Weverything`](.lint.sh) linting and static analysis.
-  * All shell code in the repository must pass [ShellCheck](https://www.shellcheck.net/), and the
-    [`Makefile`](Makefile) is compatible with **POSIX**, **AIX**, **BSD**, and **GNU** style
-    `make` tools.
+  * C code must pass [Cppcheck](https://cppcheck.sourceforge.io/),
+    [Clang Analyzer](https://clang-analyzer.llvm.org/),
+    [GCC Analyzer](https://gcc.gnu.org/onlinedocs/gcc/Static-Analyzer-Options.html),
+    [**PVS-Studio**](https://pvs-studio.com/),
+    [NetBSD Lint](https://man.netbsd.org/lint.1),
+    [Oracle Lint](https://www.oracle.com/application-development/developerstudio/),
+    [Flawfinder](https://dwheeler.com/flawfinder/) (*`-m3`*),
+    [Cppi](https://www.gnu.org/software/cppi/),
+    [Ch](https://www.softintegration.com/), and
+    [`clang -Weverything`](.lint.sh) linting and static analysis.
+  * All shell code in the repository must pass
+    [ShellCheck](https://www.shellcheck.net/), and the
+    [`Makefile`](Makefile) is compatible with **POSIX**, **AIX**, **BSD**,
+    and **GNU** style `make` tools.
 
 ## License
 
 * `pc` is distributed under the terms of the [**MIT License**](LICENSE).
-* The repository is complaint with version 3.3 of the [REUSE](https://reuse.software/) specification.
+* The repository is complaint with version 3.3 of the
+  [REUSE](https://reuse.software/) specification.

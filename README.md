@@ -86,9 +86,9 @@
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
   [**ELKS**](https://github.com/ghaerr/elks)
-  (*with* [*IA16-GCC*](https://gitlab.com/tkchia/build-ia16)),
+  (*with* [*GCC-IA16*](https://gitlab.com/tkchia/build-ia16)),
   and **DOS** (*with* [*DJGPP*](https://www.delorie.com/djgpp/),
-  [*IA16-GCC*](https://gitlab.com/tkchia/build-ia16),
+  [*GCC-IA16*](https://gitlab.com/tkchia/build-ia16),
   [*Open Watcom V2*](https://github.com/open-watcom/open-watcom-v2)).
 
 ### Build

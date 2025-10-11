@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 13
+#define PC_VERSION_PATCH 14
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -157,7 +157,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #define STR(x) STR_HELPER(x)
 
-#ifndef PC_SOFTWARE_DATE
+#if !defined (PC_SOFTWARE_DATE)
 # if defined (__TIMESTAMP__)
 #  define PC_SOFTWARE_DATE STR(__TIMESTAMP__)
 # elif defined (__DATE__)

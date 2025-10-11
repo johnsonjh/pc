@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 16
+#define PC_VERSION_PATCH 17
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -1458,7 +1458,8 @@ is_reserved_name(const char *name)
 
   if (strcmp(name, "vars") == 0
    || strcmp(name, "regs") == 0
-   || strcmp(name, "help") == 0)
+   || strcmp(name, "help") == 0
+   || strcmp(name, "quit") == 0)
     return 1;
 
   return 0;
@@ -2005,6 +2006,8 @@ do_input(int echo)
                 list_regs();
                 list_user_vars();
               }
+            else if (strcmp(t_ptr, "quit") == 0)
+              exit(0);
             else
               {
                 suppress_output = (strtok_r(NULL, ";", &saveptr) == NULL &&
@@ -2085,6 +2088,8 @@ parse_args(int argc, char *argv[])
             list_regs();
             list_user_vars();
           }
+        else if (strcmp(t_ptr, "quit") == 0)
+          exit(0);
         else
           {
             suppress_output = 0;

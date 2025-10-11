@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 19
+#define PC_VERSION_PATCH 20
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -901,9 +901,9 @@ static int(
  * can refer to it as '.' (just like bc).
  */
 
-static ULONG last_result   = 0;
-static int suppress_output = 0;
-static int unset_silent    = 0;
+static ULONG last_result = 0;
+static int unset_mode    = 0;
+static int unset_silent  = 0;
 
 #if defined (WITH_BASE36) || defined (WITH_TERNARY)
 static char *
@@ -2093,16 +2093,9 @@ do_input(int echo)
               exit(0);
             else
               {
-#if defined (WITH_STRTOK)
-                suppress_output = (strtok(NULL, ";") == NULL &&
-                                            line[strlen(line)-1] == ';');
-#else
-                suppress_output = (strtok_r(NULL, ";", &saveptr) == NULL &&
-                                            line[strlen(line)-1] == ';');
-#endif
                 value = parse_expression(t_ptr);
 
-                if (!suppress_output)
+                if (!unset_mode)
                   print_result(value);
               }
 
@@ -2194,10 +2187,9 @@ parse_args(int argc, char *argv[])
           exit(0);
         else
           {
-            suppress_output = 0;
             value = parse_expression(t_ptr);
 
-            if (!suppress_output)
+            if (!unset_mode)
               print_result(value);
           }
 
@@ -2258,6 +2250,8 @@ parse_expression(char *str)
   ULONG val;
   char *ptr = str;
 
+  unset_mode = 0;
+
   ptr = skipwhite(ptr);
 
   if (ptr == NULL || *ptr == '\0')
@@ -2267,7 +2261,6 @@ parse_expression(char *str)
     if (get_var("GT", &val))
       {
         print_time_reg("GT", val);
-        suppress_output = 1;
         return val;
       }
 
@@ -2398,7 +2391,7 @@ assignment_expr(char **str)
                             var_name);
               val  = 0;
               *str = peek;
-              suppress_output = 1;
+              unset_mode = 1;
             }
           else
             {
@@ -2415,14 +2408,14 @@ assignment_expr(char **str)
 
               val  = 0;
               *str = peek;
-              suppress_output = 1;
+              unset_mode = 1;
             }
         }
       else
         {
           val  = assignment_expr(str); /* Go recursive! */
 
-          if (suppress_output) /* RHS was an unset chain */
+          if (unset_mode) /* RHS was an unset chain */
             {
               int existed = remove_var(var_name);
 
@@ -2431,7 +2424,7 @@ assignment_expr(char **str)
             }
           else /* RHS was a normal expression */
             {
-              suppress_output = 0; /* //-V1048 */
+              unset_mode = 0; /* //-V1048 */
 
               if ((v = lookup_var(var_name)) == NULL)
                 (void)add_var(var_name, val);
@@ -2496,7 +2489,6 @@ do_assignment_operator(char **str, char *var_name)
 
   val = assignment_expr(str); /* Go recursive! */
   v = lookup_var(var_name);
-  suppress_output = 0;
 
   if (v == NULL)
     {
@@ -2604,8 +2596,6 @@ static ULONG
 logical_or_expr(char **str)
 {
   ULONG val, sum = 0;
-
-  suppress_output = 0;
 
   *str = skipwhite(*str);
   sum  = logical_and_expr(str);

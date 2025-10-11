@@ -1704,13 +1704,12 @@ list_vars(varquery_type type)
   FREE(entries);
 }
 
-#if defined (NEED_STRFTIME)
-
 /*
  * Drop-in replacement for strftime for platforms like ELKS.
  * Extended to set errno in case we expand our usage of strftime later.
  */
 
+#if defined (NEED_STRFTIME)
 static size_t
 xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 {
@@ -1722,11 +1721,11 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 
   if (strcmp(format, "%c") != 0)
     {
-#if defined(ENOTSUP)
+# if defined(ENOTSUP)
       errno = ENOTSUP;
-#else
+# else
       errno = EINVAL;
-#endif
+# endif
       return 0;
     }
 
@@ -1754,7 +1753,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 
   return len;
 }
-# define strftime xstrftime
+# define strftime xstrftime /* //-V1059 */
 #endif
 
 /* Special formatting of GT time register */
@@ -2022,7 +2021,6 @@ process_statement(char *statement)
 static void
 do_input(int echo)
 {
-  ULONG value;
 #if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
   char *line;
 #else
@@ -2120,7 +2118,6 @@ parse_args(int argc, char *argv[])
 {
   size_t i, len;
   char *buff;
-  ULONG value;
 #if !defined (WITH_STRTOK)
   char *saveptr;
 #endif

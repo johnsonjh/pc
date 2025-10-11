@@ -169,8 +169,10 @@ test "${CPPCHECK:?}" != "true" && {
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
   -D__EXTENSIONS__ -DWITH_TERNARY=1 -DWITH_BASE36=1 --quiet pc.c
 
-# Clang -Weverything - manual run because it's ridiculous
+# Clang -Weverything - manual run because it's ridiculous:
 # clang -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+# clang -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+# clang -m32 -DWITHOUT_LONG_LONG -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time -Wno-shift-count-overflow pc.c -o pc
 
 # Final xline
 xline

@@ -962,6 +962,14 @@ print_result(ULONG value)
   char roman_str[23];
   char *roman_value_converted;
 #endif
+#if defined (WITH_TERNARY)
+  char ter_str[50];
+  char ternary_str_buf[45];
+#endif
+#if defined (WITH_BASE36)
+  char b36_str[20];
+  char base36_str_buf[16];
+#endif
   char extra_info[100] = "";
   char char_repr[sizeof(ULONG) + 1];
   int i;
@@ -1067,8 +1075,6 @@ print_result(ULONG value)
 #endif
 
 #if defined (WITH_TERNARY)
-  char ter_str[50];
-  char ternary_str_buf[45];
   (void)snprintf(ter_str, sizeof(ter_str), "ter: 0t%s",
                  convert_base_string(value, 3, ternary_str_buf,
                                      sizeof(ternary_str_buf)));
@@ -1076,8 +1082,6 @@ print_result(ULONG value)
 #endif
 
 #if defined (WITH_BASE36)
-  char b36_str[20];
-  char base36_str_buf[16];
   (void)snprintf(b36_str, sizeof(b36_str), "b36: 0z%s",
                  convert_base_string(value, 36, base36_str_buf,
                                      sizeof(base36_str_buf)));

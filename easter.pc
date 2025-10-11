@@ -67,11 +67,9 @@ easter = days * spd + spd/2
 
 ### Today is:
 GT = now
-GT
 
 ### Easter this year:
 GT = easter
-GT
 
 ### Is today Easter?  (0 is false, 1 is true)
 day == eday && month == emonth

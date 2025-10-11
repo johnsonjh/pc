@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 22
+#define PC_VERSION_PATCH 23
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -2392,6 +2392,9 @@ assignment_expr(char **str)
                     v->value = truncate_register(var_name, val);
                   else
                     v->value = val;
+
+                  if (strcmp(var_name, "GT") == 0)
+                    print_time_reg(var_name, v->value);
                 }
             }
         }
@@ -2546,6 +2549,9 @@ do_assignment_operator(char **str, char *var_name)
 
   if (is_register(var_name))
     v->value = truncate_register(var_name, v->value);
+
+  if (strcmp(var_name, "GT") == 0)
+    print_time_reg(var_name, v->value);
 
   return v->value;
 }

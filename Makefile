@@ -11,14 +11,15 @@
 # scspell-id: 805354da-a39e-11f0-8637-80ee73e9b8e7
 
 # Environment variables supported by the build:
-#   WITH_TERNARY   - Enable ternary (base 3) output
-#   WITH_BASE36    - Enable base 36 output
-#   WITHOUT_ROMAN  - Enable Roman numeral output
-#   WITHOUT_EDITOR - Disable line editor autodetection
-#   WITH_LIBEDIT   - Enable libedit (if not autodetected)
-#   WITH_EDITLINE  - Enable libeditline (if not autodetected)
-#   WITH_READLINE  - Enable readline (if not autodetected)
-#   WITH_LINENOISE - Enable linenoise
+#   WITHOUT_LONG_LONG - Disable use of 'long long' and '%lld'
+#   WITH_TERNARY      - Enable ternary (base 3) output
+#   WITH_BASE36       - Enable base 36 output
+#   WITHOUT_ROMAN     - Enable Roman numeral output
+#   WITHOUT_EDITOR    - Disable line editor autodetection
+#   WITH_LIBEDIT      - Enable libedit (if not autodetected)
+#   WITH_EDITLINE     - Enable libeditline (if not autodetected)
+#   WITH_READLINE     - Enable readline (if not autodetected)
+#   WITH_LINENOISE    - Enable linenoise
 
 PKG-CONFIG=pkg-config
 RM=rm -f
@@ -34,6 +35,9 @@ pc: pc.c
 	@XCC="$(XCC)"; \
 	_CFLAGS="$(CFLAGS)"; \
 	_LDFLAGS="$(LDFLAGS)"; \
+	if [ -n "$${WITHOUT_LONG_LONG:-}" ]; then \
+		_CFLAGS="$${_CFLAGS:-} -DWITHOUT_LONG_LONG=1"; \
+	fi; \
 	if [ -n "$${WITH_TERNARY:-}" ]; then \
 		_CFLAGS="$${_CFLAGS:-} -DWITH_TERNARY=1"; \
 	fi; \

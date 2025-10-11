@@ -119,16 +119,18 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * Keep '# define USE_LONG_LONG' if your compiler supports the the "long long"
- * type and your fprintf supports the '%lld' format specifier.  If it doesn't
- * just comment out the #define below and pc will make due with plain longs.
+ * Define 'WITHOUT_LONG_LONG' if your compiler is lacking support for the
+ * "long long" type or if your fprintf doesn't have the %lld format specifier,
+ * in which case pc will try to make due using just plain longs and %ld.
  *
  * If happen to have a compiler that supports a "long long" type but fprintf
  * without "%lld', you could try using https://github.com/johnsonjh/dpsprintf
  */
 
-#if !defined (USE_LONG_LONG)
-# define USE_LONG_LONG
+#if !defined (WITHOUT_LONG_LONG)
+# if !defined (USE_LONG_LONG)
+#  define USE_LONG_LONG
+# endif
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////

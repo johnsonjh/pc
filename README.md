@@ -44,8 +44,10 @@
 []()
 * **Assignment operators:**
   * `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `|=`, `<<=`, `>>=`
-    * **Logical negation:** `!` is *logical*, not *bitwise*
-      (use `~` for bitwise negation).
+[]()
+
+[]()
+* **Negation:** `!` is *logical*, not *bitwise* (use `~` for bitwise negation).
 []()
 
 []()
@@ -61,8 +63,9 @@
   * **Examples:**
     * `x = 5`
     * `x = y = 10`
-    * `x = (y + 5) * 2`
+    * `x = (y++ + 5) * 2`
     * `(y * 2) + (x & 0xffeef)`
+    * `. << 2`
 []()
 
 []()

@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 15
+#define PC_VERSION_PATCH 16
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -229,6 +229,30 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 /* cppcheck-suppress preprocessorErrorDirective */
 #if defined (__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
 # include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
+#endif
+
+#if defined (WITHOUT_LOCALE)
+# if !defined (NO_LOCALE)
+#  define NO_LOCALE
+# endif
+#endif
+
+#if defined (__MSDOS__)
+# if !defined (NO_GETGID)
+#  define NO_GETGID
+# endif
+# if !defined (NO_GETPID)
+#  define NO_GETPID
+# endif
+# if !defined (NO_GETUID)
+#  define NO_GETUID
+# endif
+# if !defined (NO_PATHCONF)
+#  define NO_PATHCONF
+# endif
+# if !defined (NO_SYSCONF)
+#  define NO_SYSCONF
+# endif
 #endif
 
 #if defined (_CH_)
@@ -1150,13 +1174,15 @@ builtin_vars(const char *name, ULONG *val)
 #endif
   else if (strcmp(name, "dbg") == 0)
     *val = 0x82969;
+#if !defined (NO_GETPID)
   else if (strcmp(name, "pid") == 0)
     *val = (ULONG)getpid();
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#endif
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETUID)
   else if (strcmp(name, "uid") == 0)
     *val = (ULONG)getuid();
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETGID)
   else if (strcmp(name, "gid") == 0)
     *val = (ULONG)getgid();
 #endif
@@ -1180,23 +1206,23 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)INT_MIN;
   else if (strcmp(name, "INPUT_BUFF") == 0)
     *val = (ULONG)INPUT_BUFF;
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
   else if (strcmp(name, "ARG_MAX") == 0)
     *val = (ULONG)sysconf(_SC_ARG_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
   else if (strcmp(name, "CHILD_MAX") == 0)
     *val = (ULONG)sysconf(_SC_CHILD_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
   else if (strcmp(name, "OPEN_MAX") == 0)
     *val = (ULONG)sysconf(_SC_OPEN_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF)
   else if (strcmp(name, "PATH_MAX") == 0)
     *val = (ULONG)pathconf("/", _PC_PATH_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF)
   else if (strcmp(name, "NAME_MAX") == 0)
     *val = (ULONG)pathconf(".", _PC_NAME_MAX);
 #endif
@@ -1216,7 +1242,7 @@ builtin_vars(const char *name, ULONG *val)
   else if (strcmp(name, "PIPE_BUF") == 0)
     *val = (ULONG)PIPE_BUF;
 #endif
-#if defined (_PC_FILESIZEBITS)
+#if defined (_PC_FILESIZEBITS) && !defined (NO_PATHCONF)
   else if (strcmp(name, "FILESIZEBITS") == 0)
     *val = (ULONG)pathconf(".", _PC_FILESIZEBITS);
 #endif
@@ -1281,13 +1307,13 @@ builtin_vars(const char *name, ULONG *val)
 static const char *
 builtin_var_names [] =
 {
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
   "ARG_MAX",
 #endif
   "CHAR_BIT",
   "CHAR_MAX",
   "CHAR_MIN",
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
   "CHILD_MAX",
 #endif
   "dbg",
@@ -1295,10 +1321,10 @@ builtin_var_names [] =
   "ENDIAN_LITTLE",
   "EOF",
   "errno",
-#if defined (_PC_FILESIZEBITS)
+#if defined (_PC_FILESIZEBITS) && !defined (NO_PATHCONF)
   "FILESIZEBITS",
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETGID)
   "gid",
 #endif
   "INT_MAX",
@@ -1313,12 +1339,12 @@ builtin_var_names [] =
 #endif
   "LONG_MAX",
   "LONG_MIN",
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF)
   "NAME_MAX",
 #endif
   "nil",
   "NULL",
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
   "OPEN_MAX",
 #endif
 #if defined (PAGESIZE)
@@ -1327,10 +1353,12 @@ builtin_var_names [] =
 #if defined (PAGE_SIZE)
   "PAGE_SIZE",
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF)
   "PATH_MAX",
 #endif
+#if !defined (NO_GETPID)
   "pid",
+#endif
 #if defined (PIPE_BUF)
   "PIPE_BUF",
 #endif
@@ -1351,7 +1379,7 @@ builtin_var_names [] =
   "STDOUT_FILENO",
   "time",
   "UCHAR_MAX",
-#if !defined (__MINGW32__) && !defined (__MINGW64__)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETUID)
   "uid",
 #endif
   "UINT_MAX",

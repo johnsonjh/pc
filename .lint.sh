@@ -169,10 +169,15 @@ test "${CPPCHECK:?}" != "true" && {
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
   -D__EXTENSIONS__ -DWITH_TERNARY=1 -DWITH_BASE36=1 --quiet pc.c
 
-# Clang -Weverything - manual run because it's ridiculous:
+# Clang -Weverything:
 # clang -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
 # clang -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
 # clang -m32 -DWITHOUT_LONG_LONG -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time -Wno-shift-count-overflow pc.c -o pc
+
+# IA16-GCC COM:
+# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.com -DWITHOUT_LOCALE=1 -march=i8086 -mregparmcall -Os -mcmodel=small -Wall -Wextra -Wpedantic -std=c99
+# IA16-GCC EXE:
+# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.exe -DWITHOUT_LOCALE=1 -march=i8086 -mregparmcall -Os -mcmodel=medium -Wall -Wextra -Wpedantic -std=c99
 
 # Final xline
 xline

@@ -20,6 +20,7 @@ core-*
 log.pvs
 *.out
 pc
+pc.com
 pc.c.out.*
 pc.exe
 pvs.log

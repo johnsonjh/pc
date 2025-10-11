@@ -84,7 +84,7 @@
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
-  and **DOS** (*DJGPP*. **IA16-GCC**).
+  and **DOS** (*DJGPP*, *IA16-GCC*).
 
 ### Build
 

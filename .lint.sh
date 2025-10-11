@@ -178,6 +178,8 @@ test "${CPPCHECK:?}" != "true" && {
 # env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.com -DWITHOUT_LOCALE=1 -march=i8086 -mregparmcall -Os -mcmodel=small -Wall -Wextra -Wpedantic -std=c99
 # IA16-GCC EXE:
 # env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.exe -DWITHOUT_LOCALE=1 -march=i8086 -mregparmcall -Os -mcmodel=medium -Wall -Wextra -Wpedantic -std=c99
+# IA16-GCC ELKS:
+# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc -melks -Os -mtune=i8086 -Wall -Wextra -Wpedantic -std=c99 -D__far= -mregparmcall
 
 # OWC2 DOS EXE:
 # env INCLUDE=/opt/watcom/h /opt/watcom/binl64/wcl -bcl=DOS -0 -ml -fpi -zp2 -j -s pc.c

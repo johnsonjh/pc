@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 18
+#define PC_VERSION_PATCH 19
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -231,12 +231,6 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
 #endif
 
-#if defined (WITHOUT_LOCALE)
-# if !defined (NO_LOCALE)
-#  define NO_LOCALE
-# endif
-#endif
-
 #if defined (__MSDOS__) || defined (__DOS__)
 # if !defined (DOSLIKE)
 #  define DOSLIKE
@@ -261,7 +255,22 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-#if defined (_CH_) || defined (__DJGPP__) || defined (DOSLIKE)
+#if defined (__ELKS__)
+# if !defined (NO_PATHCONF)
+#  define NO_PATHCONF
+# endif
+# if !defined (NO_SYSCONF)
+#  define NO_SYSCONF
+# endif
+# if !defined (WITH_STRTOK)
+#  define WITH_STRTOK
+# endif
+# if !defined (NEED_STRFTIME)
+#  define NEED_STRFTIME
+# endif
+#endif
+
+#if defined (__ELKS__) || defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__DJGPP__) || defined (DOSLIKE)
 # if !defined (NO_LOCALE)
 #  define NO_LOCALE
 # endif
@@ -1695,6 +1704,59 @@ list_vars(varquery_type type)
   FREE(entries);
 }
 
+#if defined (NEED_STRFTIME)
+
+/*
+ * Drop-in replacement for strftime for platforms like ELKS.
+ * Extended to set errno in case we expand our usage of strftime later.
+ */
+
+static size_t
+xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
+{
+  if (!s || !format || !tm)
+    {
+      errno = EINVAL;
+      return 0;
+    }
+
+  if (strcmp(format, "%c") != 0)
+    {
+#if defined(ENOTSUP)
+      errno = ENOTSUP;
+#else
+      errno = EINVAL;
+#endif
+      return 0;
+    }
+
+  const char *asc = asctime(tm);
+
+  if (!asc)
+    {
+      errno = EINVAL;
+      return 0;
+    }
+
+  size_t len = strlen(asc);
+
+  if (len && asc[len-1] == '\n')
+    len--;
+
+  if (len + 1 > maxsize)
+    {
+      errno = ERANGE;
+      return 0;
+    }
+
+  memcpy(s, asc, len);
+  s[len] = '\0';
+
+  return len;
+}
+# define strftime xstrftime
+#endif
+
 /* Special formatting of GT time register */
 
 static void
@@ -1706,6 +1768,9 @@ print_time_reg(const char *name, ULONG value)
   char *buf = NULL;
   char *new_buf = NULL;
   size_t len;
+
+ /* xstrftime has errno extensions */
+  errno = 0;
 
   do {
     new_buf = realloc(buf, size);
@@ -1721,7 +1786,15 @@ print_time_reg(const char *name, ULONG value)
     buf = new_buf;
     len = strftime(buf, size, "%c", tm_info);
     size *= 2;
-  } while (len == 0);
+  } while (len == 0 && errno == 0);
+
+  if (len == 0)
+    {
+      (void)fprintf(stderr, "Warning: strftime error: %s\n",
+                    (errno ? xstrerror_l (errno) : "Unspecified trouble!"));
+      FREE(buf);
+      return;
+    }
 
   (void)fprintf(stdout, "  %s: %s\n", name, buf);
   FREE(buf);
@@ -1918,7 +1991,9 @@ do_input(int echo)
   char *line = buff;
 #endif
   char *input_line;
+#if !defined (WITH_STRTOK)
   char *saveptr;
+#endif
   char *token;
   char *comment_ptr;
 
@@ -1975,7 +2050,11 @@ do_input(int echo)
         if (comment_ptr != NULL)
           *comment_ptr = '\0';
 
+#if defined (WITH_STRTOK)
+        token = strtok(input_line, ";");
+#else
         token = strtok_r(input_line, ";", &saveptr);
+#endif
 
         while (token != NULL)
           {
@@ -1992,7 +2071,11 @@ do_input(int echo)
 
             if (*t_ptr == '\0')
               {
+#if defined (WITH_STRTOK)
+                token = strtok(NULL, ";");
+#else
                 token = strtok_r(NULL, ";", &saveptr);
+#endif
                 continue;
               }
 
@@ -2010,15 +2093,24 @@ do_input(int echo)
               exit(0);
             else
               {
+#if defined (WITH_STRTOK)
+                suppress_output = (strtok(NULL, ";") == NULL &&
+                                            line[strlen(line)-1] == ';');
+#else
                 suppress_output = (strtok_r(NULL, ";", &saveptr) == NULL &&
                                             line[strlen(line)-1] == ';');
+#endif
                 value = parse_expression(t_ptr);
 
                 if (!suppress_output)
                   print_result(value);
               }
 
+#if defined (WITH_STRTOK)
+            token = strtok(NULL, ";");
+#else
             token = strtok_r(NULL, ";", &saveptr);
+#endif
           }
 
         FREE(input_line);
@@ -2036,7 +2128,9 @@ parse_args(int argc, char *argv[])
   size_t i, len;
   char *buff;
   ULONG value;
+#if !defined (WITH_STRTOK)
   char *saveptr;
+#endif
   char *token;
 
   for (i = 1, len = 0; i < (size_t)argc; i++)
@@ -2057,7 +2151,11 @@ parse_args(int argc, char *argv[])
       (void)strncat(buff, " ", len - strlen(buff) - 1);
     }
 
+#if defined (WITH_STRTOK)
+    token = strtok(buff, ";");
+#else
     token = strtok_r(buff, ";", &saveptr);
+#endif
 
     while (token != NULL)
       {
@@ -2074,7 +2172,11 @@ parse_args(int argc, char *argv[])
 
         if (*t_ptr == '\0')
           {
+#if defined (WITH_STRTOK)
+            token = strtok(NULL, ";");
+#else
             token = strtok_r(NULL, ";", &saveptr);
+#endif
             continue;
           }
 
@@ -2099,7 +2201,11 @@ parse_args(int argc, char *argv[])
               print_result(value);
           }
 
+#if defined (WITH_STRTOK)
+        token = strtok(NULL, ";");
+#else
         token = strtok_r(NULL, ";", &saveptr);
+#endif
       }
 
   FREE(buff);

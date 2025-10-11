@@ -16,6 +16,8 @@
 #   WITH_TERNARY      - Enable ternary (base 3) output
 #   WITH_BASE36       - Enable base 36 output
 #   WITHOUT_ROMAN     - Enable Roman numeral output
+#   WITH_STRTOK       - Enabble use of old strtok (instead of strtok_r)
+#   NEED_STRFTIME     - Enable if you need an strftime implementation
 #   WITHOUT_EDITOR    - Disable editor autodetection (e.g., if cross-compiling)
 #   WITH_LIBEDIT      - Enable libedit (if not autodetected)
 #   WITH_EDITLINE     - Enable libeditline (if not autodetected)
@@ -50,6 +52,12 @@ pc: pc.c
 	fi; \
 	if [ -n "$${WITHOUT_ROMAN:-}" ]; then \
 		_CFLAGS="$${_CFLAGS:-} -DWITHOUT_ROMAN=1"; \
+	fi; \
+	if [ -n "$${WITH_STRTOK:-}" ]; then \
+		_CFLAGS="$${_CFLAGS:-} -DWITH_STRTOK=1"; \
+	fi; \
+	if [ -n "$${NEED_STRFTIME:-}" ]; then \
+		_CFLAGS="$${_CFLAGS:-} -DNEED_STRFTIME=1"; \
 	fi; \
 	if [ -n "$${WITHOUT_EDITOR:-}" ]; then \
 		_HAVE_RL=1; \

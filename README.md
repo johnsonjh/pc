@@ -1,4 +1,4 @@
-<!-- vim: set nocp expandtab ft=markdown : -->
+<!-- vim: set nocp expandtab ft=markdown cc=80 : -->
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2025 Jeffrey H. Johnson -->
 <!-- scspell-id: 498fb4ee-a43d-11f0-aae1-80ee73e9b8e7 -->
@@ -115,8 +115,12 @@
 []()
 * [`easter.pc`](easter.pc) is a program that calculates the date of Easter
   (and checks if it's today).
-  * You can see the [output of this program](easter.txt) (with all optional
-    base conversions enabled).
+  * You can modify the program itself or use something like
+    [libfaketime](https://github.com/wolfcw/libfaketime)
+    (*i.e., `faketime -m '2025-04-20 12:00:00'`) if you want to verify
+    arbitrary dates.
+  * You can see the [full output of this program here](easter.txt) (with
+    all optional base conversions enabled).
 
 ## Testing
 

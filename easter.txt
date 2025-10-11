@@ -2,9 +2,9 @@
 
 # Convert epoch to component day, month, year:
 now = time
-    dec: 1760099725 char: '....h...' oct: 0o15072176615 hex: 0x68e8fd8d
-     ter: 0t11112122221022220201 b36: 0zT3X1N1
-     bin: 0b1101000111010001111110110001101
+    dec: 1760218575 char: '....h...' oct: 0o15072546717 hex: 0x68eacdcf
+     ter: 0t11112200011100221120 b36: 0zT3ZLCF
+     bin: 0b1101000111010101100110111001111
 bitshift = (sizeof_ll * CHAR_BIT) - 1
     dec: 63 char: '.......?' oct: 0o77 hex: 0x3f rom: 0rLXIII ter: 0t2100
      b36: 0z1R bin: 0b111111
@@ -17,59 +17,59 @@ top = 1 << bitshift
      ter: 0t2021110011022210012102010021220101220222 b36: 0z1Y2P0IJ32E8E
      bin: 0b1000000000000000000000000000000000000000000000000000000000000000
 low = now & (top - 1)
-    dec: 1760099725 char: '....h...' oct: 0o15072176615 hex: 0x68e8fd8d
-     ter: 0t11112122221022220201 b36: 0zT3X1N1
-     bin: 0b1101000111010001111110110001101
+    dec: 1760218575 char: '....h...' oct: 0o15072546717 hex: 0x68eacdcf
+     ter: 0t11112200011100221120 b36: 0zT3ZLCF
+     bin: 0b1101000111010101100110111001111
 high = now & top
     dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
 s = low - high
-    dec: 1760099725 char: '....h...' oct: 0o15072176615 hex: 0x68e8fd8d
-     ter: 0t11112122221022220201 b36: 0zT3X1N1
-     bin: 0b1101000111010001111110110001101
+    dec: 1760218575 char: '....h...' oct: 0o15072546717 hex: 0x68eacdcf
+     ter: 0t11112200011100221120 b36: 0zT3ZLCF
+     bin: 0b1101000111010101100110111001111
 sign = s >> bitshift
     dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
 negmag = top - low
-    dec: 9223372035094676083 char: '.......s' oct: 0o777777777762705601163
-     hex: 0x7fffffff97170273 ter: 0t2021110011022210012020120121222002000021
-     b36: 0z1Y2P0II9YH6R
-     bin: 0b111111111111111111111111111111110010111000101110000001001110011
+    dec: 9223372035094557233 char: '......21' oct: 0o777777777762705231061
+     hex: 0x7fffffff97153231 ter: 0t2021110011022210012020120121202000222102
+     b36: 0z1Y2P0II9YEN1
+     bin: 0b111111111111111111111111111111110010111000101010011001000110001
 ceil_neg = (negmag + (spd - 1)) / spd
-    dec: 106751991146930 char: '..a."...' oct: 0o3021344240564662
-     hex: 0x61172282e9b2 ter: 0t111222222101112210212101122022 b36: 0z11U96R9VAQ
-     bin: 0b11000010001011100100010100000101110100110110010
+    dec: 106751991146928 char: '..a."...' oct: 0o3021344240564660
+     hex: 0x61172282e9b0 ter: 0t111222222101112210212101122020 b36: 0z11U96R9VAO
+     bin: 0b11000010001011100100010100000101110100110110000
 qpos = low / spd
-    dec: 20371 char: '......O.' oct: 0o47623 hex: 0x4f93 ter: 0t1000221111
-     b36: 0zFPV bin: 0b100111110010011
+    dec: 20372 char: '......O.' oct: 0o47624 hex: 0x4f94 ter: 0t1000221112
+     b36: 0zFPW bin: 0b100111110010100
 qneg = 0 - ceil_neg
-    dec: 18446637321718404686 signed: -106751991146930 char: '.....}.N'
-     oct: 0o1777774756433537213116 hex: 0xffff9ee8dd7d164e
-     ter: 0t11112220022010120102102200202221102012122 b36: 0z3W5CZ6SZDILH
-     bin: 0b1111111111111111100111101110100011011101011111010001011001001110
+    dec: 18446637321718404688 signed: -106751991146928 char: '.....}.P'
+     oct: 0o1777774756433537213120 hex: 0xffff9ee8dd7d1650
+     ter: 0t11112220022010120102102200202221102012201 b36: 0z3W5CZ6SZDILH
+     bin: 0b1111111111111111100111101110100011011101011111010001011001010000
 q = (qpos & (0 - (sign ^ 1))) | (qneg & (0 - sign))
-    dec: 20371 char: '......O.' oct: 0o47623 hex: 0x4f93 ter: 0t1000221111
-     b36: 0zFPV bin: 0b100111110010011
+    dec: 20372 char: '......O.' oct: 0o47624 hex: 0x4f94 ter: 0t1000221112
+     b36: 0zFPW bin: 0b100111110010100
 z = q + 719468
-    dec: 739839 char: '......I.' oct: 0o2644777 hex: 0xb49ff
-     ter: 0t1101120212110 b36: 0zFUV3 bin: 0b10110100100111111111
+    dec: 739840 char: '......J.' oct: 0o2645000 hex: 0xb4a00
+     ter: 0t1101120212111 b36: 0zFUV4 bin: 0b10110100101000000000
 era = (z - ((z < 0) * 146096)) / 146097
     dec: 5 oct: 0o5 hex: 0x5 rom: 0rV ter: 0t12 b36: 0z5 bin: 0b101
 doe = z - era * 146097
-    dec: 9354 char: '......$.' oct: 0o22212 hex: 0x248a ter: 0t110211110
-     b36: 0z77U bin: 0b10010010001010
+    dec: 9355 char: '......$.' oct: 0o22213 hex: 0x248b ter: 0t110211111
+     b36: 0z77V bin: 0b10010010001011
 yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365
     dec: 25 oct: 0o31 hex: 0x19 rom: 0rXXV ter: 0t221 b36: 0zP bin: 0b11001
 y = yoe + era * 400
     dec: 2025 oct: 0o3751 hex: 0x7e9 rom: 0rMMXXV ter: 0t2210000 b36: 0z1K9
      bin: 0b11111101001
 doy = doe - (365*yoe + yoe/4 - yoe/100)
-    dec: 223 oct: 0o337 hex: 0xdf rom: 0rCCXXIII ter: 0t22021 b36: 0z67
-     bin: 0b11011111
+    dec: 224 oct: 0o340 hex: 0xe0 rom: 0rCCXXIV ter: 0t22022 b36: 0z68
+     bin: 0b11100000
 mp = (5*doy + 2) / 153
     dec: 7 oct: 0o7 hex: 0x7 rom: 0rVII ter: 0t21 b36: 0z7 bin: 0b111
 
 # Current day:
 day = doy - (153*mp + 2)/5 + 1
-    dec: 10 oct: 0o12 hex: 0xa rom: 0rX ter: 0t101 b36: 0zA bin: 0b1010
+    dec: 11 oct: 0o13 hex: 0xb rom: 0rXI ter: 0t102 b36: 0zB bin: 0b1011
 
 # Current month:
 month = mp + 3 - 12 * ((mp + 2) / 12)
@@ -124,7 +124,7 @@ era = y_adj / 400
     dec: 5 oct: 0o5 hex: 0x5 rom: 0rV ter: 0t12 b36: 0z5 bin: 0b101
 yoe = y_adj - era * 400
     dec: 25 oct: 0o31 hex: 0x19 rom: 0rXXV ter: 0t221 b36: 0zP bin: 0b11001
-gt2 = (emonth > 2)
+gt2 = emonth > 2
     dec: 1 oct: 0o1 hex: 0x1 rom: 0rI ter: 0t1 b36: 0z1 bin: 0b1
 mp1 = emonth + 9
     dec: 13 oct: 0o15 hex: 0xd rom: 0rXIII ter: 0t111 b36: 0zD bin: 0b1101
@@ -148,11 +148,14 @@ easter = days * spd + spd/2
 
 ### Today is:
 GT = now
-    dec: 1760099725 char: '....h...' oct: 0o15072176615 hex: 0x68e8fd8d
-     ter: 0t11112122221022220201 b36: 0zT3X1N1
-     bin: 0b1101000111010001111110110001101
+    dec: 1760218575 char: '....h...' oct: 0o15072546717 hex: 0x68eacdcf
+     ter: 0t11112200011100221120 b36: 0zT3ZLCF
+     bin: 0b1101000111010101100110111001111
 GT
-  GT: Fri 10 Oct 2025 08:35:25 AM EDT
+  GT: Sat 11 Oct 2025 05:36:15 PM EDT
+    dec: 1760218575 char: '....h...' oct: 0o15072546717 hex: 0x68eacdcf
+     ter: 0t11112200011100221120 b36: 0zT3ZLCF
+     bin: 0b1101000111010101100110111001111
 
 ### Easter this year:
 GT = easter
@@ -161,6 +164,9 @@ GT = easter
      bin: 0b1101000000001001110000111000000
 GT
   GT: Sun 20 Apr 2025 08:00:00 AM EDT
+    dec: 1745150400 char: '....h...' oct: 0o15001160700 hex: 0x6804e1c0
+     ter: 0t11111121210211022000 b36: 0zSV0MO0
+     bin: 0b1101000000001001110000111000000
 
 ### Is today Easter?  (0 is false, 1 is true)
 day == eday && month == emonth

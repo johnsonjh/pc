@@ -86,10 +86,10 @@
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
   [**ELKS**](https://github.com/ghaerr/elks)
-  (*with* [*GCC-IA16*](https://gitlab.com/tkchia/build-ia16)),
-  and **DOS** (*with* [*DJGPP*](https://www.delorie.com/djgpp/),
-  [*GCC-IA16*](https://gitlab.com/tkchia/build-ia16),
-  [*Open Watcom V2*](https://github.com/open-watcom/open-watcom-v2)).
+  (*with* [GCC-IA16](https://gitlab.com/tkchia/build-ia16)),
+  and **DOS** (*with* [DJGPP](https://www.delorie.com/djgpp/),
+  [GCC-IA16](https://gitlab.com/tkchia/build-ia16),
+  [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2)).
 
 ### Build
 
@@ -117,7 +117,7 @@
   (and checks if it's today).
   * You can modify the program itself or use something like
     [libfaketime](https://github.com/wolfcw/libfaketime)
-    (*i.e., `faketime -m '2025-04-20 12:00:00'`) if you want to verify
+    (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to verify
     arbitrary dates.
   * You can see the [full output of this program here](easter.txt) (with
     all optional base conversions enabled).

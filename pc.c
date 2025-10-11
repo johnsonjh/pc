@@ -233,7 +233,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-/* DJGPP provides stubs for so we'll leave it enabled */
+/* DJGPP provides stubs for these so we'll leave them enabled */
 
 #if defined (DOSLIKE) && !defined(__DJGPP__)
 # if !defined (NO_GETGID)

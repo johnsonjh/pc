@@ -16,7 +16,7 @@
 #   WITH_TERNARY      - Enable ternary (base 3) output
 #   WITH_BASE36       - Enable base 36 output
 #   WITHOUT_ROMAN     - Enable Roman numeral output
-#   WITHOUT_EDITOR    - Disable line editor autodetection
+#   WITHOUT_EDITOR    - Disable editor autodetection (e.g., if cross-compiling)
 #   WITH_LIBEDIT      - Enable libedit (if not autodetected)
 #   WITH_EDITLINE     - Enable libeditline (if not autodetected)
 #   WITH_READLINE     - Enable readline (if not autodetected)

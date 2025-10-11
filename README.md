@@ -80,7 +80,7 @@
 
 ## Portability
 
-* Portable to any **POSIX**-*ish* system with a *C99* compiler.
+* Portable to any **POSIX**-*ish* system with a *C99* compiler (or [Ch](https://www.softintegration.com/) 8.5).
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, and

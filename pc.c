@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 20
+#define PC_VERSION_PATCH 21
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -1981,6 +1981,45 @@ editor_completion_function (const char *text, int start, int end)
 #endif
 
 static void
+process_statement(char *statement)
+{
+  char *t_ptr = statement;
+  char *end;
+  ULONG value;
+
+  while (*t_ptr && isspace((unsigned char)*t_ptr))
+    t_ptr++;
+
+  end = t_ptr + strlen(t_ptr) - 1;
+
+  while (end > t_ptr && isspace((unsigned char)*end))
+    *end-- = '\0';
+
+  if (*t_ptr == '\0')
+    return;
+
+  if (strcmp(t_ptr, "vars") == 0)
+    list_user_vars();
+  else if (strcmp(t_ptr, "regs") == 0)
+    list_regs();
+  else if (strcmp(t_ptr, "help") == 0)
+    {
+      list_builtin_vars();
+      list_regs();
+      list_user_vars();
+    }
+  else if (strcmp(t_ptr, "quit") == 0)
+    exit(0);
+  else
+    {
+      value = parse_expression(t_ptr);
+
+      if (!unset_mode)
+        print_result(value);
+    }
+}
+
+static void
 do_input(int echo)
 {
   ULONG value;
@@ -2058,46 +2097,7 @@ do_input(int echo)
 
         while (token != NULL)
           {
-            char *t_ptr = token;
-            char *end;
-
-            while (*t_ptr && isspace((unsigned char)*t_ptr))
-              t_ptr++;
-
-            end = t_ptr + strlen(t_ptr) - 1;
-
-            while (end > t_ptr && isspace((unsigned char)*end))
-              *end-- = '\0';
-
-            if (*t_ptr == '\0')
-              {
-#if defined (WITH_STRTOK)
-                token = strtok(NULL, ";");
-#else
-                token = strtok_r(NULL, ";", &saveptr);
-#endif
-                continue;
-              }
-
-            if (strcmp(t_ptr, "vars") == 0)
-              list_user_vars();
-            else if (strcmp(t_ptr, "regs") == 0)
-              list_regs();
-            else if (strcmp(t_ptr, "help") == 0)
-              {
-                list_builtin_vars();
-                list_regs();
-                list_user_vars();
-              }
-            else if (strcmp(t_ptr, "quit") == 0)
-              exit(0);
-            else
-              {
-                value = parse_expression(t_ptr);
-
-                if (!unset_mode)
-                  print_result(value);
-              }
+            process_statement(token);
 
 #if defined (WITH_STRTOK)
             token = strtok(NULL, ";");
@@ -2152,46 +2152,7 @@ parse_args(int argc, char *argv[])
 
     while (token != NULL)
       {
-        char *t_ptr = token;
-        char *end;
-
-        while (*t_ptr && isspace((unsigned char)*t_ptr))
-          t_ptr++;
-
-        end = t_ptr + strlen(t_ptr) - 1;
-
-        while (end > t_ptr && isspace((unsigned char)*end))
-          *end-- = '\0';
-
-        if (*t_ptr == '\0')
-          {
-#if defined (WITH_STRTOK)
-            token = strtok(NULL, ";");
-#else
-            token = strtok_r(NULL, ";", &saveptr);
-#endif
-            continue;
-          }
-
-        if (strcmp(t_ptr, "vars") == 0)
-          list_user_vars();
-        else if (strcmp(t_ptr, "regs") == 0)
-            list_regs();
-        else if (strcmp(t_ptr, "help") == 0)
-          {
-            list_builtin_vars();
-            list_regs();
-            list_user_vars();
-          }
-        else if (strcmp(t_ptr, "quit") == 0)
-          exit(0);
-        else
-          {
-            value = parse_expression(t_ptr);
-
-            if (!unset_mode)
-              print_result(value);
-          }
+        process_statement(token);
 
 #if defined (WITH_STRTOK)
         token = strtok(NULL, ";");

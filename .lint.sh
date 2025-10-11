@@ -179,5 +179,8 @@ test "${CPPCHECK:?}" != "true" && {
 # IA16-GCC EXE:
 # env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.exe -DWITHOUT_LOCALE=1 -march=i8086 -mregparmcall -Os -mcmodel=medium -Wall -Wextra -Wpedantic -std=c99
 
+# OWC2 DOS EXE:
+# env INCLUDE=/opt/watcom/h /opt/watcom/binl64/wcl -bcl=DOS -0 -ml -fpi -zp2 -j -s pc.c
+
 # Final xline
 xline

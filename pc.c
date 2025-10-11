@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 17
+#define PC_VERSION_PATCH 18
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -237,7 +237,13 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-#if defined (__MSDOS__)
+#if defined (__MSDOS__) || defined (__DOS__)
+# if !defined (DOSLIKE)
+#  define DOSLIKE
+# endif
+#endif
+
+#if defined (DOSLIKE)
 # if !defined (NO_GETGID)
 #  define NO_GETGID
 # endif
@@ -255,13 +261,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-#if defined (_CH_)
-# if !defined (NO_LOCALE)
-#  define NO_LOCALE
-# endif
-#endif
-
-#if defined (__DJGPP__)
+#if defined (_CH_) || defined (__DJGPP__) || defined (DOSLIKE)
 # if !defined (NO_LOCALE)
 #  define NO_LOCALE
 # endif

@@ -98,10 +98,11 @@ pc: pc.c
 all: pc
 
 clean:
-	@set -x; $(RM) ./pc ./pc.com ./pc.exe
+	@set -x; $(RM) ./pc ./pc.com ./pc.exe ./pc.o
 
 distclean: clean
 	@set -x; $(RM) -r ./a.out ./ch.c ./compile_commands.json ./core ./log.pvs ./pvsreport
+	@set -x; $(RM) -r ./core-*
 	@set -x; $(RM) -r ./pc.c.out.*
 
 lint:

@@ -84,7 +84,7 @@
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
-  and **DOS** (*DJGPP*, *IA16-GCC*).
+  and **DOS** ([*DJGPP*](https://www.delorie.com/djgpp/), [*IA16-GCC*](https://gitlab.com/tkchia/build-ia16), [*Open Watcom V2*](https://github.com/open-watcom/open-watcom-v2)).
 
 ### Build
 

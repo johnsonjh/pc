@@ -93,7 +93,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  *      +=, -=, *=, /=, %=, &=, ^=, |=, <<=, and >>=
  */
 
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************/
 
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
@@ -101,7 +101,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_PATCH 10
 #define PC_VERSION_OSHIT 0
 
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************/
 
 /*
  * Do you want to see output in ternary or base 36?
@@ -116,7 +116,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 /* #define WITHOUT_ROMAN */
 
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************/
 
 /*
  * Define 'WITHOUT_LONG_LONG' if your compiler is lacking support for the
@@ -133,7 +133,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************/
 
 /*
  * Hopefully no user servicable parts below.
@@ -271,7 +271,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # if defined (inline)
 #  undef inline
 # endif
-# define inline //-V1059
+# define inline /* //-V1059 */
 #endif
 
 #define AND             '&'
@@ -546,13 +546,13 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 next = -1;
 
-              if (next >= 0 && next < 36) //-V560
+              if (next >= 0 && next < 36) /* //-V560 */
                 {
                   base = 36;
                   p   += 2;
                 }
               else
-                base = 0; //-V1048
+                base = 0; /* //-V1048 */
             }
           else if ((p[1] == 'x' || p[1] == 'X'))
             {
@@ -573,7 +573,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
                   p   += 2;
                 }
               else
-                base = 0; //-V1048
+                base = 0; /* //-V1048 */
             }
           else if ((p[1] == 'b' || p[1] == 'B'))
             {
@@ -584,13 +584,13 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 next = -1;
 
-              if (next >= 0 && next < 2) //-V560
+              if (next >= 0 && next < 2) /* //-V560 */
                 {
                   base = 2;
                   p   += 2;
                 }
               else
-                base = 0; //-V1048
+                base = 0; /* //-V1048 */
             }
           else if ((p[1] == 't' || p[1] == 'T'))
             {
@@ -601,13 +601,13 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 next = -1;
 
-              if (next >= 0 && next < 3) //-V560
+              if (next >= 0 && next < 3) /* //-V560 */
                 {
                   base = 3;
                   p   += 2;
                 }
               else
-                base = 0; //-V1048
+                base = 0; /* //-V1048 */
             }
 
           else if ((p[1] == 'o' || p[1] == 'O'))
@@ -619,13 +619,13 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 next = -1;
 
-              if (next >= 0 && next < 8) //-V560
+              if (next >= 0 && next < 8) /* //-V560 */
                 {
                   base = 8;
                   p   += 2;
                 }
               else
-                base = 0; //-V1048
+                base = 0; /* //-V1048 */
             }
           else if ((p[1] == 'r' || p[1] == 'R'))
             {
@@ -656,7 +656,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
           else
             next = -1;
 
-          if (next >= 0 && next < 2) //-V560
+          if (next >= 0 && next < 2) /* //-V560 */
             p += 2;
         }
     }
@@ -671,7 +671,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
           else
             next = -1;
 
-          if (next >= 0 && next < 3) //-V560
+          if (next >= 0 && next < 3) /* //-V560 */
             p += 2;
         }
     }
@@ -1610,7 +1610,7 @@ list_vars(varquery_type type)
 
       (void)fprintf(stdout, "User variables:\n");
     }
-  else if (type == BUILTIN_VARS) //-V547
+  else if (type == BUILTIN_VARS) /* //-V547 */
     (void)fprintf(stdout,
                   "The following read-only builtin variables are defined:\n");
   else
@@ -2248,7 +2248,7 @@ assignment_expr(char **str)
             }
           else /* RHS was a normal expression */
             {
-              suppress_output = 0; //-V1048
+              suppress_output = 0; /* //-V1048 */
 
               if ((v = lookup_var(var_name)) == NULL)
                 (void)add_var(var_name, val);
@@ -2286,7 +2286,7 @@ assignment_expr(char **str)
                       "Left hand side of expression is not assignable.\n");
     }
 
-  if (var_name) //-V547
+  if (var_name) /* //-V547 */
     FREE(var_name);
 
   return val;
@@ -2522,7 +2522,7 @@ equality_expr(char **str)
 
       if (op == EQUAL)
         sum = ( sum == val );
-      else if (op == BANG) //-V547
+      else if (op == BANG) /* //-V547 */
         sum = ( sum != val );
     }
 
@@ -2631,7 +2631,7 @@ add_expression(char **str)
 
           sum += val;
         }
-      else if (op == MINUS) //-V547
+      else if (op == MINUS) /* //-V547 */
         {
           if ((LONG)val > 0 && (LONG)sum < LLONG_MIN + (LONG)val)
             errno = ERANGE;
@@ -2677,7 +2677,7 @@ term(char **str)
           else
             sum /= val;
         }
-      else if (op == MODULO) //-V547
+      else if (op == MODULO) /* //-V547 */
         {
           if (val == 0)
             {
@@ -2698,12 +2698,12 @@ term(char **str)
    */
 
   if (*str != NULL && (**str != TIMES && **str != DIVISION
-      && **str != MODULO && **str != PLUS //-V560
+      && **str != MODULO && **str != PLUS /* //-V560 */
       && **str != MINUS && **str != OR && **str != AND && **str != XOR
-      && **str != BANG && **str != NEGATIVE && **str != TWIDDLE //-V560
+      && **str != BANG && **str != NEGATIVE && **str != TWIDDLE /* //-V560 */
       && **str != RPAREN && **str != LESS_THAN && **str != GREATER_THAN
       && **str != SEMI_COLON && strncmp(*str, "<<", 2) != 0
-      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0')) //-V526
+      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0')) /* //-V526 */
     {
       (void)fprintf(stderr, "Parsing stopped: unknown operator '%s'\n", *str);
 
@@ -2844,7 +2844,7 @@ get_value(char **str)
           while (**str && **str != SINGLE_QUOTE)
             *str += 1;
         }
-      else if (**str != '\0') //-V547
+      else if (**str != '\0') /* //-V547 */
         *str += 1;
     }
   else if (isdigit((unsigned char)**str)) /* A regular number */

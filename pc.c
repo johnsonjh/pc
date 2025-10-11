@@ -2369,10 +2369,17 @@ do_assignment_operator(char **str, char *var_name)
     }
   else if (operator == MINUS)
     {
+#if defined (USE_LONG_LONG)
       if ((LONG)val > 0 && (LONG)v->value < LLONG_MIN + (LONG)val)
         errno = ERANGE;
       else if ((LONG)val < 0 && (LONG)v->value > LLONG_MAX + (LONG)val)
         errno = ERANGE;
+#else
+      if ((LONG)val > 0 && (LONG)v->value < LONG_MIN + (LONG)val)
+        errno = ERANGE;
+      else if ((LONG)val < 0 && (LONG)v->value > LONG_MAX + (LONG)val)
+        errno = ERANGE;
+#endif
 
       v->value -= val;
     }
@@ -2675,8 +2682,17 @@ add_expression(char **str)
         }
       else if (op == MINUS) /* //-V547 */
         {
+#if defined (USE_LONG_LONG)
           if ((LONG)val > 0 && (LONG)sum < LLONG_MIN + (LONG)val)
             errno = ERANGE;
+          else if ((LONG)val < 0 && (LONG)sum > LLONG_MAX + (LONG)val)
+            errno = ERANGE;
+#else
+          if ((LONG)val > 0 && (LONG)sum < LONG_MIN + (LONG)val)
+            errno = ERANGE;
+          else if ((LONG)val < 0 && (LONG)sum > LONG_MAX + (LONG)val)
+            errno = ERANGE;
+#endif
 
           sum -= val;
         }

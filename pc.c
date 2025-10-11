@@ -267,7 +267,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <linenoise.h>
 #endif
 
-#if defined(PC_FUNC)
+#if defined (PC_FUNC)
 # undef PC_FUNC
 #endif
 
@@ -399,9 +399,9 @@ xstrerror_l (int errnum)
     }
 # endif
 
-# if !defined(__func__)
+# if !defined (__func__)
 #  define __func__ "xstrerror_l" /* //-V1059 */
-#  if defined(PC_FUNC)
+#  if defined (PC_FUNC)
 #   undef PC_FUNC
 #  endif
 #  define PC_FUNC
@@ -418,7 +418,7 @@ xstrerror_l (int errnum)
           exit (EXIT_FAILURE);
         }
 
-# if defined(PC_FUNC)
+# if defined (PC_FUNC)
 #  undef __func__
 #  undef PC_FUNC
 # endif
@@ -1155,12 +1155,14 @@ builtin_vars(const char *name, ULONG *val)
 #endif
   else if (strcmp(name, "errno") == 0)
     *val = (ULONG)errno;
+#if defined (USE_LONG_LONG)
   else if (strcmp(name, "ULLONG_MAX") == 0)
     *val = (ULONG)ULLONG_MAX;
   else if (strcmp(name, "LLONG_MAX") == 0)
     *val = (ULONG)LLONG_MAX;
   else if (strcmp(name, "LLONG_MIN") == 0)
     *val = (ULONG)LLONG_MIN;
+#endif
   else if (strcmp(name, "LONG_MAX") == 0)
     *val = (ULONG)LONG_MAX;
   else if (strcmp(name, "LONG_MIN") == 0)
@@ -1295,8 +1297,10 @@ builtin_var_names [] =
   "INT_MAX",
   "INT_MIN",
   "INPUT_BUFF",
+#if defined (USE_LONG_LONG)
   "LLONG_MAX",
   "LLONG_MIN",
+#endif
 #if defined (LONG_BIT)
   "LONG_BIT",
 #endif
@@ -1344,7 +1348,9 @@ builtin_var_names [] =
   "uid",
 #endif
   "UINT_MAX",
+#if defined (USE_LONG_LONG)
   "ULLONG_MAX",
+#endif
   "ULONG_MAX",
   "USHRT_MAX",
 #if defined (WORD_BIT)
@@ -1566,9 +1572,9 @@ list_vars(varquery_type type)
       return;
     }
 
-#if !defined(__func__)
+#if !defined (__func__)
 # define __func__ "list_vars" /* //-V1059 */
-# if defined(PC_FUNC)
+# if defined (PC_FUNC)
 #  undef PC_FUNC
 # endif
 # define PC_FUNC
@@ -1639,7 +1645,7 @@ list_vars(varquery_type type)
       abort();
     }
 
-#if defined(PC_FUNC)
+#if defined (PC_FUNC)
 # undef __func__
 # undef PC_FUNC
 #endif
@@ -1835,7 +1841,7 @@ print_herald(void)
 
 #if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
 static
-# if defined(__APPLE__)
+# if defined (__APPLE__)
 int
 # else
 char *
@@ -1845,7 +1851,7 @@ editor_completion(const char *text, int state)
   (void)text;
   (void)state;
 
-# if defined(__APPLE__)
+# if defined (__APPLE__)
   return 0;
 # else
   return NULL;
@@ -2230,9 +2236,9 @@ assignment_expr(char **str)
       *str = skipwhite(*str + 1); /* Skip the equal sign */
       peek = skipwhite(*str);
 
-#if !defined(__func__)
+#if !defined (__func__)
 # define __func__ "assignment_expr" /* //-V1059 */
-# if defined(PC_FUNC)
+# if defined (PC_FUNC)
 #  undef PC_FUNC
 # endif
 # define PC_FUNC
@@ -2312,7 +2318,7 @@ assignment_expr(char **str)
           abort();
         }
 
-#if defined(PC_FUNC)
+#if defined (PC_FUNC)
 # undef __func__
 # undef PC_FUNC
 #endif

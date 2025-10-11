@@ -98,21 +98,17 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 23
+#define PC_VERSION_PATCH 24
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
 
-/*
- * Do you want to see output in ternary or base 36?
- */
+/* Do you want to see output in ternary or base 36? */
 
 /* #define WITH_TERNARY */
 /* #define WITH_BASE36 */
 
-/*
- * Don't like Roman numeral output?
- */
+/* Don't like Roman numeral output? */
 
 /* #define WITHOUT_ROMAN */
 
@@ -135,9 +131,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 /*****************************************************************************/
 
-/*
- * Hopefully no user servicable parts below.
- */
+/* Hopefully no user servicable parts below! */
 
 #if !defined (WITHOUT_ROMAN)
 # if !defined (WITH_ROMAN)
@@ -231,13 +225,17 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
 #endif
 
+/* Disable things not available on DOS-like platforms */
+
 #if defined (__MSDOS__) || defined (__DOS__)
 # if !defined (DOSLIKE)
 #  define DOSLIKE
 # endif
 #endif
 
-#if defined (DOSLIKE)
+/* DJGPP provides stubs for so we'll leave it enabled */
+
+#if defined (DOSLIKE) && !defined(__DJGPP__)
 # if !defined (NO_GETGID)
 #  define NO_GETGID
 # endif
@@ -2269,9 +2267,7 @@ get_var_name(char **str)
   if (buff == NULL)
     return NULL;
 
-  /*
-   * First get the variable name
-   */
+  /* First get the variable name */
 
   i = 0;
 
@@ -2897,9 +2893,7 @@ factor(char **str)
   val  = get_value(str);
   *str = skipwhite(*str);
 
-  /*
-   * Now is the time to actually do the unary operation if one was present.
-   */
+  /* Now is the time to actually do the unary operation if one was present. */
 
   if (have_special) /* We've got a ++ or -- */
     {

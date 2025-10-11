@@ -267,13 +267,6 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <linenoise.h>
 #endif
 
-#if defined (__MVS__) && !defined (__clang_version__)
-# if defined (inline)
-#  undef inline
-# endif
-# define inline /* //-V1059 */
-#endif
-
 #define AND             '&'
 #define BANG            '!'
 #define COMMA           ','
@@ -1387,7 +1380,7 @@ resize_var_entries(var_entry *entries, int count, int *capacity)
   return entries;
 }
 
-static inline variable *
+static variable *
 lookup_var(const char *name)
 {
   variable *v;

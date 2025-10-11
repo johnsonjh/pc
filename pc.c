@@ -2006,7 +2006,7 @@ parse_args(int argc, char *argv[])
 
   len++;
 
-  buff = malloc((ULONG)len * sizeof ( char ));
+  buff = malloc(len * sizeof ( char ));
 
   if (buff == NULL)
     return;
@@ -2161,13 +2161,13 @@ remove_var(char *name)
 static char *
 get_var_name(char **str)
 {
-  int i, len = DEFAULT_LEN;
+  size_t i, len = DEFAULT_LEN;
   char *buff, *tmpbuff;
 
   if (isalpha((unsigned char)**str) == 0 && **str != '_')
     return NULL;
 
-  buff = malloc((ULONG)len * sizeof ( char ));
+  buff = malloc(len * sizeof ( char ));
 
   if (buff == NULL)
     return NULL;
@@ -2183,7 +2183,7 @@ get_var_name(char **str)
       if (i >= len - 1)
         {
           len     *= 2;
-          tmpbuff  = realloc(buff, (ULONG)len);
+          tmpbuff  = realloc(buff, len);
 
           if (tmpbuff == NULL)
             {

@@ -1705,7 +1705,7 @@ list_vars(varquery_type type)
 }
 
 /*
- * Drop-in replacement for strftime for platforms like ELKS.
+ * Drop-in replacement for strftime ('%c' only) for platforms like ELKS.
  * Extended to set errno in case we expand our usage of strftime later.
  */
 

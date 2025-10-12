@@ -184,5 +184,8 @@ test "${CPPCHECK:?}" != "true" && {
 # OWC2 DOS EXE:
 # env INCLUDE=/opt/watcom/h /opt/watcom/binl64/wcl -bcl=DOS -0 -ml -fpi -zp2 -j -s pc.c
 
+# CrossMiNT:
+# env PATH=$HOME/crossmint/usr/m68k-atari-mintelf/bin:$HOME/crossmint/usr/bin $HOME/crossmint/usr/bin/m68k-atari-mintelf-gcc pc.c -o pc.prg -Os -lgem -Wall -Wextra -Wpedantic -std=c99
+
 # Final xline
 xline

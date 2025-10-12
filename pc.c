@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 26
+#define PC_VERSION_PATCH 27
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -299,6 +299,11 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <linenoise.h>
 #endif
 
+#if defined (__atarist__)
+# include <gem.h>
+# include <osbind.h>
+#endif
+
 #if defined (PC_FUNC)
 # undef PC_FUNC
 #endif
@@ -340,6 +345,10 @@ static const int never = 0;
       (p) = NULL; \
     }             \
   while (never)
+
+/* Default target line length for output */
+
+static size_t target_line_len = 80;
 
 /* Determine sane size for input buffers */
 
@@ -1137,7 +1146,7 @@ print_result(ULONG value)
     {
       size_t field_len = strlen(fields[i]);
 
-      if (line_len > 4 && line_len + field_len > 80)
+      if (line_len > 4 && line_len + field_len > target_line_len)
         {
           (void)fprintf(stdout, "\n     ");
           line_len = 5;
@@ -1156,6 +1165,93 @@ print_result(ULONG value)
 
   (void)fprintf(stdout, "\n");
 }
+
+#if defined (__atarist__)
+typedef struct
+{
+  unsigned long tag;
+  unsigned long value;
+} COOKIE;
+
+static volatile int mint_present_super = 0;
+
+static void
+probe_mint_super(void)
+{
+  COOKIE *cookies = *(COOKIE **) 0x5a0;
+
+  mint_present_super = 0;
+
+  if (!cookies)
+    return;
+
+  while (cookies->tag)
+    {
+      if (cookies->tag == 0x4d694e54ul)
+        {
+          mint_present_super = 1;
+
+          return;
+        }
+
+      cookies++;
+    }
+}
+
+static int
+is_mint(void)
+{
+  mint_present_super = 0;
+  Supexec((void (*)(void))probe_mint_super);
+
+  return mint_present_super;
+}
+
+static time_t
+civil_to_unix(int year, int month, int day, int hour, int min, int sec)
+{
+  int y = year;
+  int m = month;
+
+  y -= (m <= 2);
+  int era = (y >= 0 ? y : y - 399) / 400;
+
+  unsigned int yoe = (unsigned int)(y - era * 400);
+  unsigned int doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + day - 1;
+  unsigned int doe = yoe * 365 + yoe / 4 - yoe / 100 + yoe / 400 + doy;
+
+  long long days = era * 146097ll + (long long)doe - 719468ll;
+  long long secs = days * 86400ll + hour * 3600ll + min * 60ll + sec;
+
+  return (time_t)secs;
+}
+
+static time_t
+tos_now_unix(void)
+{
+  unsigned int d = Tgetdate();
+  unsigned int t = Tgettime();
+
+  int year  = 1980 + ((d >> 9) & 0x7f);
+  int month = (d >> 5) & 0x0f;
+  int day   = d & 0x1f;
+
+  int hour  = (t >> 11) & 0x1f;
+  int min   = (t >> 5) & 0x3f;
+  int sec   = (t & 0x1f) * 2;
+
+  return civil_to_unix(year, month, day, hour, min, sec);
+}
+
+static unsigned long
+tos_time_now(void)
+{
+  if (is_mint())
+    return (unsigned long)time(NULL);
+  else
+    return (unsigned long)tos_now_unix();
+}
+#endif
 
 static int
 builtin_vars(const char *name, ULONG *val)
@@ -1176,7 +1272,11 @@ builtin_vars(const char *name, ULONG *val)
   else if (strcmp(name, "ENDIAN_LITTLE") == 0)
     *val = (ULONG)!isbe;
   else if (strcmp(name, "time") == 0)
+#if defined (__atarist__)
+    *val = (ULONG)tos_time_now();
+#else
     *val = (ULONG)time(NULL);
+#endif
   else if (strcmp(name, "rand") == 0)
 #if defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811)
     *val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
@@ -1948,6 +2048,10 @@ print_herald(void)
   else /*NOTREACHED*/ /* unreachable */
     oshitbuf[0] = '\0';
 
+#if defined (__atarist__)
+  (void)fprintf(stdout, "\033E"); /* VT52 clear screen */
+#endif
+
   (void)fprintf(stdout, "%s v%d.%d.%d%s%s%s%s ready.\n", PC_SOFTWARE_NAME,
                 PC_VERSION_MAJOR, PC_VERSION_MINOR, PC_VERSION_PATCH,
                 oshitbuf, (void *)PC_SOFTWARE_DATE ? " (" : "",
@@ -2030,6 +2134,81 @@ process_statement(char *statement)
     }
 }
 
+#if defined (__atarist__)
+static inline char *
+atarist_getline(char *buf, int size, int echo)
+{
+  int i = 0;
+
+  if (size <= 1)
+    {
+      buf[0] = '\0';
+
+      return buf;
+    }
+
+  for (;;)
+    {
+      int c = Bconin(2) & 0xff;
+
+      if (c == 0x0d || c == 0x9b)
+        {
+          if (echo)
+            {
+              Cconout('\r');
+              Cconout('\n');
+            }
+
+          buf[i++] = '\n';
+          buf[i] = '\0';
+
+          return buf;
+        }
+
+      if (c == 0x1a || c == 0x04)
+        {
+          if (i == 0)
+            return NULL;
+
+          buf[i] = '\0';
+
+          return buf;
+        }
+
+      if (c == 0x08 || c == 0x7f)
+        {
+          if (i > 0)
+            {
+              i--;
+
+              if (echo)
+                {
+                  Cconout('\b');
+                  Cconout(' ');
+                  Cconout('\b');
+                }
+            }
+
+          continue;
+        }
+
+      if (i < size - 1)
+        {
+          buf[i++] = (char)c;
+
+          if (echo)
+            Cconout(c);
+        }
+      else
+        {
+          buf[i] = '\0';
+
+          return buf;
+        }
+    }
+}
+#endif
+
 static void
 do_input(int echo)
 {
@@ -2057,6 +2236,8 @@ do_input(int echo)
 #elif defined (WITH_LINENOISE)
   /* NB: An empty ("") prompt is not supported with upstream linenoise */
   while ((line = linenoise(">")) != NULL)
+#elif defined (__atarist__)
+  while ((line = atarist_getline(buff, INPUT_BUFF, 1)) != NULL)
 #else
   while (fgets(buff, INPUT_BUFF, stdin) != NULL)
 #endif
@@ -2200,7 +2381,18 @@ main(int argc, char *argv[])
   else
     {
       if (isatty(STDIN_FILENO))
-        print_herald();
+        {
+#if defined (__atarist__)
+          graf_mouse(M_OFF, 0);
+          target_line_len = (Getrez() == 0) ? 40 : 80;
+#endif
+          print_herald();
+        }
+
+#if defined (__atarist__)
+      if (target_line_len < 80)
+        fprintf(stdout, "\rWarning: Using less than 80 output cols!\n");
+#endif
 
       do_input(!isatty(STDIN_FILENO));
     }

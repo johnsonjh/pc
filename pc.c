@@ -269,7 +269,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #endif
 
 #if defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__atarist__) || \
-    defined (__ELKS__) || defined (__DJGPP__) || defined (DOSLIKE)
+    defined (__ELKS__) || defined (__DJGPP__) || defined (DOSLIKE) || \
+    defined (__amiga__)
 # if !defined (NO_LOCALE)
 #  define NO_LOCALE
 # endif
@@ -282,7 +283,10 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-#if (defined (WITH_LIBEDIT) + defined (WITH_EDITLINE) + defined (WITH_READLINE) + defined (WITH_LINENOISE)) > 1
+#if (defined (WITH_LIBEDIT) + \
+     defined (WITH_EDITLINE) + \
+     defined (WITH_READLINE) + \
+     defined (WITH_LINENOISE)) > 1
 # error "Only one of WITH_LIBEDIT, WITH_EDITLINE, WITH_READLINE, or WITH_LINENOISE can be defined."
 #endif
 
@@ -2063,7 +2067,9 @@ print_herald(void)
 #endif
 }
 
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT)
 static
 # if defined (__APPLE__)
 int
@@ -2083,7 +2089,9 @@ editor_completion(const char *text, int state)
 }
 #endif
 
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT)
 static char **
 editor_completion_function (const char *text, int start, int end)
 {
@@ -2212,8 +2220,10 @@ atarist_getline(char *buf, int size, int echo)
 static void
 do_input(int echo)
 {
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || \
-    defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT) || \
+    defined (WITH_LINENOISE)
   char *line;
 #else
   char buff[INPUT_BUFF];
@@ -2226,12 +2236,16 @@ do_input(int echo)
   char *token;
   char *comment_ptr;
 
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT)
   rl_completion_entry_function = editor_completion;
   rl_attempted_completion_function = editor_completion_function;
 #endif
 
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT)
   while ((line = readline("")) != NULL)
 #elif defined (WITH_LINENOISE)
   /* NB: An empty ("") prompt is not supported with upstream linenoise */
@@ -2247,7 +2261,8 @@ do_input(int echo)
         {
           size_t len = strlen(line);
 
-          while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
+          while (len > 0 &&
+                 (line[len - 1] == '\n' || line[len - 1] == '\r'))
             line[--len] = '\0';
 
           (void)fprintf(stdout, "%s\n", line);
@@ -2263,7 +2278,9 @@ do_input(int echo)
 
       if (input_line == NULL)
         {
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT)
           FREE(line);
 #elif defined (WITH_LINENOISE)
           linenoiseFree(line);
@@ -2272,7 +2289,9 @@ do_input(int echo)
           continue;
         }
 
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT)
       if (*line)
         add_history(line);
 #elif defined (WITH_LINENOISE)
@@ -2303,7 +2322,9 @@ do_input(int echo)
         }
 
       FREE(input_line);
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
+#if defined (WITH_READLINE) || \
+    defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT)
       FREE(line);
 #elif defined (WITH_LINENOISE)
       linenoiseFree(line);
@@ -2406,7 +2427,8 @@ skipwhite(char *str)
   if (str == NULL)
     return NULL;
 
-  while (*str && (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\f'))
+  while (*str &&
+         (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\f'))
     str++;
 
   return str;
@@ -3019,7 +3041,8 @@ term(char **str)
   sum  = factor(str);
   *str = skipwhite(*str);
 
-  while (*str != NULL && (**str == TIMES || **str == DIVISION || **str == MODULO))
+  while (*str != NULL &&
+         (**str == TIMES || **str == DIVISION || **str == MODULO))
     {
       op   = **str;
       *str = skipwhite(*str + 1);
@@ -3272,7 +3295,8 @@ get_value(char **str)
         }
 
       *str = skipwhite(*str);
-      if (*str != NULL && (strncmp(*str, "++", 2) == 0 || strncmp(*str, "--", 2) == 0))
+      if (*str != NULL &&
+          (strncmp(*str, "++", 2) == 0 || strncmp(*str, "--", 2) == 0))
         {
           if ((v = lookup_var(var_name)) != NULL)
             {

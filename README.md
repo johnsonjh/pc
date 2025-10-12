@@ -90,9 +90,8 @@
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
   **Atari ST** (*with*
-  [CrossMiNT](https://tho-otto.de/crossmint.php)/*gemlib*),
-  **Amiga 68K** (**with**
-  [Bebbo Amiga-GCC](https://franke.ms/git/bebbo/amiga-gcc)),
+  [CrossMiNT](https://tho-otto.de/crossmint.php)), **Amiga 68K** (*with*
+  [Amiga-GCC](https://franke.ms/git/bebbo/amiga-gcc)),
   [**ELKS**](https://github.com/ghaerr/elks) (*with*
   [GCC-IA16](https://gitlab.com/tkchia/build-ia16)),
   and **DOS** (*with* [DJGPP](https://www.delorie.com/djgpp/),

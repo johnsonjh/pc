@@ -114,7 +114,7 @@ emonth = (h + l - 7 * m + 114) / 31
 eday = ((h + l - 7 * m + 114) % 31) + 1
     dec: 20 oct: 0o24 hex: 0x14 rom: 0rXX ter: 0t202 b36: 0zK bin: 0b10100
 
-# Convert easter day, month, year back to epoch:
+# Convert Easter day, month, year back to epoch:
 adj = (emonth <= 2)
     dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
 y_adj = year - adj

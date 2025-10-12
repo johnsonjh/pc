@@ -62,9 +62,9 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * a pain in the ass to use (but I still use bc for things that require any
  * kind of floating point).  This program is great when you have to do address
  * calculations and bit-wise masking/shifting as you do when working on kernel
- * type code.  It's also handy for doing quick conversions between octal,
- * decimal, binary, hex and ascii.  Unbalanced ternary and Base36 support can
- * be enabled as well.
+ * type code.  It's also handy for doing quick conversions between roman,
+ * octal, decimal, binary, hex and ascii.  Ternary and Base36 support can be
+ * enabled as well.
  *
  * This isn't the world's best parser or anything, but it works and suits my
  * needs.  It faithfully implements C style precedence of operators for:
@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 24
+#define PC_VERSION_PATCH 25
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -461,6 +461,7 @@ xstrerror_l (int errnum)
     }
 
   errno = saved;
+
   return ret;
 }
 #else
@@ -851,7 +852,8 @@ typedef struct variable
   struct variable *next;
 } variable;
 
-static variable dummy = {
+static variable dummy =
+{
   NULL, 0L, NULL
 };
 static variable *vars = &dummy;
@@ -957,7 +959,8 @@ convert_to_roman(ULONG value)
       size_t len__ = strlen(s);     \
       (void)memcpy (ptr, s, len__); \
       ptr += len__;                 \
-    } while (never)
+    }                               \
+  while (never)
 
   APPEND(ptr, m[value / 1000]);
   APPEND(ptr, c[(value % 1000) / 100]);
@@ -1047,7 +1050,7 @@ print_result(ULONG value)
     {
       ULONG ch = (value >> (i * CHAR_BIT)) & 0xFF;
 
-      if (ch >= 32 && ch <= 126)
+      if (ch >= 32 && ch <= 126) /* ASCII printable range */
         {
           char_repr[sizeof(ULONG) - 1 - (size_t)i] = (char)ch;
           printable_chars_count++;
@@ -1550,6 +1553,7 @@ get_var(const char *name, ULONG *val)
   variable *v;
 
   v = lookup_var(name);
+
   if (v != NULL)
     {
       *val = v->value;
@@ -1714,6 +1718,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
   if (!s || !format || !tm)
     {
       errno = EINVAL;
+
       return 0;
     }
 
@@ -1724,6 +1729,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 # else
       errno = EINVAL;
 # endif
+
       return 0;
     }
 
@@ -1732,6 +1738,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
   if (!asc)
     {
       errno = EINVAL;
+
       return 0;
     }
 
@@ -1743,6 +1750,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
   if (len + 1 > maxsize)
     {
       errno = ERANGE;
+
       return 0;
     }
 
@@ -1766,30 +1774,35 @@ print_time_reg(const char *name, ULONG value)
   char *new_buf = NULL;
   size_t len;
 
- /* xstrftime has errno extensions */
+  /* xstrftime has errno extensions */
   errno = 0;
 
-  do {
-    new_buf = realloc(buf, size);
+  do
+    {
+      new_buf = realloc(buf, size);
 
-    if (new_buf == NULL) {
-      if (buf)
-        FREE(buf);
-      print_result(value);
+      if (new_buf == NULL)
+        {
+          if (buf)
+            FREE(buf);
 
-      return;
+          print_result(value);
+
+          return;
+        }
+
+      buf = new_buf;
+      len = strftime(buf, size, "%c", tm_info);
+      size *= 2;
     }
-
-    buf = new_buf;
-    len = strftime(buf, size, "%c", tm_info);
-    size *= 2;
-  } while (len == 0 && errno == 0);
+  while (len == 0 && errno == 0);
 
   if (len == 0)
     {
       (void)fprintf(stderr, "Warning: strftime error: %s\n",
                     (errno ? xstrerror_l (errno) : "Unspecified trouble!"));
       FREE(buf);
+
       return;
     }
 
@@ -2047,15 +2060,15 @@ do_input(int echo)
 #endif
     {
 
-  if (echo)
-    {
-      size_t len = strlen(line);
+      if (echo)
+        {
+          size_t len = strlen(line);
 
-      while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
-        line[--len] = '\0';
+          while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
+            line[--len] = '\0';
 
-      (void)fprintf(stdout, "%s\n", line);
-    }
+          (void)fprintf(stdout, "%s\n", line);
+        }
 
 #if !defined (WITH_READLINE) && !defined (WITH_EDITLINE) && !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
       if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
@@ -2063,6 +2076,7 @@ do_input(int echo)
 #endif
 
       input_line = strdup(line);
+
       if (input_line == NULL)
         {
 #if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
@@ -2074,39 +2088,41 @@ do_input(int echo)
         }
 
 #if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
-        if (*line)
-          add_history(line);
+      if (*line)
+        add_history(line);
 #elif defined (WITH_LINENOISE)
-        if (*line)
-          linenoiseHistoryAdd(line);
+      if (*line)
+        linenoiseHistoryAdd(line);
 #endif
 
-        comment_ptr = strchr(input_line, '#');
-        if (comment_ptr != NULL)
-          *comment_ptr = '\0';
+      comment_ptr = strchr(input_line, '#');
+
+      if (comment_ptr != NULL)
+        *comment_ptr = '\0';
 
 #if defined (WITH_STRTOK)
-        token = strtok(input_line, ";");
+      token = strtok(input_line, ";");
 #else
-        token = strtok_r(input_line, ";", &saveptr);
+      token = strtok_r(input_line, ";", &saveptr);
 #endif
 
-        while (token != NULL)
-          {
-            process_statement(token);
+      while (token != NULL)
+        {
+          process_statement(token);
 
 #if defined (WITH_STRTOK)
-            token = strtok(NULL, ";");
+          token = strtok(NULL, ";");
 #else
-            token = strtok_r(NULL, ";", &saveptr);
+          token = strtok_r(NULL, ";", &saveptr);
 #endif
-          }
+        }
 
-        FREE(input_line);
+      FREE(input_line);
 #if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT)
-        FREE(line);
+      FREE(line);
 #elif defined (WITH_LINENOISE)
-        linenoiseFree(line);
+      linenoiseFree(line);
+      line = 0;
 #endif
     }
 }
@@ -2140,21 +2156,21 @@ parse_args(int argc, char *argv[])
     }
 
 #if defined (WITH_STRTOK)
-    token = strtok(buff, ";");
+  token = strtok(buff, ";");
 #else
-    token = strtok_r(buff, ";", &saveptr);
+  token = strtok_r(buff, ";", &saveptr);
 #endif
 
-    while (token != NULL)
-      {
-        process_statement(token);
+  while (token != NULL)
+    {
+      process_statement(token);
 
 #if defined (WITH_STRTOK)
-        token = strtok(NULL, ";");
+      token = strtok(NULL, ";");
 #else
-        token = strtok_r(NULL, ";", &saveptr);
+      token = strtok_r(NULL, ";", &saveptr);
 #endif
-      }
+    }
 
   FREE(buff);
 }
@@ -2217,6 +2233,7 @@ parse_expression(char *str)
     if (get_var("GT", &val))
       {
         print_time_reg("GT", val);
+
         return val;
       }
 

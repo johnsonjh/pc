@@ -89,6 +89,7 @@
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
+  **Atari ST** (*with* [CrossMiNT](https://tho-otto.de/crossmint.php)),
   [**ELKS**](https://github.com/ghaerr/elks)
   (*with* [GCC-IA16](https://gitlab.com/tkchia/build-ia16)),
   and **DOS** (*with* [DJGPP](https://www.delorie.com/djgpp/),

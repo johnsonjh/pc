@@ -536,9 +536,7 @@ parse_roman(char **s)
         }
 
       if (!found)
-        {
-          break;
-        }
+        break;
     }
 
   *s = p;

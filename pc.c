@@ -268,7 +268,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-#if defined (__ELKS__) || defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__DJGPP__) || defined (DOSLIKE)
+#if defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__atarist__) || \
+    defined (__ELKS__) || defined (__DJGPP__) || defined (DOSLIKE)
 # if !defined (NO_LOCALE)
 #  define NO_LOCALE
 # endif
@@ -404,7 +405,8 @@ xstrerror_l (int errnum)
   const char * ret = NULL;
   static /* __thread */ char buf [XSTR_EMAXLEN];
 
-# if defined (__APPLE__) || defined (_AIX) || defined (__MINGW32__) || defined (__MINGW64__)
+# if defined (__APPLE__) || defined (_AIX) || \
+     defined (__MINGW32__) || defined (__MINGW64__)
 #  if defined (__MINGW32__) || defined (__MINGW64__)
   if (0 == strerror_s (buf, sizeof (buf), errnum)) /*LINTOK: xstrerror_l*/
     ret = buf;
@@ -510,7 +512,8 @@ parse_roman(char **s)
                    return 0;
                 }
 
-              if (prev_map_entry != NULL && strcmp(map->symbol, prev_map_entry->symbol) == 0)
+              if (prev_map_entry != NULL &&
+                  strcmp(map->symbol, prev_map_entry->symbol) == 0)
                 {
                   current_repetition_count++;
 
@@ -2030,7 +2033,8 @@ process_statement(char *statement)
 static void
 do_input(int echo)
 {
-#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
+#if defined (WITH_READLINE) || defined (WITH_EDITLINE) || \
+    defined (WITH_LIBEDIT) || defined (WITH_LINENOISE)
   char *line;
 #else
   char buff[INPUT_BUFF];
@@ -2068,7 +2072,8 @@ do_input(int echo)
           (void)fprintf(stdout, "%s\n", line);
         }
 
-#if !defined (WITH_READLINE) && !defined (WITH_EDITLINE) && !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
+#if !defined (WITH_READLINE) && !defined (WITH_EDITLINE) && \
+    !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
       if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
         line[strlen(line) - 1] = '\0';
 #endif

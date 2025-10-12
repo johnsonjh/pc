@@ -2081,6 +2081,7 @@ do_input(int echo)
           FREE(line);
 #elif defined (WITH_LINENOISE)
           linenoiseFree(line);
+          line = 0;
 #endif
           continue;
         }

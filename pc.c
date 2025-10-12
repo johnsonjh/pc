@@ -210,11 +210,11 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # define HAS_INCLUDE(inc) 0
 #endif
 
-#include <ctype.h>  /* isalnum, isalpha, isdigit, isprint, isspace ... */
+#include <ctype.h>  /* isalnum, isalpha, isdigit, isspace ...          */
 #include <errno.h>  /* errno ...                                       */
 #include <limits.h> /* LONG_MIN, ULONG_MAX ...                         */
 #include <stddef.h> /* ptrdiff_t ...                                   */
-#include <stdio.h>  /* fprintf, NULL, stderr, fgets, stdin ...         */
+#include <stdio.h>  /* fprintf, NULL, stdout, stderr, fgets, stdin ... */
 #include <stdlib.h> /* free, malloc, exit, abort, rand, realloc ...    */
 #include <string.h> /* strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>   /* time ...                                        */
@@ -235,7 +235,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 /* DJGPP provides stubs for these so we'll leave them enabled */
 
-#if defined (DOSLIKE) && !defined(__DJGPP__)
+#if defined (DOSLIKE) && !defined (__DJGPP__)
 # if !defined (NO_GETGID)
 #  define NO_GETGID
 # endif
@@ -1724,7 +1724,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 
   if (strcmp(format, "%c") != 0)
     {
-# if defined(ENOTSUP)
+# if defined (ENOTSUP)
       errno = ENOTSUP;
 # else
       errno = EINVAL;

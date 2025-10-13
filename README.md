@@ -128,6 +128,12 @@
     arbitrary dates.
   * You can see the [full output of this program here](easter.txt) (with
     all optional base conversions enabled).
+[]()
+
+[]()
+* [`sqrt.pc`](sqrt.pc) is a program that calculates the square root of `n`
+  (where `n` defaults to `rand`).
+  * You can see the [full output of this program here](sqrt.txt).
 
 ## Testing
 

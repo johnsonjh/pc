@@ -1003,6 +1003,28 @@ get_binary_string(ULONG value)
   return ptr;
 }
 
+#if defined (__ELKS__) && !defined (USE_LONG_LONG)
+static void
+u64_to_octal(char *buf, size_t bufsz, unsigned long long value)
+{
+  char tmp[32];
+  int i = sizeof(tmp);
+  tmp[--i] = '\0';
+
+  do
+    {
+      tmp[--i] = '0' + (value & 7ull);
+      value >>= 3;
+    }
+  while (value != 0);
+
+  tmp[--i] = 'o';
+  tmp[--i] = '0';
+
+  (void)snprintf(buf, bufsz, "oct: %s", &tmp[i]);
+}
+#endif
+
 static void
 print_result(ULONG value)
 {
@@ -1037,7 +1059,37 @@ print_result(ULONG value)
   /*LINTED: E_CONSTANT_CONDITION*/
   if (sizeof(ULONG) == 8)
 #if defined (USE_LONG_LONG)
+# if defined (__ELKS__)
+    {
+      char decbuf[32];
+
+      {
+        char tmp[32];
+        int i = 0;
+        unsigned long long v = value;
+
+        do
+          {
+            tmp[i++] = (char)('0' + (int)(v % 10ull));
+            v /= 10ull;
+          }
+        while (v && i < (int)sizeof(tmp));
+
+        {
+          int j = 0;
+
+          while (i > 0 && j < (int)sizeof(decbuf) - 1)
+            decbuf[j++] = tmp[--i];
+
+          decbuf[j] = '\0';
+        }
+      }
+
+      (void)snprintf(dec_str, sizeof(dec_str), "dec: %s", decbuf);
+    }
+# else
     (void)snprintf(dec_str, sizeof(dec_str), "dec: %llu", value);
+# endif
 #else
     (void)snprintf(dec_str, sizeof(dec_str), "dec: %lu", value);
 #endif
@@ -1048,8 +1100,39 @@ print_result(ULONG value)
     { /*LINTED: E_CONSTANT_CONDITION*/
       if (sizeof(ULONG) == 8)
 #if defined (USE_LONG_LONG)
+# if defined (__ELKS__)
+        {
+          long long sval = (long long)value;
+
+          if (sval < 0)
+            {
+              unsigned long hi = (unsigned long)((-sval) >> 32);
+              unsigned long lo = (unsigned long)((-sval) & 0xfffffffful);
+
+              if (hi)
+                (void)snprintf(extra_info, sizeof(extra_info),
+                               " signed: -%lu%08lu", hi, lo);
+              else
+                (void)snprintf(extra_info, sizeof(extra_info),
+                               " signed: -%lu", lo);
+            }
+          else
+            {
+              unsigned long hi = (unsigned long)(sval >> 32);
+              unsigned long lo = (unsigned long)(sval & 0xfffffffful);
+
+              if (hi)
+                (void)snprintf(extra_info, sizeof(extra_info),
+                               " signed: %lu%08lu", hi, lo);
+              else
+                (void)snprintf(extra_info, sizeof(extra_info),
+                               " signed: %lu", lo);
+            }
+        }
+# else
         (void)snprintf(extra_info, sizeof(extra_info),
                        " signed: %lld", (LONG)value);
+#endif
 #else
         (void)snprintf(extra_info, sizeof(extra_info),
                        " signed: %ld", (LONG)value);
@@ -1090,7 +1173,11 @@ print_result(ULONG value)
   (void)strncat(dec_str, extra_info, sizeof(dec_str) - strlen(dec_str) - 1);
 
 #if defined (USE_LONG_LONG)
+# if defined (__ELKS__)
+  u64_to_octal(oct_str, sizeof(oct_str), value);
+# else
   (void)snprintf(oct_str, sizeof(oct_str), "oct: 0o%llo", value);
+# endif
 #else
   (void)snprintf(oct_str, sizeof(oct_str), "oct: 0o%lo", value);
 #endif
@@ -1102,8 +1189,20 @@ print_result(ULONG value)
                    (unsigned long)value);
   else
 #if defined (USE_LONG_LONG)
+# if defined (__ELKS__)
+    {
+      unsigned long hi = (unsigned long)((value >> 32) & 0xffffffffull);
+      unsigned long lo = (unsigned long)(value & 0xffffffffull);
+
+      if (hi)
+        (void)snprintf(hex_str, sizeof(hex_str), "hex: 0x%lx%08lx", hi, lo);
+      else
+        (void)snprintf(hex_str, sizeof(hex_str), "hex: 0x%lx", lo);
+    }
+# else
     (void)snprintf(hex_str, sizeof(hex_str),
                    "hex: 0x%llx", value);
+# endif
 #else
     (void)snprintf(hex_str, sizeof(hex_str),
                    "hex: 0x%lx", value);

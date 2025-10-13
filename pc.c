@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 27
+#define PC_VERSION_PATCH 28
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -1282,11 +1282,14 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)time(NULL);
 #endif
   else if (strcmp(name, "rand") == 0)
+    {
 #if defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811)
-    *val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
+      *val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
 #else
-    *val = (ULONG)rand();
+      srand((unsigned int)time(NULL));
+      *val = (ULONG)rand();
 #endif
+    }
   else if (strcmp(name, "dbg") == 0)
     *val = 0x82969;
 #if !defined (NO_GETPID)

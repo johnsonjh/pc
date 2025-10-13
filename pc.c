@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 28
+#define PC_VERSION_PATCH 30
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -214,8 +214,9 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #include <errno.h>  /* errno ...                                       */
 #include <limits.h> /* LONG_MIN, ULONG_MAX ...                         */
 #include <stddef.h> /* ptrdiff_t ...                                   */
+#include <stdint.h> /* UINT32_C, uint32_t ...                          */
 #include <stdio.h>  /* fprintf, NULL, stdout, stderr, fgets, stdin ... */
-#include <stdlib.h> /* free, malloc, exit, abort, rand, realloc ...    */
+#include <stdlib.h> /* free, malloc, exit, abort, (s)rand, realloc ... */
 #include <string.h> /* strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <time.h>   /* time ...                                        */
 #include <unistd.h> /* getpid, getuid, getgid ...                      */
@@ -1282,14 +1283,11 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)time(NULL);
 #endif
   else if (strcmp(name, "rand") == 0)
-    {
 #if defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811)
-      *val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
+    *val = (ULONG)arc4random_uniform((uint32_t)RAND_MAX + 1);
 #else
-      srand((unsigned int)time(NULL));
-      *val = (ULONG)rand();
+    *val = (ULONG)rand();
 #endif
-    }
   else if (strcmp(name, "dbg") == 0)
     *val = 0x82969;
 #if !defined (NO_GETPID)
@@ -2384,9 +2382,52 @@ parse_args(int argc, char *argv[])
   FREE(buff);
 }
 
+#if !(defined(__OpenBSD__) && defined(OpenBSD) && (OpenBSD >= 200811))
+static uint32_t
+hash32s(const void *buf, size_t len, uint32_t h)
+{
+  const unsigned char *p = buf;
+  size_t i;
+
+  for (i = 0; i < len; i++)
+    h = h * 31 + p[i];
+
+  h ^= h >> 17;
+  h *= UINT32_C(0xed5ad4bb);
+  h ^= h >> 11;
+  h *= UINT32_C(0xac4c1b51);
+  h ^= h >> 15;
+  h *= UINT32_C(0x31848bab);
+  h ^= h >> 14;
+
+  return h;
+}
+#endif
+
 int
 main(int argc, char *argv[])
 {
+#if !(defined(__OpenBSD__) && defined(OpenBSD) && (OpenBSD >= 200811))
+  FILE *f;
+  uint32_t h;
+  unsigned char rnd[4];
+
+  /*LINTED: E_CAST_INT_TO_SMALL_INT*/
+  h = (uint32_t)time(NULL);
+
+  f = fopen("/dev/urandom", "rb");
+
+  if (f)
+    {
+      if (fread(&rnd, sizeof(rnd), 1, f) == 1)
+        h = hash32s(&rnd, sizeof(rnd), h);
+
+      (void)fclose(f);
+    }
+
+    srand(h);
+#endif
+
 #if !defined (NO_LOCALE)
   (void)setlocale (LC_ALL, "");
 #endif

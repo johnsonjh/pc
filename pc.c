@@ -1003,7 +1003,7 @@ get_binary_string(ULONG value)
   return ptr;
 }
 
-#if defined (__ELKS__) && !defined (USE_LONG_LONG)
+#if defined (__ELKS__) && defined (USE_LONG_LONG)
 static void
 u64_to_octal(char *buf, size_t bufsz, unsigned long long value)
 {

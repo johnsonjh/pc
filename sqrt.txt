@@ -2,101 +2,119 @@ rsize = sizeof_ll * CHAR_BIT
     dec: 64 char: '.......@' oct: 0o100 hex: 0x40 rom: 0rLXIV ter: 0t2101
      b36: 0z1S bin: 0b1000000
 
-n = rand
-    dec: 599071790 char: '....#...' oct: 0o4355216056 hex: 0x23b51c2e
-     ter: 0t1112202021000000002 b36: 0z9WO6R2
-     bin: 0b100011101101010001110000101110
+n = (rand << 30) ^ (rand << 15) ^ rand;
+    dec: 713226867594196952 char: '.....7w.' oct: 0o47457100724715673730
+     hex: 0x9e5e40ea73777d8 ter: 0t11202022002121202122101222111012222102
+     b36: 0z5F2PTNOPKMHK
+     bin: 0b100111100101111001000000111010100111001101110111011111011000
+
 v = n | 1
-    dec: 599071791 char: '....#../' oct: 0o4355216057 hex: 0x23b51c2f
-     ter: 0t1112202021000000010 b36: 0z9WO6R3
-     bin: 0b100011101101010001110000101111
+    dec: 713226867594196953 char: '.....7w.' oct: 0o47457100724715673731
+     hex: 0x9e5e40ea73777d9 ter: 0t11202022002121202122101222111012222110
+     b36: 0z5F2PTNOPKMHL
+     bin: 0b100111100101111001000000111010100111001101110111011111011001
 
 step = rsize >> 1
     dec: 32 char: '....... ' oct: 0o40 hex: 0x20 rom: 0rXXXII ter: 0t1012
      b36: 0zW bin: 0b100000
 shift = ((v >> step) != 0) * step
-    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+    dec: 32 char: '....... ' oct: 0o40 hex: 0x20 rom: 0rXXXII ter: 0t1012
+     b36: 0zW bin: 0b100000
 v >>= shift; r |= shift
-    dec: 599071791 char: '....#../' oct: 0o4355216057 hex: 0x23b51c2f
-     ter: 0t1112202021000000010 b36: 0z9WO6R3
-     bin: 0b100011101101010001110000101111
-    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+    dec: 166061070 oct: 0o1171362016 hex: 0x9e5e40e ter: 0t102120110202222000
+     b36: 0z2QV9JI bin: 0b1001111001011110010000001110
+    dec: 32 char: '....... ' oct: 0o40 hex: 0x20 rom: 0rXXXII ter: 0t1012
+     b36: 0zW bin: 0b100000
 
 step >>= 1
     dec: 16 oct: 0o20 hex: 0x10 rom: 0rXVI ter: 0t121 b36: 0zG bin: 0b10000
 shift = ((v >> step) != 0) * step
     dec: 16 oct: 0o20 hex: 0x10 rom: 0rXVI ter: 0t121 b36: 0zG bin: 0b10000
 v >>= shift; r |= shift
-    dec: 9141 char: '......#.' oct: 0o21665 hex: 0x23b5 ter: 0t110112120
-     b36: 0z71X bin: 0b10001110110101
-    dec: 16 oct: 0o20 hex: 0x10 rom: 0rXVI ter: 0t121 b36: 0zG bin: 0b10000
+    dec: 2533 oct: 0o4745 hex: 0x9e5 rom: 0rMMDXXXIII ter: 0t10110211 b36: 0z1YD
+     bin: 0b100111100101
+    dec: 48 char: '.......0' oct: 0o60 hex: 0x30 rom: 0rXLVIII ter: 0t1210
+     b36: 0z1C bin: 0b110000
 
 step >>= 1
     dec: 8 oct: 0o10 hex: 0x8 rom: 0rVIII ter: 0t22 b36: 0z8 bin: 0b1000
 shift = ((v >> step) != 0) * step
     dec: 8 oct: 0o10 hex: 0x8 rom: 0rVIII ter: 0t22 b36: 0z8 bin: 0b1000
 v >>= shift; r |= shift
-    dec: 35 char: '.......#' oct: 0o43 hex: 0x23 rom: 0rXXXV ter: 0t1022
-     b36: 0zZ bin: 0b100011
-    dec: 24 oct: 0o30 hex: 0x18 rom: 0rXXIV ter: 0t220 b36: 0zO bin: 0b11000
+    dec: 9 oct: 0o11 hex: 0x9 rom: 0rIX ter: 0t100 b36: 0z9 bin: 0b1001
+    dec: 56 char: '.......8' oct: 0o70 hex: 0x38 rom: 0rLVI ter: 0t2002
+     b36: 0z1K bin: 0b111000
 
 step >>= 1
     dec: 4 oct: 0o4 hex: 0x4 rom: 0rIV ter: 0t11 b36: 0z4 bin: 0b100
-shift = ((v >> step) != 0) * step
-    dec: 4 oct: 0o4 hex: 0x4 rom: 0rIV ter: 0t11 b36: 0z4 bin: 0b100
-v >>= shift; r |= shift
-    dec: 2 oct: 0o2 hex: 0x2 rom: 0rII ter: 0t2 b36: 0z2 bin: 0b10
-    dec: 28 oct: 0o34 hex: 0x1c rom: 0rXXVIII ter: 0t1001 b36: 0zS bin: 0b11100
-
-step >>= 1
-    dec: 2 oct: 0o2 hex: 0x2 rom: 0rII ter: 0t2 b36: 0z2 bin: 0b10
 shift = ((v >> step) != 0) * step
     dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
 v >>= shift; r |= shift
+    dec: 9 oct: 0o11 hex: 0x9 rom: 0rIX ter: 0t100 b36: 0z9 bin: 0b1001
+    dec: 56 char: '.......8' oct: 0o70 hex: 0x38 rom: 0rLVI ter: 0t2002
+     b36: 0z1K bin: 0b111000
+
+step >>= 1
     dec: 2 oct: 0o2 hex: 0x2 rom: 0rII ter: 0t2 b36: 0z2 bin: 0b10
-    dec: 28 oct: 0o34 hex: 0x1c rom: 0rXXVIII ter: 0t1001 b36: 0zS bin: 0b11100
+shift = ((v >> step) != 0) * step
+    dec: 2 oct: 0o2 hex: 0x2 rom: 0rII ter: 0t2 b36: 0z2 bin: 0b10
+v >>= shift; r |= shift
+    dec: 2 oct: 0o2 hex: 0x2 rom: 0rII ter: 0t2 b36: 0z2 bin: 0b10
+    dec: 58 char: '.......:' oct: 0o72 hex: 0x3a rom: 0rLVIII ter: 0t2011
+     b36: 0z1M bin: 0b111010
 
 step >>= 1
     dec: 1 oct: 0o1 hex: 0x1 rom: 0rI ter: 0t1 b36: 0z1 bin: 0b1
 shift = ((v >> step) != 0) * step
     dec: 1 oct: 0o1 hex: 0x1 rom: 0rI ter: 0t1 b36: 0z1 bin: 0b1
 r |= shift
-    dec: 29 oct: 0o35 hex: 0x1d rom: 0rXXIX ter: 0t1002 b36: 0zT bin: 0b11101
+    dec: 59 char: '.......;' oct: 0o73 hex: 0x3b rom: 0rLIX ter: 0t2012
+     b36: 0z1N bin: 0b111011
 
 x = 1 << ((r >> 1) + 1)
-    dec: 32768 oct: 0o100000 hex: 0x8000 ter: 0t1122221122 b36: 0zPA8
-     bin: 0b1000000000000000
+    dec: 1073741824 char: '....@...' oct: 0o10000000000 hex: 0x40000000
+     ter: 0t2202211102201212201 b36: 0zHRA0HS
+     bin: 0b1000000000000000000000000000000
 
 x = (x + n / x) >> 1
-    dec: 25525 char: '......c.' oct: 0o61665 hex: 0x63b5 ter: 0t1022000101
-     b36: 0zJP1 bin: 0b110001110110101
+    dec: 868993053 char: '....3...' oct: 0o6362744035 hex: 0x33cbc81d
+     ter: 0t2020120011102100220 b36: 0zEDDJBX
+     bin: 0b110011110010111100100000011101
 x = (x + n / x) >> 1
-    dec: 24497 char: '......_.' oct: 0o57661 hex: 0x5fb1 ter: 0t1020121022
-     b36: 0zIWH bin: 0b101111110110001
+    dec: 844871997 char: '....2[.=' oct: 0o6226734475 hex: 0x325bb93d
+     ter: 0t2011212202221111110 b36: 0zDZ0JEL
+     bin: 0b110010010110111011100100111101
 x = (x + n / x) >> 1
-    dec: 24475 char: '......_.' oct: 0o57633 hex: 0x5f9b ter: 0t1020120111
-     b36: 0zIVV bin: 0b101111110011011
+    dec: 844527670 char: '....2Vx6' oct: 0o6225474066 hex: 0x32567836
+     ter: 0t2011212010110011121 b36: 0zDYT5PY
+     bin: 0b110010010101100111100000110110
 x = (x + n / x) >> 1
-    dec: 24475 char: '......_.' oct: 0o57633 hex: 0x5f9b ter: 0t1020120111
-     b36: 0zIVV bin: 0b101111110011011
+    dec: 844527600 char: '....2Vw.' oct: 0o6225473760 hex: 0x325677f0
+     ter: 0t2011212010110002000 b36: 0zDYT5O0
+     bin: 0b110010010101100111011111110000
 x = (x + n / x) >> 1
-    dec: 24475 char: '......_.' oct: 0o57633 hex: 0x5f9b ter: 0t1020120111
-     b36: 0zIVV bin: 0b101111110011011
+    dec: 844527600 char: '....2Vw.' oct: 0o6225473760 hex: 0x325677f0
+     ter: 0t2011212010110002000 b36: 0zDYT5O0
+     bin: 0b110010010101100111011111110000
 x = (x + n / x) >> 1
-    dec: 24475 char: '......_.' oct: 0o57633 hex: 0x5f9b ter: 0t1020120111
-     b36: 0zIVV bin: 0b101111110011011
+    dec: 844527600 char: '....2Vw.' oct: 0o6225473760 hex: 0x325677f0
+     ter: 0t2011212010110002000 b36: 0zDYT5O0
+     bin: 0b110010010101100111011111110000
 
 overshoot = (x * x > n)
     dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
 x -= overshoot
-    dec: 24475 char: '......_.' oct: 0o57633 hex: 0x5f9b ter: 0t1020120111
-     b36: 0zIVV bin: 0b101111110011011
+    dec: 844527600 char: '....2Vw.' oct: 0o6225473760 hex: 0x325677f0
+     ter: 0t2011212010110002000 b36: 0zDYT5O0
+     bin: 0b110010010101100111011111110000
 
 ### Square root of n is x:
 n
-    dec: 599071790 char: '....#...' oct: 0o4355216056 hex: 0x23b51c2e
-     ter: 0t1112202021000000002 b36: 0z9WO6R2
-     bin: 0b100011101101010001110000101110
+    dec: 713226867594196952 char: '.....7w.' oct: 0o47457100724715673730
+     hex: 0x9e5e40ea73777d8 ter: 0t11202022002121202122101222111012222102
+     b36: 0z5F2PTNOPKMHK
+     bin: 0b100111100101111001000000111010100111001101110111011111011000
 x
-    dec: 24475 char: '......_.' oct: 0o57633 hex: 0x5f9b ter: 0t1020120111
-     b36: 0zIVV bin: 0b101111110011011
+    dec: 844527600 char: '....2Vw.' oct: 0o6225473760 hex: 0x325677f0
+     ter: 0t2011212010110002000 b36: 0zDYT5O0
+     bin: 0b110010010101100111011111110000

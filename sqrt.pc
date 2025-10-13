@@ -1,6 +1,7 @@
 rsize = sizeof_ll * CHAR_BIT
 
-n = rand
+n = (rand << 30) ^ (rand << 15) ^ rand;
+
 v = n | 1
 
 step = rsize >> 1

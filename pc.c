@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 30
+#define PC_VERSION_PATCH 31
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -2382,7 +2382,7 @@ parse_args(int argc, char *argv[])
   FREE(buff);
 }
 
-#if !(defined(__OpenBSD__) && defined(OpenBSD) && (OpenBSD >= 200811))
+#if !(defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811))
 static uint32_t
 hash32s(const void *buf, size_t len, uint32_t h)
 {
@@ -2407,11 +2407,20 @@ hash32s(const void *buf, size_t len, uint32_t h)
 int
 main(int argc, char *argv[])
 {
-#if !(defined(__OpenBSD__) && defined(OpenBSD) && (OpenBSD >= 200811))
+#if !(defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811))
+# if !defined (__ELKS__) && !defined (_AIX) && !defined (_MVS) && !defined (__managarm__)
+  size_t i;
+# endif
   FILE *f;
   uint32_t h;
   unsigned char rnd[4];
+#endif
 
+#if !defined (NO_LOCALE)
+  (void)setlocale (LC_ALL, "");
+#endif
+
+#if !(defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811))
   /*LINTED: E_CAST_INT_TO_SMALL_INT*/
   h = (uint32_t)time(NULL);
 
@@ -2425,11 +2434,22 @@ main(int argc, char *argv[])
       (void)fclose(f);
     }
 
-    srand(h);
-#endif
+# if !defined (__ELKS__) && !defined (_AIX) && !defined (_MVS) && !defined (__managarm__)
+  if (clock() != 0)
+    for (i = 0; i < 1000; i++)
+      {
+        ULONG counter = 0;
+        clock_t start = clock();
 
-#if !defined (NO_LOCALE)
-  (void)setlocale (LC_ALL, "");
+        while (clock() == start)
+          counter++;
+
+        h = hash32s(&start, sizeof(start), h);
+        h = hash32s(&counter, sizeof(counter), h);
+      }
+# endif
+
+  srand(h);
 #endif
 
   (void)set_var_lookup_hook(builtin_vars);

@@ -169,23 +169,31 @@ test "${CPPCHECK:?}" != "true" && {
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
   -D__EXTENSIONS__ -DWITH_TERNARY=1 -DWITH_BASE36=1 --quiet pc.c
 
+# Final xline
+xline
+
 # Clang -Weverything:
 # clang -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
 # clang -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
 # clang -m32 -DWITHOUT_LONG_LONG -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time -Wno-shift-count-overflow pc.c -o pc
 
-# IA16-GCC COM:
-# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.com -DWITHOUT_LOCALE=1 -march=i8086 -mregparmcall -Os -mcmodel=small -Wall -Wextra -Wpedantic -std=c99
-# IA16-GCC EXE:
-# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.exe -DWITHOUT_LOCALE=1 -march=i8086 -mregparmcall -Os -mcmodel=medium -Wall -Wextra -Wpedantic -std=c99
-# IA16-GCC ELKS:
-# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc -melks -Os -mtune=i8086 -Wall -Wextra -Wpedantic -std=c99 -D__far= -mregparmcall
+# DJGPP
+# /opt/djgpp/bin/i586-pc-msdosdjgpp-gcc -Os -o pc.exe pc.C
 
-# OWC2 DOS EXE:
-# env INCLUDE=/opt/watcom/h /opt/watcom/binl64/wcl -bcl=DOS -0 -ml -fpi -zp2 -j -s pc.c
+# IA16-GCC COM:
+# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.com -march=i8086 -mtune=i8086 -mregparmcall -Os -mcmodel=small -Wall -Wextra -Wpedantic -std=c99
+
+# IA16-GCC EXE:
+# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc.exe -march=i8086 -mtune=i8086 -mregparmcall -Os -mcmodel=medium -Wall -Wextra -Wpedantic -std=c99
+
+# IA16-GCC ELKS (-DWITHOUT_LONG_LONG due to deficient fprintf):
+# env PATH=$HOME/src/build-ia16/prefix/ia16-elf/bin:$HOME/src/build-ia16/prefix/bin $HOME/src/build-ia16/prefix/bin/ia16-elf-gcc pc.c -o pc -melks -Os -mtune=i8086 -Wall -Wextra -Wpedantic -std=c99 -D__far= -mregparmcall -DWITHOUT_LONG_LONG
+
+# Open Watcom v2 DOS EXE:
+# ( export WATCOM="/opt/watcom"; export PATH="${WATCOM:?}/binl64:${PATH:?}"; env INCLUDE=${WATCOM:?}/h ${WATCOM:?}/binl64/wcl -bcl=DOS -0 -ml -fpi -zp2 -j -s pc.c )
 
 # CrossMiNT:
 # env PATH=$HOME/crossmint/usr/m68k-atari-mintelf/bin:$HOME/crossmint/usr/bin $HOME/crossmint/usr/bin/m68k-atari-mintelf-gcc pc.c -o pc.prg -Os -lgem -Wall -Wextra -Wpedantic -std=c99
 
-# Final xline
-xline
+# Amiga-GCC
+# env PATH=/opt/amiga/m68k-amigaos/bin:/opt/amiga/bin:$PATH /opt/amiga/bin/m68k-amigaos-gcc -Wall -Wextra -Wpedantic -Os -o pc pc.c -noixemul

@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 32
+#define PC_VERSION_PATCH 33
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -1007,8 +1007,9 @@ get_binary_string(ULONG value)
 static void
 u64_to_octal(char *buf, size_t bufsz, unsigned long long value)
 {
-  char tmp[32];
+  char tmp[30];
   int i = sizeof(tmp);
+
   tmp[--i] = '\0';
 
   do

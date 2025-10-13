@@ -1129,7 +1129,7 @@ print_result(ULONG value)
 # else
         (void)snprintf(extra_info, sizeof(extra_info),
                        " signed: %lld", (LONG)value);
-#endif
+# endif
 #else
         (void)snprintf(extra_info, sizeof(extra_info),
                        " signed: %ld", (LONG)value);

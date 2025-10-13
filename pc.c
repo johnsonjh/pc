@@ -1103,31 +1103,28 @@ print_result(ULONG value)
 # if defined (__ELKS__)
         {
           long long sval = (long long)value;
+          char tmp[32];
+          char *p = tmp + sizeof(tmp);
+          uint64_t mag;
 
           if (sval < 0)
-            {
-              unsigned long hi = (unsigned long)((-sval) >> 32);
-              unsigned long lo = (unsigned long)((-sval) & 0xfffffffful);
-
-              if (hi)
-                (void)snprintf(extra_info, sizeof(extra_info),
-                               " signed: -%lu%08lu", hi, lo);
-              else
-                (void)snprintf(extra_info, sizeof(extra_info),
-                               " signed: -%lu", lo);
-            }
+            mag = (uint64_t)(~sval) + 1;
           else
-            {
-              unsigned long hi = (unsigned long)(sval >> 32);
-              unsigned long lo = (unsigned long)(sval & 0xfffffffful);
+            mag = (uint64_t)sval;
 
-              if (hi)
-                (void)snprintf(extra_info, sizeof(extra_info),
-                               " signed: %lu%08lu", hi, lo);
-              else
-                (void)snprintf(extra_info, sizeof(extra_info),
-                               " signed: %lu", lo);
+          *--p = '\0';
+
+          do
+            {
+              *--p = '0' + (mag % 10);
+              mag /= 10;
             }
+          while (mag);
+
+          if (sval < 0)
+            (void)snprintf(extra_info, sizeof(extra_info), " signed: -%s", p);
+          else
+            (void)snprintf(extra_info, sizeof(extra_info), " signed: %s", p);
         }
 # else
         (void)snprintf(extra_info, sizeof(extra_info),

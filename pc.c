@@ -116,11 +116,11 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 /*
  * Define 'WITHOUT_LONG_LONG' if your compiler is lacking support for the
- * "long long" type or if your fprintf doesn't have the %lld format specifier,
- * in which case pc will try to make due using just plain longs and %ld.
+ * "long long" type or if your fprintf doesn't have the '%llT' format
+ * specifiers, in which case pc will try to make due using just plain longs.
  *
  * If happen to have a compiler that supports a "long long" type but fprintf
- * without "%lld', you could try using https://github.com/johnsonjh/dpsprintf
+ * without "%llT', you could try using https://github.com/johnsonjh/dpsprintf
  */
 
 #if !defined (WITHOUT_LONG_LONG)

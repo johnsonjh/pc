@@ -1,8 +1,10 @@
+# Square root calculation
+
 rsize = sizeof_ll * CHAR_BIT
     dec: 64 char: '.......@' oct: 0o100 hex: 0x40 rom: 0rLXIV ter: 0t2101
      b36: 0z1S bin: 0b1000000
 
-n = (rand << 30) ^ (rand << 15) ^ rand;
+n = (rand << 30) ^ (rand << 15) ^ rand
     dec: 713226867594196952 char: '.....7w.' oct: 0o47457100724715673730
      hex: 0x9e5e40ea73777d8 ter: 0t11202022002121202122101222111012222102
      b36: 0z5F2PTNOPKMHK

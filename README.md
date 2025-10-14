@@ -132,8 +132,14 @@
 
 []()
 * [`sqrt.pc`](sqrt.pc) is a program that calculates the square root of `n`
-  (where `n` defaults to `rand`).
+  (where `n` is, by default, a large random number).
   * You can see the [full output of this program here](sqrt.txt).
+[]()
+
+[]()
+* [`weekday.pc`](weekday.pc) is a program that calculates the day of the week.
+  The date is also displayed (via a store to the GT register) for confirmation.
+  * You can see the [full output of this program here](weekday.txt).
 
 ## Testing
 

@@ -21,6 +21,7 @@ core-*
 log.pvs
 *.out
 pc
+pc2
 pc-amiga
 pc.c.out.*
 pc-djgpp.exe

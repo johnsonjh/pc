@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 34
+#define PC_VERSION_PATCH 35
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -307,6 +307,13 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #if defined (__atarist__)
 # include <gem.h>
 # include <osbind.h>
+#endif
+
+#if defined (__amiga__)
+# include <exec/types.h>
+# include <workbench/startup.h>
+# include <proto/dos.h>
+# include <proto/exec.h>
 #endif
 
 #if defined (PC_FUNC)
@@ -2583,6 +2590,29 @@ main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
+
+#if defined (__amiga__)
+int
+WBmain(struct WBStartup *wbmsg)
+{
+  BPTR con = Open("CON:0/0/640/200/pc2", MODE_NEWFILE);
+
+  if (con)
+    {
+      SelectOutput(con);
+      SelectInput(con);
+      SelectError(con);
+    }
+
+  char *argv[] = { "pc", NULL };
+  int rc = main(1, argv);
+
+  if (con)
+    Close(con);
+
+  return rc;
+}
+#endif
 
 static char *
 skipwhite(char *str)

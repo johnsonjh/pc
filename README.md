@@ -100,8 +100,8 @@
 
 ### Build
 
-* You can try it out `pc` by **executing [`./pc.c`](pc.c) directly**,
-  and it will *just run* (using magic), or,
+* You can try out `pc` by **executing [`./pc.c`](pc.c) directly**,
+  and it should *just run* (using *magic*), or,
 * Build it with `make`.  Standard environment variables (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
 * Common line editing packages (`libedit`, `editline`, `readline`, and

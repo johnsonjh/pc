@@ -215,7 +215,7 @@ pc-dosw.exe:
 	export WATCOM="$(WATCOM_DIR)" && \
 	export INCLUDE="$(WATCOM_DIR)/h" && \
 	$(WATCOM_DIR)/binl64/wcl \
-		-bcl=DOS -0 -mt -fpi -zp2 -j -d0 -os -s -fo=pc-dosw.obj -fe=pc-dosw.exe pc.c && \
+		-bcl=DOS -0 -mt -fpi -j -d0 -os -s -fo=pc-dosw.obj -fe=pc-dosw.exe pc.c && \
 	$(RM) ./pc-dosw.obj
 
 watcom-dos: pc-dosw.exe
@@ -227,7 +227,7 @@ pc-dosw.com:
 	export WATCOM="$(WATCOM_DIR)" && \
 	export INCLUDE="$(WATCOM_DIR)/h" && \
 	$(WATCOM_DIR)/binl64/owcc \
-		-c -bt=dos -bcom -march=i86 -fsigned-char -mcmodel=t -g0 -frerun-optimizer -Os -fno-stack-check -fpack-struct=4 -o ./pc-doswc.obj ./pc.c && \
+		-c -bt=dos -bcom -march=i86 -fsigned-char -mcmodel=t -g0 -frerun-optimizer -Os -fno-stack-check -o ./pc-doswc.obj ./pc.c && \
 	$(WATCOM_DIR)/binl64/owcc \
 		-bcom -s -o ./pc-dosw.com ./pc-doswc.obj && \
 	$(RM) ./pc-doswc.obj

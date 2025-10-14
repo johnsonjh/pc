@@ -120,26 +120,27 @@
 []()
 
 []()
-* [`easter.pc`](easter.pc) is a program that calculates the date of Easter
-  (and checks if it's today).
+* [`easter.pc`](examples/easter.pc) is a program that calculates the date of
+  Easter (and checks if it's today).
   * You can modify the program itself or use something like
     [`faketime`](https://github.com/wolfcw/libfaketime)
     (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to verify
     arbitrary dates.
-  * You can see the [full output of this program here](easter.txt) (with
-    all optional base conversions enabled).
+  * You can see the [full output of this program here](examples/easter.txt)
+    (with all optional base conversions enabled).
 []()
 
 []()
-* [`sqrt.pc`](sqrt.pc) is a program that calculates the square root of `n`
-  (where `n` is, by default, a large random number).
-  * You can see the [full output of this program here](sqrt.txt).
+* [`sqrt.pc`](examples/sqrt.pc) is a program that calculates the square root
+  of `n` (where `n` is, by default, a large random number).
+  * You can see the [full output of this program here](examples/sqrt.txt).
 []()
 
 []()
-* [`weekday.pc`](weekday.pc) is a program that calculates the day of the week.
-  The date is also displayed (via a store to the GT register) for confirmation.
-  * You can see the [full output of this program here](weekday.txt).
+* [`weekday.pc`](examples/weekday.pc) is a program that calculates the day of
+  the week.  The formatted date is also displayed (via a store to the `GT`
+  register) for confirmation.
+  * You can see the [full output of this program here](examples/weekday.txt).
 
 ## Testing
 

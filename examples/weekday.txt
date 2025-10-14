@@ -1,0 +1,106 @@
+# Weekday calculation
+
+# Convert epoch to component day, month, year:
+now = time
+    dec: 1760477860 char: '....h...' oct: 0o15073541244 hex: 0x68eec2a4
+     ter: 0t11112200122112121201 b36: 0zT455ES
+     bin: 0b1101000111011101100001010100100
+bitshift = (sizeof_ll * CHAR_BIT) - 1
+    dec: 63 char: '.......?' oct: 0o77 hex: 0x3f rom: 0rLXIII ter: 0t2100
+     b36: 0z1R bin: 0b111111
+spd = 86400
+    dec: 86400 char: '......Q.' oct: 0o250600 hex: 0x15180 ter: 0t11101112000
+     b36: 0z1UO0 bin: 0b10101000110000000
+top = 1 << bitshift
+    dec: 9223372036854775808 signed: -9223372036854775808
+     oct: 0o1000000000000000000000 hex: 0x8000000000000000
+     ter: 0t2021110011022210012102010021220101220222 b36: 0z1Y2P0IJ32E8E
+     bin: 0b1000000000000000000000000000000000000000000000000000000000000000
+low = now & (top - 1)
+    dec: 1760477860 char: '....h...' oct: 0o15073541244 hex: 0x68eec2a4
+     ter: 0t11112200122112121201 b36: 0zT455ES
+     bin: 0b1101000111011101100001010100100
+high = now & top
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+s = low - high
+    dec: 1760477860 char: '....h...' oct: 0o15073541244 hex: 0x68eec2a4
+     ter: 0t11112200122112121201 b36: 0zT455ES
+     bin: 0b1101000111011101100001010100100
+sign = s >> bitshift
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+negmag = top - low
+    dec: 9223372035094297948 char: '......=\' oct: 0o777777777762704236534
+     hex: 0x7fffffff97113d5c ter: 0t2021110011022210012020120121020212022021
+     b36: 0z1Y2P0II9Y92Z
+     bin: 0b111111111111111111111111111111110010111000100010011110101011100
+ceil_neg = (negmag + (spd - 1)) / spd
+    dec: 106751991146925 char: '..a."...' oct: 0o3021344240564655
+     hex: 0x61172282e9ad ter: 0t111222222101112210212101122010 b36: 0z11U96R9VAL
+     bin: 0b11000010001011100100010100000101110100110101101
+qpos = low / spd
+    dec: 20375 char: '......O.' oct: 0o47627 hex: 0x4f97 ter: 0t1000221122
+     b36: 0zFPZ bin: 0b100111110010111
+qneg = 0 - ceil_neg
+    dec: 18446637321718404691 signed: -106751991146925 char: '.....}.S'
+     oct: 0o1777774756433537213123 hex: 0xffff9ee8dd7d1653
+     ter: 0t11112220022010120102102200202221102012211 b36: 0z3W5CZ6SZDILH
+     bin: 0b1111111111111111100111101110100011011101011111010001011001010011
+q = (qpos & (0 - (sign ^ 1))) | (qneg & (0 - sign))
+    dec: 20375 char: '......O.' oct: 0o47627 hex: 0x4f97 ter: 0t1000221122
+     b36: 0zFPZ bin: 0b100111110010111
+z = q + 719468
+    dec: 739843 char: '......J.' oct: 0o2645003 hex: 0xb4a03
+     ter: 0t1101120212121 b36: 0zFUV7 bin: 0b10110100101000000011
+era = (z - ((z < 0) * 146096)) / 146097
+    dec: 5 oct: 0o5 hex: 0x5 rom: 0rV ter: 0t12 b36: 0z5 bin: 0b101
+doe = z - era * 146097
+    dec: 9358 char: '......$.' oct: 0o22216 hex: 0x248e ter: 0t110211121
+     b36: 0z77Y bin: 0b10010010001110
+yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365
+    dec: 25 oct: 0o31 hex: 0x19 rom: 0rXXV ter: 0t221 b36: 0zP bin: 0b11001
+y = yoe + era * 400
+    dec: 2025 oct: 0o3751 hex: 0x7e9 rom: 0rMMXXV ter: 0t2210000 b36: 0z1K9
+     bin: 0b11111101001
+doy = doe - (365*yoe + yoe/4 - yoe/100)
+    dec: 227 oct: 0o343 hex: 0xe3 rom: 0rCCXXVII ter: 0t22102 b36: 0z6B
+     bin: 0b11100011
+mp = (5*doy + 2) / 153
+    dec: 7 oct: 0o7 hex: 0x7 rom: 0rVII ter: 0t21 b36: 0z7 bin: 0b111
+
+# Current day:
+day = doy - (153*mp + 2)/5 + 1
+    dec: 14 oct: 0o16 hex: 0xe rom: 0rXIV ter: 0t112 b36: 0zE bin: 0b1110
+
+# Current month:
+month = mp + 3 - 12 * ((mp + 2) / 12)
+    dec: 10 oct: 0o12 hex: 0xa rom: 0rX ter: 0t101 b36: 0zA bin: 0b1010
+
+# Current year:
+year = y + (month <= 2)
+    dec: 2025 oct: 0o3751 hex: 0x7e9 rom: 0rMMXXV ter: 0t2210000 b36: 0z1K9
+     bin: 0b11111101001
+
+# Calculate day of week:
+mask = (month - 3) >> bitshift
+    dec: 0 oct: 0o0 hex: 0x0 ter: 0t0 b36: 0z0 bin: 0b0
+month += mask * 12
+    dec: 10 oct: 0o12 hex: 0xa rom: 0rX ter: 0t101 b36: 0zA bin: 0b1010
+year -= mask
+    dec: 2025 oct: 0o3751 hex: 0x7e9 rom: 0rMMXXV ter: 0t2210000 b36: 0z1K9
+     bin: 0b11111101001
+month -= 3
+    dec: 7 oct: 0o7 hex: 0x7 rom: 0rVII ter: 0t21 b36: 0z7 bin: 0b111
+days = 365 * year + year / 4 - year / 100 + year / 400 + (153 * month + 2) / 5 + day - 1
+    dec: 739843 char: '......J.' oct: 0o2645003 hex: 0xb4a03
+     ter: 0t1101120212121 b36: 0zFUV7 bin: 0b10110100101000000011
+
+# Today:
+GT = now
+  GT: Tue 14 Oct 2025 05:37:40 PM EDT
+    dec: 1760477860 char: '....h...' oct: 0o15073541244 hex: 0x68eec2a4
+     ter: 0t11112200122112121201 b36: 0zT455ES
+     bin: 0b1101000111011101100001010100100
+
+### Weekday calculation (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat):
+(3 + days) % 7
+    dec: 2 oct: 0o2 hex: 0x2 rom: 0rII ter: 0t2 b36: 0z2 bin: 0b10

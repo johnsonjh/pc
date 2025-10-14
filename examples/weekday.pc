@@ -1,0 +1,45 @@
+# Weekday calculation
+
+# Convert epoch to component day, month, year:
+now = time
+bitshift = (sizeof_ll * CHAR_BIT) - 1
+spd = 86400
+top = 1 << bitshift
+low = now & (top - 1)
+high = now & top
+s = low - high
+sign = s >> bitshift
+negmag = top - low
+ceil_neg = (negmag + (spd - 1)) / spd
+qpos = low / spd
+qneg = 0 - ceil_neg
+q = (qpos & (0 - (sign ^ 1))) | (qneg & (0 - sign))
+z = q + 719468
+era = (z - ((z < 0) * 146096)) / 146097
+doe = z - era * 146097
+yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365
+y = yoe + era * 400
+doy = doe - (365*yoe + yoe/4 - yoe/100)
+mp = (5*doy + 2) / 153
+
+# Current day:
+day = doy - (153*mp + 2)/5 + 1
+
+# Current month:
+month = mp + 3 - 12 * ((mp + 2) / 12)
+
+# Current year:
+year = y + (month <= 2)
+
+# Calculate day of week:
+mask = (month - 3) >> bitshift
+month += mask * 12
+year -= mask
+month -= 3
+days = 365 * year + year / 4 - year / 100 + year / 400 + (153 * month + 2) / 5 + day - 1
+
+# Today:
+GT = now
+
+### Weekday calculation (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat):
+(3 + days) % 7

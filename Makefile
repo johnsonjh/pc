@@ -1,3 +1,5 @@
+################################################################################
+
 # SPDX-License-Identifier: MIT
 # Copyright (c) 1993 Dominic Giampaolo <dbg@be.com>
 # Copyright (c) 1994 Joel Tesler <joel@engr.sgi.com>
@@ -10,7 +12,9 @@
 # Copyright (c) 2022-2025 The DPS8M Development Team
 # scspell-id: 805354da-a39e-11f0-8637-80ee73e9b8e7
 
-# Environment variables supported by the build:
+################################################################################
+
+# Environment variables supported by the "pc" build:
 #   WITHOUT_LOCALE    - Disable use of localized error messages
 #   WITHOUT_LONG_LONG - Disable use of 'long long' and '%lld'
 #   WITH_TERNARY      - Enable ternary (base 3) output
@@ -24,6 +28,9 @@
 #   WITH_READLINE     - Enable readline (if not autodetected)
 #   WITH_LINENOISE    - Enable linenoise
 
+################################################################################
+# Configuration:
+
 PKG-CONFIG=pkg-config
 RM=rm -f
 XCC=$$(\
@@ -33,6 +40,38 @@ XCC=$$(\
   command -v ibm-clang 2> /dev/null || \
   printf '%s\n' cc \
 )
+
+################################################################################
+# DJGPP:
+
+DJGPP_DIR=/opt/djgpp
+DJGPP_ARCH=i586-pc-msdosdjgpp
+CWSDSTUB=/opt/cwspdmi/cwsdstub.exe
+
+################################################################################
+# CrossMiNT:
+
+CROSSMINT_DIR=$${HOME:-}/crossmint/usr
+CROSSMINT_ARCH=m68k-atari-mintelf
+
+################################################################################
+# IA16-GCC:
+
+IA16-GCC_DIR=$${HOME:-}/src/build-ia16/prefix
+IA16-GCC_ARCH=ia16-elf
+
+################################################################################
+# Open Watcom v2:
+
+WATCOM_DIR=/opt/watcom
+
+################################################################################
+# Amiga-GCC:
+
+AMIGA_DIR=/opt/amiga
+AMIGA_ARCH=m68k-amigaos
+
+################################################################################
 
 pc: pc.c
 	@XCC="$(XCC)"; \
@@ -103,17 +142,114 @@ pc: pc.c
 	set -x; \
 	env $${OM:-} $${XCC:?} $${_CFLAGS:-} $${_LDFLAGS} pc.c -o pc
 
+################################################################################
+
 all: pc
 
+################################################################################
+
 clean:
-	@set -x; $(RM) ./pc ./pc.com ./pc.exe ./pc.prg ./pc.o
+	@set -x; $(RM) ./pc ./pc.exe ./pc-djgpp.exe ./pc.prg ./pc-elks ./pc-dosg.exe ./pc-dosw.exe ./pc-dosw.obj ./pc-dosw.com ./pc-doswc.obj ./pc-amiga ./pc.o
+
+################################################################################
 
 distclean: clean
 	@set -x; $(RM) -r ./a.out ./ch.c ./compile_commands.json ./core ./log.pvs ./pvsreport
 	@set -x; $(RM) -r ./core-*
 	@set -x; $(RM) -r ./pc.c.out.*
+	@set -x; $(RM) -r ./pc-djgpp
+
+################################################################################
 
 lint:
 	@./.lint.sh
 
-.PHONY: all clean distclean lint test
+################################################################################
+
+pc-djgpp.exe:
+	$(RM) ./pc-djgpp ./pc-djgpp.exe
+	env PATH="$(DJGPP_DIR)/$(DJGPP_ARCH)/bin:$(DJGPP_DIR)/bin:$${PATH:-}" \
+		$(DJGPP_DIR)/bin/$(DJGPP_ARCH)-gcc \
+			-march=i386 -Os -o ./pc-djgpp.exe ./pc.c
+	$(DJGPP_DIR)/$(DJGPP_ARCH)/bin/strip ./pc-djgpp.exe
+	test -f $(CWSDSTUB) && { \
+		$(DJGPP_DIR)/$(DJGPP_ARCH)/bin/exe2coff ./pc-djgpp.exe && \
+		$(RM) ./pc-djgpp.exe && \
+		cat $(CWSDSTUB) ./pc-djgpp > ./pc-djgpp.exe && \
+		$(RM) ./pc-djgpp; }
+
+djgpp: pc-djgpp.exe
+
+################################################################################
+
+pc.prg:
+	env PATH="$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin:$(CROSSMINT_DIR)/bin:$${PATH:-}" \
+		$(CROSSMINT_DIR)/bin/$(CROSSMINT_ARCH)-gcc \
+			-Os -o ./pc.prg ./pc.c -lgem
+	$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin/strip ./pc.prg
+
+atari: pc.prg
+
+###############################################################################
+
+pc-elks:
+	env PATH="$(IA16-GCC_DIR)/$(IA16-GCC_ARCH)/bin:$(IA16-GCC_DIR)/bin:$${PATH:-}" \
+		$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc \
+			-march=i8086 -mtune=i8086 -melks -mregparmcall -Os -o ./pc-elks ./pc.c
+
+elks: pc-elks
+
+################################################################################
+
+pc-dosg.exe:
+	env PATH="$(IA16-GCC_DIR)/$(IA16-GCC_ARCH)/bin:$(IA16-GCC_DIR)/bin:$${PATH:-}" \
+		$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc \
+			-march=i8086 -mtune=i8086 -mcmodel=small -mregparmcall -Os -o ./pc-dosg.exe ./pc.c
+
+gcc-dosexe: pc-dosg.exe
+
+################################################################################
+
+pc-dosw.exe:
+	export PATH="$(WATCOM_DIR)/binl64:$${PATH:-}" && \
+	export WATCOM="$(WATCOM_DIR)" && \
+	export INCLUDE="$(WATCOM_DIR)/h" && \
+	$(WATCOM_DIR)/binl64/wcl \
+		-bcl=DOS -0 -mt -fpi -zp2 -j -d0 -os -s -fo=pc-dosw.obj -fe=pc-dosw.exe pc.c && \
+	$(RM) ./pc-dosw.obj
+
+watcom-dos: pc-dosw.exe
+
+################################################################################
+
+pc-dosw.com:
+	export PATH="$(WATCOM_DIR)/binl64:$${PATH:-}" && \
+	export WATCOM="$(WATCOM_DIR)" && \
+	export INCLUDE="$(WATCOM_DIR)/h" && \
+	$(WATCOM_DIR)/binl64/owcc \
+		-c -bt=dos -bcom -march=i86 -fsigned-char -mcmodel=t -g0 -frerun-optimizer -Os -fno-stack-check -fpack-struct=4 -o ./pc-doswc.obj ./pc.c && \
+	$(WATCOM_DIR)/binl64/owcc \
+		-bcom -s -o ./pc-dosw.com ./pc-doswc.obj && \
+	$(RM) ./pc-doswc.obj
+
+watcom-doscom: pc-dosw.com
+
+################################################################################
+
+pc-amiga:
+	env PATH="$(AMIGA_DIR)/$(AMIGA_ARCH)/bin:$(AMIGA_DIR)/bin:$${PATH:-}" \
+		$(AMIGA_DIR)/bin/$(AMIGA_ARCH)-gcc \
+			-Os -o ./pc-amiga ./pc.c -noixemul
+	$(AMIGA_DIR)/$(AMIGA_ARCH)/bin/strip ./pc-amiga
+
+amiga: pc-amiga
+
+################################################################################
+
+everything: pc djgpp atari elks watcom-dos watcom-doscom gcc-dosexe amiga
+
+################################################################################
+
+.PHONY: all clean distclean lint djgpp atari elks watcom-dos watcom-doscom gcc-dosexe everything test
+
+################################################################################

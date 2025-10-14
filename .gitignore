@@ -20,8 +20,15 @@ core-*
 log.pvs
 *.out
 pc
-pc.com
+pc-amiga
 pc.c.out.*
+pc-djgpp.exe
+pc-dosg.exe
+pc-doswc.obj
+pc-dosw.com
+pc-dosw.exe
+pc-dosw.obj
+pc-elks
 pc.exe
 pc.prg
 pvs.log

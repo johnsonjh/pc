@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 33
+#define PC_VERSION_PATCH 34
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -2521,6 +2521,7 @@ main(int argc, char *argv[])
   /*LINTED: E_CAST_INT_TO_SMALL_INT*/
   h = (uint32_t)time(NULL);
 
+# if !defined (DOSLIKE) && !defined (__atarist__) && !defined (__amiga__)
   f = fopen("/dev/urandom", "rb");
 
   if (f)
@@ -2530,6 +2531,7 @@ main(int argc, char *argv[])
 
       (void)fclose(f);
     }
+# endif
 
 # if !defined (__ELKS__) && !defined (_AIX) && !defined (_MVS) && !defined (__managarm__)
   if (clock() != 0)

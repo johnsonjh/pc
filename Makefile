@@ -154,10 +154,9 @@ clean:
 ################################################################################
 
 distclean: clean
-	@set -x; $(RM) -r ./a.out ./ch.c ./compile_commands.json ./core ./log.pvs ./pvsreport
+	@set -x; $(RM) -r ./a.out ./ch.c ./compile_commands.json ./core ./log.pvs ./pvsreport ./pc-djgpp ./pc.err
 	@set -x; $(RM) -r ./core-*
 	@set -x; $(RM) -r ./pc.c.out.*
-	@set -x; $(RM) -r ./pc-djgpp
 
 ################################################################################
 
@@ -169,8 +168,7 @@ lint:
 pc-djgpp.exe:
 	$(RM) ./pc-djgpp ./pc-djgpp.exe
 	env PATH="$(DJGPP_DIR)/$(DJGPP_ARCH)/bin:$(DJGPP_DIR)/bin:$${PATH:-}" \
-		$(DJGPP_DIR)/bin/$(DJGPP_ARCH)-gcc \
-			-march=i386 -Os -o ./pc-djgpp.exe ./pc.c
+	$(DJGPP_DIR)/bin/$(DJGPP_ARCH)-gcc -march=i386 -Os -o ./pc-djgpp.exe ./pc.c
 	$(DJGPP_DIR)/$(DJGPP_ARCH)/bin/strip ./pc-djgpp.exe
 	test -f $(CWSDSTUB) && { \
 		$(DJGPP_DIR)/$(DJGPP_ARCH)/bin/exe2coff ./pc-djgpp.exe && \
@@ -184,8 +182,7 @@ djgpp: pc-djgpp.exe
 
 pc.prg:
 	env PATH="$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin:$(CROSSMINT_DIR)/bin:$${PATH:-}" \
-		$(CROSSMINT_DIR)/bin/$(CROSSMINT_ARCH)-gcc \
-			-Os -o ./pc.prg ./pc.c -lgem
+	$(CROSSMINT_DIR)/bin/$(CROSSMINT_ARCH)-gcc -Os -o ./pc.prg ./pc.c -lgem
 	$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin/strip ./pc.prg
 
 atari: pc.prg
@@ -194,8 +191,7 @@ atari: pc.prg
 
 pc-elks:
 	env PATH="$(IA16-GCC_DIR)/$(IA16-GCC_ARCH)/bin:$(IA16-GCC_DIR)/bin:$${PATH:-}" \
-		$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc \
-			-march=i8086 -mtune=i8086 -melks -mregparmcall -Os -o ./pc-elks ./pc.c
+	$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc -march=i8086 -mtune=i8086 -melks -mregparmcall -Os -o ./pc-elks ./pc.c
 
 elks: pc-elks
 
@@ -203,8 +199,7 @@ elks: pc-elks
 
 pc-dosg.exe:
 	env PATH="$(IA16-GCC_DIR)/$(IA16-GCC_ARCH)/bin:$(IA16-GCC_DIR)/bin:$${PATH:-}" \
-		$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc \
-			-march=i8086 -mtune=i8086 -mcmodel=small -mregparmcall -Os -o ./pc-dosg.exe ./pc.c
+	$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc -march=i8086 -mtune=i8086 -mcmodel=small -mregparmcall -Os -o ./pc-dosg.exe ./pc.c
 
 gcc-dosexe: pc-dosg.exe
 
@@ -214,8 +209,7 @@ pc-dosw.exe:
 	export PATH="$(WATCOM_DIR)/binl64:$${PATH:-}" && \
 	export WATCOM="$(WATCOM_DIR)" && \
 	export INCLUDE="$(WATCOM_DIR)/h" && \
-	$(WATCOM_DIR)/binl64/wcl \
-		-bcl=DOS -0 -mt -fpi -j -d0 -os -s -fo=pc-dosw.obj -fe=pc-dosw.exe pc.c && \
+	$(WATCOM_DIR)/binl64/wcl -bcl=DOS -0 -mt -fpi -j -d0 -os -s -fo=pc-dosw.obj -fe=pc-dosw.exe pc.c && \
 	$(RM) ./pc-dosw.obj
 
 watcom-dos: pc-dosw.exe
@@ -226,10 +220,8 @@ pc-dosw.com:
 	export PATH="$(WATCOM_DIR)/binl64:$${PATH:-}" && \
 	export WATCOM="$(WATCOM_DIR)" && \
 	export INCLUDE="$(WATCOM_DIR)/h" && \
-	$(WATCOM_DIR)/binl64/owcc \
-		-c -bt=dos -bcom -march=i86 -fsigned-char -mcmodel=t -g0 -frerun-optimizer -Os -fno-stack-check -o ./pc-doswc.obj ./pc.c && \
-	$(WATCOM_DIR)/binl64/owcc \
-		-bcom -s -o ./pc-dosw.com ./pc-doswc.obj && \
+	$(WATCOM_DIR)/binl64/owcc -c -bt=dos -bcom -march=i86 -fsigned-char -mcmodel=t -g0 -frerun-optimizer -Os -fno-stack-check -o ./pc-doswc.obj ./pc.c && \
+	$(WATCOM_DIR)/binl64/owcc -bcom -s -o ./pc-dosw.com ./pc-doswc.obj && \
 	$(RM) ./pc-doswc.obj
 
 watcom-doscom: pc-dosw.com
@@ -238,8 +230,7 @@ watcom-doscom: pc-dosw.com
 
 pc-amiga:
 	env PATH="$(AMIGA_DIR)/$(AMIGA_ARCH)/bin:$(AMIGA_DIR)/bin:$${PATH:-}" \
-		$(AMIGA_DIR)/bin/$(AMIGA_ARCH)-gcc \
-			-Os -o ./pc-amiga ./pc.c -noixemul
+	$(AMIGA_DIR)/bin/$(AMIGA_ARCH)-gcc -Os -o ./pc-amiga ./pc.c -noixemul
 	$(AMIGA_DIR)/$(AMIGA_ARCH)/bin/strip ./pc-amiga
 
 amiga: pc-amiga

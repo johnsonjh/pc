@@ -169,10 +169,24 @@ test "${CPPCHECK:?}" != "true" && {
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
   -D__EXTENSIONS__ -DWITH_TERNARY=1 -DWITH_BASE36=1 --quiet pc.c
 
+# Clang -Weverything
+CLANG="$(command -v clang 2> /dev/null || printf '%s\n' true)"
+test "${CLANG:?}" != "true" && {
+  xline
+  printf '%s\n' "Clang -Weverything..."
+  "${CLANG:?}" -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
+    -Wno-unsafe-buffer-usage -Wno-unused-macros \
+    -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+  "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
+    -Wno-unsafe-buffer-usage -Wno-unused-macros \
+    -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+  "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
+    -Wno-unsafe-buffer-usage -Wno-unused-macros \
+    -Wno-reserved-macro-identifier -Wno-date-time \
+    -Wno-shift-count-overflow -Wno-tautological-type-limit-compare \
+    -DWITHOUT_LONG_LONG pc.c -o pc
+  rm -f ./pc > /dev/null 2>&1
+}
+
 # Final xline
 xline
-
-# Clang -Weverything:
-# clang -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
-# clang -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
-# clang -m32 -DWITHOUT_LONG_LONG -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-reserved-macro-identifier -Wno-date-time -Wno-shift-count-overflow pc.c -o pc

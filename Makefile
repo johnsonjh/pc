@@ -20,7 +20,7 @@
 #   WITH_TERNARY      - Enable ternary (base 3) output
 #   WITH_BASE36       - Enable base 36 output
 #   WITHOUT_ROMAN     - Enable Roman numeral output
-#   WITH_STRTOK       - Enabble use of old strtok (instead of strtok_r)
+#   WITH_STRTOK       - Enable use of old strtok (instead of strtok_r)
 #   NEED_STRFTIME     - Enable if you need an strftime implementation
 #   WITHOUT_EDITOR    - Disable editor autodetection (e.g., if cross-compiling)
 #   WITH_LIBEDIT      - Enable libedit (if not autodetected)

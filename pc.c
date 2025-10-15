@@ -444,17 +444,19 @@ xstrerror_l (int errnum)
   locale_t loc = uselocale ((locale_t)0);
 #  endif
   locale_t copy = loc;
+
   if (LC_GLOBAL_LOCALE == copy)
     copy = duplocale (copy);
 
   if ((locale_t)0 != copy)
     {
       ret = strerror_l (errnum, copy); /*LINTOK: xstrerror_l*/
+
       if (LC_GLOBAL_LOCALE == loc)
-          {
-            freelocale (copy);
-            copy = (locale_t)0;
-          }
+        {
+          freelocale (copy);
+          copy = (locale_t)0;
+        }
     }
 # endif
 
@@ -469,6 +471,7 @@ xstrerror_l (int errnum)
   if (! ret)
     {
       int n_buf = snprintf (buf, sizeof (buf), "Unknown error %d", errnum);
+
       if (0 > n_buf || (size_t)n_buf >= sizeof (buf))
         {
           (void)fprintf (stderr,
@@ -1223,6 +1226,7 @@ print_result(ULONG value)
   if (value > 0 && value < 4000)
     {
       roman_value_converted = convert_to_roman(value);
+
       if (NULL != roman_value_converted)
         {
           (void)snprintf(roman_str, sizeof(roman_str),
@@ -3490,6 +3494,7 @@ get_value(char **str)
         }
 
       *str = skipwhite(*str);
+
       if (*str != NULL &&
           (strncmp(*str, "++", 2) == 0 || strncmp(*str, "--", 2) == 0))
         {

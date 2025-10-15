@@ -149,7 +149,7 @@ all: pc
 ################################################################################
 
 clean:
-	@set -x; $(RM) ./pc ./pc.exe ./pc-djgpp.exe ./pc.prg ./pc-elks ./pc-dosg.exe ./pc-dosw.exe ./pc-dosw.obj ./pc-dosw.com ./pc-doswc.obj ./pc-amiga ./pc.o
+	@set -x; $(RM) ./pc ./pc.exe ./pc-djgpp.exe ./pc.tos ./pc-elks ./pc-dosg.exe ./pc-dosw.exe ./pc-dosw.obj ./pc-dosw.com ./pc-doswc.obj ./pc-amiga ./pc.o
 
 ################################################################################
 
@@ -180,12 +180,12 @@ djgpp: pc-djgpp.exe
 
 ################################################################################
 
-pc.prg:
+pc.tos:
 	env PATH="$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin:$(CROSSMINT_DIR)/bin:$${PATH:-}" \
-	$(CROSSMINT_DIR)/bin/$(CROSSMINT_ARCH)-gcc -Os -o ./pc.prg ./pc.c -lgem
-	$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin/strip ./pc.prg
+	$(CROSSMINT_DIR)/bin/$(CROSSMINT_ARCH)-gcc -Os -o ./pc.tos ./pc.c -lgem
+	$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin/strip ./pc.tos
 
-atari: pc.prg
+atari: pc.tos
 
 ###############################################################################
 

@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 38
+#define PC_VERSION_PATCH 39
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -2668,17 +2668,14 @@ main(int argc, char *argv[])
         {
           interactive = 1;
 #if defined (__atarist__)
-          graf_mouse(M_OFF, 0);
-          target_line_len = (Getrez() == 0) ? 40 : 80;
-          Cursconf(1, 0);
+          if (!is_mint())
+            {
+              graf_mouse(M_OFF, 0);
+              Cursconf(1, 0);
+            }
 #endif
           print_herald();
         }
-
-#if defined (__atarist__)
-      if (target_line_len < 80)
-        fprintf(stdout, "\rWarning: Using less than 80 output cols!\n");
-#endif
 
       do_input(!isatty(STDIN_FILENO));
     }

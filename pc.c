@@ -2546,21 +2546,6 @@ main(int argc, char *argv[])
     }
 # endif
 
-# if !defined (__ELKS__) && !defined (_AIX) && !defined (_MVS) && !defined (__managarm__)
-  if (clock() != 0)
-    for (i = 0; i < 1000; i++)
-      {
-        ULONG counter = 0;
-        clock_t start = clock();
-
-        while (clock() == start)
-          counter++;
-
-        h = hash32s(&start, sizeof(start), h);
-        h = hash32s(&counter, sizeof(counter), h);
-      }
-# endif
-
   srand(h);
 #endif
 

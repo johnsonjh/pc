@@ -123,7 +123,7 @@
   * `1 << 12`
   * `a = 0x1234; a & 0xFF`
   * `. + 4` (add to previous result)
-  * `take input.pc` (reads from `input.pc`)
+  * `take examples/sqrt.pc` (reads from `examples/sqrt.pc`)
 []()
 
 []()

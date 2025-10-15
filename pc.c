@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 36
+#define PC_VERSION_PATCH 37
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -2567,6 +2567,7 @@ main(int argc, char *argv[])
 #if defined (__atarist__)
           graf_mouse(M_OFF, 0);
           target_line_len = (Getrez() == 0) ? 40 : 80;
+          Cursconf(1, 0);
 #endif
           print_herald();
         }

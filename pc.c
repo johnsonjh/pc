@@ -119,9 +119,11 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * "long long" type or if your fprintf doesn't have the '%llT' format
  * specifiers, in which case pc will try to make due using just plain longs.
  *
- * If happen to have a compiler that supports a "long long" type but fprintf
- * without "%llT', you could try using https://github.com/johnsonjh/dpsprintf
+ * If you happen to have a compiler supporting "long long" types but fprintf
+ * without "%llT', you might try using https://github.com/johnsonjh/dpsprintf
  */
+
+/* #define WITHOUT_LONG_LONG */
 
 #if !defined (WITHOUT_LONG_LONG)
 # if !defined (USE_LONG_LONG)

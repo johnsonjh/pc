@@ -97,8 +97,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
-#define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 40
+#define PC_VERSION_MINOR 3
+#define PC_VERSION_PATCH 0
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -877,6 +877,14 @@ typedef struct variable
   ULONG value;
   struct variable *next;
 } variable;
+
+typedef enum {
+  MODE_AUTO,
+  MODE_SIGNED,
+  MODE_UNSIGNED
+} arithmetic_mode_t;
+
+static arithmetic_mode_t arithmetic_mode = MODE_AUTO;
 
 static variable dummy =
 {
@@ -1681,11 +1689,14 @@ is_reserved_name(const char *name)
   if (name == NULL)
     return 0;
 
-  if (strcmp(name, "vars") == 0
-   || strcmp(name, "regs") == 0
-   || strcmp(name, "help") == 0
-   || strcmp(name, "take") == 0
-   || strcmp(name, "quit") == 0)
+  if (strcmp(name, "vars"    ) == 0
+   || strcmp(name, "regs"    ) == 0
+   || strcmp(name, "help"    ) == 0
+   || strcmp(name, "take"    ) == 0
+   || strcmp(name, "mode"    ) == 0
+   || strcmp(name, "signed"  ) == 0
+   || strcmp(name, "unsigned") == 0
+   || strcmp(name, "quit"    ) == 0)
     return 1;
 
   return 0;
@@ -2273,6 +2284,36 @@ process_statement(char *statement)
       list_builtin_vars();
       list_regs();
       list_user_vars();
+    }
+  else if (strcmp(t_ptr, "mode") == 0)
+    {
+      switch (arithmetic_mode)
+        {
+          case MODE_AUTO:
+            (void)fprintf(stdout, "Current mode is 'auto'\n");
+            break;
+          case MODE_SIGNED:
+            (void)fprintf(stdout, "Current mode is 'signed'\n");
+            break;
+          case MODE_UNSIGNED:
+            (void)fprintf(stdout, "Current mode is 'unsigned'\n");
+            break;
+        }
+    }
+  else if (strcmp(t_ptr, "auto") == 0)
+    {
+      arithmetic_mode = MODE_AUTO;
+      (void)fprintf(stdout, "Mode set to 'auto'.\n");
+    }
+  else if (strcmp(t_ptr, "signed") == 0)
+    {
+      arithmetic_mode = MODE_SIGNED;
+      (void)fprintf(stdout, "Mode set to 'signed'.\n");
+    }
+  else if (strcmp(t_ptr, "unsigned") == 0)
+    {
+      arithmetic_mode = MODE_UNSIGNED;
+      (void)fprintf(stdout, "Mode set to 'unsigned'.\n");
     }
   else if (strcmp(t_ptr, "quit") == 0)
     exit(0);
@@ -3210,22 +3251,34 @@ relational_expr(char **str)
       val  = shift_expr(str);
 
       /*
-       * Notice that we do the relational expressions as signed
-       * comparisons.  This is because of expressions like
-       * '0 > -1' which would not return the expected value if
-       * we did the comparison as unsigned.  This may not always
-       * be the desired behavior, but aside from adding casting to
-       * expressions, there isn't much of a way around it.
+       * Notice in automatic mode relational expressions are
+       * performed as signed comparisons.  This is because of
+       * expressions like '0 > -1' which would not return the
+       * expected value if we did the comparison as unsigned.
        */
 
-      if (op == LESS_THAN && equal_to == 0)
-        sum = ((LONG)sum < (LONG)val );
-      else if (op == LESS_THAN && equal_to == 1)
-        sum = ((LONG)sum <= (LONG)val );
-      else if (op == GREATER_THAN && equal_to == 0)
-        sum = ((LONG)sum > (LONG)val );
-      else if (op == GREATER_THAN && equal_to == 1)
-        sum = ((LONG)sum >= (LONG)val );
+      if (arithmetic_mode == MODE_UNSIGNED)
+        {
+          if (op == LESS_THAN && equal_to == 0)
+            sum = (sum < val);
+          else if (op == LESS_THAN && equal_to == 1)
+            sum = (sum <= val);
+          else if (op == GREATER_THAN && equal_to == 0)
+            sum = (sum > val);
+          else if (op == GREATER_THAN && equal_to == 1)
+            sum = (sum >= val);
+        }
+      else
+        {
+          if (op == LESS_THAN && equal_to == 0)
+            sum = ((LONG)sum < (LONG)val );
+          else if (op == LESS_THAN && equal_to == 1)
+            sum = ((LONG)sum <= (LONG)val );
+          else if (op == GREATER_THAN && equal_to == 0)
+            sum = ((LONG)sum > (LONG)val );
+          else if (op == GREATER_THAN && equal_to == 1)
+            sum = ((LONG)sum >= (LONG)val );
+        }
     }
 
   return sum;
@@ -3282,26 +3335,34 @@ add_expression(char **str)
 
       if (op == PLUS)
         {
-          if (sum > (ULONG)-1 - val)
-            errno = ERANGE;
-
-          sum += val;
+          if (arithmetic_mode == MODE_SIGNED)
+            sum = (ULONG)((LONG)sum + (LONG)val);
+          else
+            {
+              if (sum > (ULONG)-1 - val)
+                errno = ERANGE;
+              sum += val;
+            }
         }
       else if (op == MINUS) /* //-V547 */
         {
+          if (arithmetic_mode == MODE_SIGNED)
+            sum = (ULONG)((LONG)sum - (LONG)val);
+          else
+            {
 #if defined (USE_LONG_LONG)
-          if ((LONG)val > 0 && (LONG)sum < LLONG_MIN + (LONG)val)
-            errno = ERANGE;
-          else if ((LONG)val < 0 && (LONG)sum > LLONG_MAX + (LONG)val)
-            errno = ERANGE;
+              if ((LONG)val > 0 && (LONG)sum < LLONG_MIN + (LONG)val)
+                errno = ERANGE;
+              else if ((LONG)val < 0 && (LONG)sum > LLONG_MAX + (LONG)val)
+                errno = ERANGE;
 #else
-          if ((LONG)val > 0 && (LONG)sum < LONG_MIN + (LONG)val)
-            errno = ERANGE;
-          else if ((LONG)val < 0 && (LONG)sum > LONG_MAX + (LONG)val)
-            errno = ERANGE;
+              if ((LONG)val > 0 && (LONG)sum < LONG_MIN + (LONG)val)
+                errno = ERANGE;
+              else if ((LONG)val < 0 && (LONG)sum > LONG_MAX + (LONG)val)
+                errno = ERANGE;
 #endif
-
-          sum -= val;
+              sum -= val;
+            }
         }
     }
 
@@ -3326,10 +3387,14 @@ term(char **str)
 
       if (op == TIMES)
         {
-          if (val != 0 && sum > (ULONG)-1 / val)
-            errno = ERANGE;
-
-          sum *= val;
+          if (arithmetic_mode == MODE_SIGNED)
+            sum = (ULONG)((LONG)sum * (LONG)val);
+          else
+            {
+              if (val != 0 && sum > (ULONG)-1 / val)
+                errno = ERANGE;
+              sum *= val;
+            }
         }
       else if (op == DIVISION)
         {
@@ -3341,7 +3406,12 @@ term(char **str)
               sum = 0;
             }
           else
-            sum /= val;
+            {
+              if (arithmetic_mode == MODE_SIGNED)
+                sum = (ULONG)((LONG)sum / (LONG)val);
+              else
+                sum /= val;
+            }
         }
       else if (op == MODULO) /* //-V547 */
         {
@@ -3353,7 +3423,12 @@ term(char **str)
               sum = 0;
             }
           else
-            sum %= val;
+            {
+              if (arithmetic_mode == MODE_SIGNED)
+                sum = (ULONG)((LONG)sum % (LONG)val);
+              else
+                sum %= val;
+            }
         }
     }
 

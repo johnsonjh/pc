@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 39
+#define PC_VERSION_PATCH 40
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -2207,9 +2207,6 @@ editor_completion_function (const char *text, int start, int end)
 
 static void take_file(const char *filename);
 
-static int take_nesting = 0;
-static int interactive = 0;
-
 static void
 process_statement(char *statement)
 {
@@ -2291,6 +2288,7 @@ process_statement(char *statement)
 static void
 take_file(const char *filename)
 {
+  static int take_nesting = 0;
   char buff[INPUT_BUFF];
   char *input_line;
 #if !defined (WITH_STRTOK)
@@ -2320,9 +2318,9 @@ take_file(const char *filename)
 
   while (fgets(buff, INPUT_BUFF, fp) != NULL)
     {
-      if (!interactive && take_nesting > 1)
+      if (take_nesting > 1)
         (void)fprintf(stdout, "[%s]> %s", filename, buff);
-      else if (!interactive)
+      else
         (void)fprintf(stdout, "%s", buff);
 
       input_line = strdup(buff);
@@ -2666,7 +2664,6 @@ main(int argc, char *argv[])
     {
       if (isatty(STDIN_FILENO))
         {
-          interactive = 1;
 #if defined (__atarist__)
           if (!is_mint())
             {

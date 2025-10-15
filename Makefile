@@ -140,7 +140,7 @@ pc: pc.c
 	test "$$(command -v "$${CC:-}" 2> /dev/null)" && { XCC="$${CC:-}"; }; \
 	test "$${OM:-}" && case "$${XCC:?}" in *gcc*) _CFLAGS="$${_CFLAGS:-} -maix64"; ;; esac; \
 	set -x; \
-	env $${OM:-} $${XCC:?} $${_CFLAGS:-} $${_LDFLAGS} pc.c -o pc
+	env $${OM:-} $${XCC:?} $${_CFLAGS:-} $(EXTRA_CFLAGS) $${_LDFLAGS} $(EXTRA_LDFLAGS) pc.c -o pc
 
 ################################################################################
 
@@ -168,7 +168,7 @@ lint:
 pc-djgpp.exe:
 	$(RM) ./pc-djgpp ./pc-djgpp.exe
 	env PATH="$(DJGPP_DIR)/$(DJGPP_ARCH)/bin:$(DJGPP_DIR)/bin:$${PATH:-}" \
-	$(DJGPP_DIR)/bin/$(DJGPP_ARCH)-gcc -march=i386 -Os -o ./pc-djgpp.exe ./pc.c
+	$(DJGPP_DIR)/bin/$(DJGPP_ARCH)-gcc -march=i386 -Os $(EXTRA_CFLAGS) -o ./pc-djgpp.exe ./pc.c $(EXTRA_LDFLAGS)
 	$(DJGPP_DIR)/$(DJGPP_ARCH)/bin/strip ./pc-djgpp.exe
 	test -f $(CWSDSTUB) && { \
 		$(DJGPP_DIR)/$(DJGPP_ARCH)/bin/exe2coff ./pc-djgpp.exe && \
@@ -182,7 +182,7 @@ djgpp: pc-djgpp.exe
 
 pc.tos:
 	env PATH="$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin:$(CROSSMINT_DIR)/bin:$${PATH:-}" \
-	$(CROSSMINT_DIR)/bin/$(CROSSMINT_ARCH)-gcc -Os -o ./pc.tos ./pc.c -lgem
+	$(CROSSMINT_DIR)/bin/$(CROSSMINT_ARCH)-gcc -Os $(EXTRA_CFLAGS) -o ./pc.tos ./pc.c -lgem $(EXTRA_LDFLAGS)
 	$(CROSSMINT_DIR)/$(CROSSMINT_ARCH)/bin/strip ./pc.tos
 
 atari: pc.tos
@@ -191,7 +191,7 @@ atari: pc.tos
 
 pc-elks:
 	env PATH="$(IA16-GCC_DIR)/$(IA16-GCC_ARCH)/bin:$(IA16-GCC_DIR)/bin:$${PATH:-}" \
-	$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc -march=i8086 -mtune=i8086 -melks -mregparmcall -Os -o ./pc-elks ./pc.c
+	$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc -march=i8086 -mtune=i8086 -melks -mregparmcall -Os $(EXTRA_CFLAGS) -o ./pc-elks ./pc.c $(EXTRA_LDFLAGS)
 
 elks: pc-elks
 
@@ -199,7 +199,7 @@ elks: pc-elks
 
 pc-dosg.exe:
 	env PATH="$(IA16-GCC_DIR)/$(IA16-GCC_ARCH)/bin:$(IA16-GCC_DIR)/bin:$${PATH:-}" \
-	$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc -march=i8086 -mtune=i8086 -mcmodel=small -mregparmcall -Os -o ./pc-dosg.exe ./pc.c
+	$(IA16-GCC_DIR)/bin/$(IA16-GCC_ARCH)-gcc -march=i8086 -mtune=i8086 -mcmodel=small -mregparmcall -Os $(EXTRA_CFLAGS) -o ./pc-dosg.exe ./pc.c $(EXTRA_LDFLAGS)
 
 gcc-dosexe: pc-dosg.exe
 
@@ -230,7 +230,7 @@ watcom-doscom: pc-dosw.com
 
 pc-amiga:
 	env PATH="$(AMIGA_DIR)/$(AMIGA_ARCH)/bin:$(AMIGA_DIR)/bin:$${PATH:-}" \
-	$(AMIGA_DIR)/bin/$(AMIGA_ARCH)-gcc -Os -o ./pc-amiga ./pc.c -noixemul
+	$(AMIGA_DIR)/bin/$(AMIGA_ARCH)-gcc -Os $(EXTRA_CFLAGS) -o ./pc-amiga ./pc.c -noixemul $(EXTRA_LDFLAGS)
 	$(AMIGA_DIR)/$(AMIGA_ARCH)/bin/strip ./pc-amiga
 
 amiga: pc-amiga

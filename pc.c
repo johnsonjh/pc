@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 2
-#define PC_VERSION_PATCH 37
+#define PC_VERSION_PATCH 38
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -474,8 +474,7 @@ xstrerror_l (int errnum)
 
       if (0 > n_buf || (size_t)n_buf >= sizeof (buf))
         {
-          (void)fprintf (stderr,
-                         "FATAL: snprintf buffer overflow at %s[%s:%d]\n",
+          (void)fprintf (stderr, "FATAL: snprintf buffer overflow at %s[%s:%d]\n",
                          __func__, __FILE__, __LINE__);
           exit (EXIT_FAILURE);
         }
@@ -1685,6 +1684,7 @@ is_reserved_name(const char *name)
   if (strcmp(name, "vars") == 0
    || strcmp(name, "regs") == 0
    || strcmp(name, "help") == 0
+   || strcmp(name, "take") == 0
    || strcmp(name, "quit") == 0)
     return 1;
 
@@ -1701,9 +1701,7 @@ add_var(char *name, ULONG value)
 
   if (is_reserved_name(name))
     {
-      (void)fprintf(stderr,
-                    "ERROR: can't assign/create '%s', is a reserved name.\n",
-                    name);
+      (void)fprintf(stderr, "ERROR: can't assign/create '%s', is a reserved name.\n", name);
 
       return NULL;
     }
@@ -1713,9 +1711,7 @@ add_var(char *name, ULONG value)
   if (external_var_lookup)
     if (external_var_lookup(name, &tmp) != 0)
       {
-        (void)fprintf(stderr,
-                      "Can't assign/create '%s', it is a read-only variable\n",
-                      name);
+        (void)fprintf(stderr, "Can't assign/create '%s', it is a read-only variable\n", name);
 
         return NULL;
       }
@@ -1877,8 +1873,7 @@ list_vars(varquery_type type)
     }
   else
     {
-      (void)fprintf(stderr,
-                    "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
                     __FILE__, __func__, __LINE__);
       abort();
     }
@@ -1898,12 +1893,10 @@ list_vars(varquery_type type)
       (void)fprintf(stdout, "User variables:\n");
     }
   else if (type == BUILTIN_VARS) /* //-V547 */
-    (void)fprintf(stdout,
-                  "The following read-only builtin variables are defined:\n");
+    (void)fprintf(stdout, "The following read-only builtin variables are defined:\n");
   else
     {
-      (void)fprintf(stderr,
-                    "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
                     __FILE__, __func__, __LINE__);
       abort();
     }
@@ -2085,9 +2078,7 @@ list_regs(void)
   for (i = 0; i < count; i++)
     {
       if (strcmp(entries[i].name, "GT") == 0)
-        {
-          print_time_reg(entries[i].name, entries[i].value);
-        }
+        print_time_reg(entries[i].name, entries[i].value);
       else
         {
           (void)fprintf(stdout, "  %s:\n", entries[i].name);
@@ -2214,6 +2205,11 @@ editor_completion_function (const char *text, int start, int end)
 }
 #endif
 
+static void take_file(const char *filename);
+
+static int take_nesting = 0;
+static int interactive = 0;
+
 static void
 process_statement(char *statement)
 {
@@ -2232,7 +2228,46 @@ process_statement(char *statement)
   if (*t_ptr == '\0')
     return;
 
-  if (strcmp(t_ptr, "vars") == 0)
+  if (strcmp(t_ptr, "take") == 0)
+    {
+      (void)fprintf(stderr, "ERROR: 'take': filename required.\n");
+
+      return;
+    }
+
+  if (strncmp(t_ptr, "take ", 5) == 0)
+    {
+      char *filename;
+      char *p = t_ptr + 4;
+
+      while (*p && isspace((unsigned char)*p))
+        p++;
+
+      if (*p == '\0')
+        {
+          (void)fprintf(stderr, "ERROR: 'take': filename required.\n");
+
+          return;
+        }
+
+      filename = p;
+
+      if (*p == '\'' || *p == '"')
+        {
+          char quote = *p;
+          filename = p + 1;
+          p = filename;
+
+          while (*p && *p != quote)
+            p++;
+
+          if (*p == quote)
+            *p = '\0';
+        }
+
+      take_file(filename);
+    }
+  else if (strcmp(t_ptr, "vars") == 0)
     list_user_vars();
   else if (strcmp(t_ptr, "regs") == 0)
     list_regs();
@@ -2251,6 +2286,76 @@ process_statement(char *statement)
       if (!unset_mode)
         print_result(value);
     }
+}
+
+static void
+take_file(const char *filename)
+{
+  char buff[INPUT_BUFF];
+  char *input_line;
+#if !defined (WITH_STRTOK)
+  char *saveptr;
+#endif
+  char *token;
+  char *comment_ptr;
+  FILE *fp;
+
+  if (take_nesting >= 16)
+    {
+      (void)fprintf(stderr, "ERROR: 'take': nesting too deep\n");
+
+      return;
+    }
+
+  fp = fopen(filename, "r");
+
+  if (fp == NULL)
+    {
+      (void)fprintf(stderr, "ERROR: 'take': '%s': %s\n", filename, xstrerror_l(errno));
+
+      return;
+    }
+
+  take_nesting++;
+
+  while (fgets(buff, INPUT_BUFF, fp) != NULL)
+    {
+      if (!interactive && take_nesting > 1)
+        (void)fprintf(stdout, "[%s]> %s", filename, buff);
+      else if (!interactive)
+        (void)fprintf(stdout, "%s", buff);
+
+      input_line = strdup(buff);
+
+      if (input_line == NULL)
+        continue;
+
+      comment_ptr = strchr(input_line, '#');
+
+      if (comment_ptr != NULL)
+        *comment_ptr = '\0';
+
+#if defined (WITH_STRTOK)
+      token = strtok(input_line, ";");
+#else
+      token = strtok_r(input_line, ";", &saveptr);
+#endif
+
+      while (token != NULL)
+        {
+          process_statement(token);
+#if defined (WITH_STRTOK)
+          token = strtok(NULL, ";");
+#else
+          token = strtok_r(NULL, ";", &saveptr);
+#endif
+        }
+
+      FREE(input_line);
+    }
+
+  (void)fclose(fp);
+  take_nesting--;
 }
 
 #if defined (__atarist__)
@@ -2518,9 +2623,6 @@ int
 main(int argc, char *argv[])
 {
 #if !(defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811))
-# if !defined (__ELKS__) && !defined (_AIX) && !defined (_MVS) && !defined (__managarm__)
-  size_t i;
-# endif
   FILE *f;
   uint32_t h;
   unsigned char rnd[4];
@@ -2564,6 +2666,7 @@ main(int argc, char *argv[])
     {
       if (isatty(STDIN_FILENO))
         {
+          interactive = 1;
 #if defined (__atarist__)
           graf_mouse(M_OFF, 0);
           target_line_len = (Getrez() == 0) ? 40 : 80;
@@ -2761,8 +2864,7 @@ assignment_expr(char **str)
         {
           if (is_register(var_name))
             {
-              (void)fprintf(stderr, "ERROR: Cannot unset register '%s'.\n",
-                            var_name);
+              (void)fprintf(stderr, "ERROR: Cannot unset register '%s'.\n", var_name);
               val  = 0;
               *str = peek;
               unset_mode = 1;
@@ -2777,8 +2879,7 @@ assignment_expr(char **str)
               if (existed && !unset_silent)
                 (void)fprintf(stdout, "Variable '%s' unset.\n", var_name);
               else if (!existed && !unset_silent)
-                (void)fprintf(stderr, "Warning: No such variable '%s'.\n",
-                              var_name);
+                (void)fprintf(stderr, "Warning: No such variable '%s'.\n", var_name);
 
               val  = 0;
               *str = peek;
@@ -2840,8 +2941,7 @@ assignment_expr(char **str)
 #endif
 
       if (**str == EQUAL)
-        (void)fprintf(stderr,
-                      "Left hand side of expression is not assignable.\n");
+        (void)fprintf(stderr, "Left hand side of expression is not assignable.\n");
     }
 
   if (var_name) /* //-V547 */
@@ -2920,8 +3020,7 @@ do_assignment_operator(char **str, char *var_name)
       if (val >= sizeof(ULONG) * CHAR_BIT)
         {
           errno = EINVAL;
-          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n",
-                        xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
         }
 
       v->value >>= val;
@@ -2938,8 +3037,7 @@ do_assignment_operator(char **str, char *var_name)
       if (val == 0) /* Check, but still get the result! */
         {
           errno = EDOM;
-          (void)fprintf(stderr, "Warning: %s (Division by zero)\n",
-                        xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Division by zero)\n", xstrerror_l(errno));
           v->value = 0;
         }
       else
@@ -2950,8 +3048,7 @@ do_assignment_operator(char **str, char *var_name)
       if (val == 0) /* Check, but still get the result! */
         {
           errno = EDOM;
-          (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n",
-                        xstrerror_l(errno));
+          (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", xstrerror_l(errno));
           v->value = 0;
         }
       else
@@ -3462,20 +3559,34 @@ get_value(char **str)
           return 0;
         }
 
+      if (is_reserved_name(var_name))
+        {
+          (void)fprintf(stderr, "ERROR: can't assign/create '%s', is a reserved name.\n",
+                        var_name);
+          FREE(var_name);
+
+          return 0;
+        }
+
       if (get_var(var_name, &val) == 0)
         {
-          (void)fprintf(stderr,
-                        "No such variable: %s (assigning value of zero)\n",
-                        var_name);
-
-          val = 0;
-          v   = add_var(var_name, val);
-
-          if (v == NULL)
+          if (is_reserved_name(var_name))
             {
-              FREE(var_name);
+              (void)fprintf(stderr, "ERROR: can't assign/create '%s', is a reserved name.\n", var_name);
+              val = 0;
+            }
+          else
+            {
+              (void)fprintf(stderr, "No such variable: %s (assigning value of zero)\n", var_name);
+              val = 0;
+              v   = add_var(var_name, val);
 
-              return 0;
+              if (v == NULL)
+                {
+                  FREE(var_name);
+
+                  return 0;
+                }
             }
         }
 
@@ -3506,10 +3617,8 @@ get_value(char **str)
     }
   else
     {
-      (void)fprintf(stderr,
-                    "Expecting left paren, unary op, constant or variable.");
-      (void)fprintf(stderr,
-                    "  Got: '%s'\n", *str);
+      (void)fprintf(stderr, "Expecting left paren, unary op, constant or variable.");
+      (void)fprintf(stderr, "  Got: '%s'\n", *str);
 
       return 0;
     }

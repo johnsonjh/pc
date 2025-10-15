@@ -47,7 +47,8 @@
 []()
 
 []()
-* **Negation:** `!` is *logical*, not *bitwise* (use `~` for bitwise negation).
+* **Negation:**
+  * `!` is *logical*, not *bitwise* (use `~` for bitwise negation)
 []()
 
 []()
@@ -110,21 +111,27 @@
 
 ## Usage
 
-* Supports **interactive**, **command-line** (`pc 1+1`), and
-  **piped**/**redirected** usage
-* **Examples:**
+* All operations *except comparisons* are performed using *unsigned integer*
+  calculations.
+* Supports **interactive**, **command-line** (`pc 1+1`), **file** (`take`
+  command), and **piped**/**redirected** usage.
+[]()
+
+[]()
+* **Interactive examples:**
   * `0xFF & 0x0F`
   * `1 << 12`
   * `a = 0x1234; a & 0xFF`
   * `. + 4` (add to previous result)
+  * `take input.pc` (reads from `input.pc`)
 []()
 
 []()
 * [`easter.pc`](examples/easter.pc) is a program that calculates the date of
   Easter (and checks if it's today).
-  * You can modify the program itself or use something like
+  * You can modify the program or use something like
     [`faketime`](https://github.com/wolfcw/libfaketime)
-    (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to verify
+    (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to test
     arbitrary dates.
   * You can see the [full output of this program here](examples/easter.txt)
     (with all optional base conversions enabled).
@@ -163,5 +170,5 @@
 ## License
 
 * `pc` is distributed under the terms of the [**MIT License**](LICENSE).
-* The repository is complaint with version 3.3 of the
+* The repository is compliant with version 3.3 of the
   [REUSE](https://reuse.software/) specification.

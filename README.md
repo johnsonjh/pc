@@ -142,9 +142,9 @@
   * You can modify the program or use something like
     [`faketime`](https://github.com/wolfcw/libfaketime)
     (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to test
-    arbitrary dates.
-  * You can see the [full output of this program here](examples/easter.txt)
-    (with all optional base conversions enabled).
+    arbitrary dates.  You can see the
+    [full output of this program here](examples/easter.txt) (with all optional
+    base conversions enabled).
 []()
 
 []()

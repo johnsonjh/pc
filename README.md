@@ -61,10 +61,9 @@
     * **`auto`**, **`signed`**, and **`unsigned`**.
     * **All operations** ***except comparisons*** are performed using
       ***unsigned integer*** calculations in the default **`auto`** mode.
-  * Braces (*e.g.*, `{ ... }`) forces **signed** calculations (regardless of
-    global calculation mode).
-  * Brackets (*.e.g.*, `[ ... ]` forces **unsigned** calculations (regardless
-    of global calculation mode).
+  * Braces (*e.g.*, `{ … }`) force **signed** calculation (*regardless of
+    global calculation mode*).
+  * Brackets (*.e.g.*, `[ … ]` force **unsigned** calculation.
 
 ## User variables, builtins, and registers
 

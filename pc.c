@@ -2312,6 +2312,11 @@ process_statement(char *statement)
 
           if (*p == quote)
             *p = '\0';
+          else
+            {
+              (void)fprintf(stderr, "ERROR: \'take\': unclosed quotation.\n");
+              return;
+            }
         }
 
       take_file(filename);

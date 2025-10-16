@@ -111,7 +111,7 @@
   [GCC-IA16](https://gitlab.com/tkchia/build-ia16), *or*
   [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2)).
 
-### Build
+## Build
 
 * You can try out `pc` by **executing [`./pc.c`](pc.c) directly**,
   and it should *just run* (using *magic*), or,
@@ -142,22 +142,22 @@
   * You can modify the program or use something like
     [`faketime`](https://github.com/wolfcw/libfaketime)
     (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to test
-    arbitrary dates.
-  * You can see the [full output of this program here](examples/easter.txt)
-    (with all optional base conversions enabled).
+    arbitrary dates. You can see the
+    [full output of this program here](examples/easter.txt) (with all optional
+    base conversions enabled).
 []()
 
 []()
 * [`sqrt.pc`](examples/sqrt.pc) is a program that calculates the square root
-  of `n` (where `n` is, by default, a large random number).
-  * You can see the [full output of this program here](examples/sqrt.txt).
+  of `n` (where `n` is, by default, a large random number).  You can see the
+  [full output of this program here](examples/sqrt.txt).
 []()
 
 []()
 * [`weekday.pc`](examples/weekday.pc) is a program that calculates the day of
   the week.  The formatted date is also displayed (via a store to the `GT`
-  register) for confirmation.
-  * You can see the [full output of this program here](examples/weekday.txt).
+  register) for confirmation.  You can see the
+  [full output of this program here](examples/weekday.txt).
 
 ## Testing
 

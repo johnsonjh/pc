@@ -114,11 +114,12 @@
 ## Build
 
 * You can try out `pc` by **executing [`./pc.c`](pc.c) directly**,
-  and it should *just run* (using *magic*), or,
+  and it should *just run* (using *shell* *magic*), or,
 * Build it with `make`.  Standard environment variables (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
 * Common line editing packages (`libedit`, `editline`, `readline`, and
-  `linenoise`) are supported and usually automatically configured.
+  `linenoise`) are supported and usually automatically configured (via
+  *`pkg-config`* *magic*).
 * Review the [`Makefile`](Makefile) to see available build options.
 
 ## Usage

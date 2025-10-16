@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 3
-#define PC_VERSION_PATCH 1
+#define PC_VERSION_PATCH 3
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -212,16 +212,17 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # define HAS_INCLUDE(inc) 0
 #endif
 
-#include <ctype.h>  /* isalnum, isalpha, isdigit, isspace ...          */
-#include <errno.h>  /* errno ...                                       */
-#include <limits.h> /* LONG_MIN, ULONG_MAX ...                         */
-#include <stddef.h> /* ptrdiff_t ...                                   */
-#include <stdint.h> /* UINT32_C, uint32_t ...                          */
-#include <stdio.h>  /* fprintf, NULL, stdout, stderr, fgets, stdin ... */
-#include <stdlib.h> /* free, malloc, exit, abort, (s)rand, realloc ... */
-#include <string.h> /* strncmp, strlen, strcmp, strdup, strncat ...    */
-#include <time.h>   /* time ...                                        */
-#include <unistd.h> /* getpid, getuid, getgid ...                      */
+#include <ctype.h>    /* isalnum, isalpha, isdigit, isspace ...          */
+#include <errno.h>    /* errno ...                                       */
+#include <limits.h>   /* LONG_MIN, ULONG_MAX ...                         */
+#include <stddef.h>   /* ptrdiff_t ...                                   */
+#include <stdint.h>   /* UINT32_C, uint32_t ...                          */
+#include <stdio.h>    /* fprintf, NULL, stdout, stderr, fgets, stdin ... */
+#include <stdlib.h>   /* free, malloc, exit, abort, (s)rand, realloc ... */
+#include <string.h>   /* strncmp, strlen, strcmp, strdup, strncat ...    */
+#include <sys/stat.h> /* S_ISDIR ...                                     */
+#include <time.h>     /* time ...                                        */
+#include <unistd.h>   /* getpid, getuid, getgid ...                      */
 
 /* cppcheck-suppress preprocessorErrorDirective */
 #if defined (__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
@@ -2259,6 +2260,9 @@ print_current_mode(void)
     }
 }
 
+static void print_current_mode(void);
+static char *skipwhite(char *str);
+
 static void
 process_statement(char *statement)
 {
@@ -2287,10 +2291,11 @@ process_statement(char *statement)
   if (strncmp(t_ptr, "take ", 5) == 0)
     {
       char *filename;
-      char *p = t_ptr + 4;
+      char *p = t_ptr + 5;
+      char *end_of_filename;
+      char *rest;
 
-      while (*p && isspace((unsigned char)*p))
-        p++;
+      p = skipwhite(p);
 
       if (*p == '\0')
         {
@@ -2310,13 +2315,31 @@ process_statement(char *statement)
           while (*p && *p != quote)
             p++;
 
-          if (*p == quote)
-            *p = '\0';
-          else
+          if (*p != quote)
             {
-              (void)fprintf(stderr, "ERROR: \'take\': unclosed quotation.\n");
+              (void)fprintf(stderr, "ERROR: 'take': unclosed quottion.\n");
+
               return;
             }
+
+          *p = '\0';
+          end_of_filename = p + 1;
+        }
+      else
+        {
+          while (*p && !isspace((unsigned char)*p))
+            p++;
+
+          end_of_filename = p;
+        }
+
+      rest = skipwhite(end_of_filename);
+
+      if (*rest != '\0')
+        {
+          (void)fprintf(stderr, "ERROR: 'take': extra characters after filename: '%s'\n", rest);
+
+          return;
         }
 
       take_file(filename);
@@ -2374,6 +2397,7 @@ take_file(const char *filename)
   char *token;
   char *comment_ptr;
   FILE *fp;
+  struct stat st;
 
   if (take_nesting >= 16)
     {
@@ -2387,6 +2411,18 @@ take_file(const char *filename)
   if (fp == NULL)
     {
       (void)fprintf(stderr, "ERROR: 'take': '%s': %s\n", filename, xstrerror_l(errno));
+
+      return;
+    }
+
+  if (fstat(fileno(fp), &st) == 0 && S_ISDIR(st.st_mode))
+    {
+#if defined (EISDIR)
+      (void)fprintf(stderr, "ERROR: 'take': '%s': %s.\n", filename, xstrerror_l(EISDIR));
+#else
+      (void)fprintf(stderr, "ERROR: 'take': '%s': Is a directory.\n", filename);
+#endif
+      (void)fclose(fp);
 
       return;
     }
@@ -2779,19 +2815,6 @@ WBmain(struct WBStartup *wbmsg)
   return rc;
 }
 #endif
-
-static char *
-skipwhite(char *str)
-{
-  if (str == NULL)
-    return NULL;
-
-  while (*str &&
-         (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\f'))
-    str++;
-
-  return str;
-}
 
 static ULONG
 parse_expression(char *str)
@@ -3806,13 +3829,26 @@ get_value(char **str)
     }
   else
     {
-      (void)fprintf(stderr, "Expecting left paren, unary op, constant or variable.");
+      (void)fprintf(stderr, "Expecting left paren, brace, bracket, unary op, constant, or variable.");
       (void)fprintf(stderr, "  Got: '%s'\n", *str);
 
       return 0;
     }
 
   return val;
+}
+
+static char *
+skipwhite(char *str)
+{
+  if (str == NULL)
+    return NULL;
+
+  while (*str &&
+         (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\f'))
+    str++;
+
+  return str;
 }
 
 /* vim: set ts=2 sw=2 tw=0 ai expandtab : */

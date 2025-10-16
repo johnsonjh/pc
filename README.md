@@ -4,7 +4,7 @@
 <!-- scspell-id: 498fb4ee-a43d-11f0-aae1-80ee73e9b8e7 -->
 # `pc`: programmers calculator
 
-`pc` is an enhanced fork of the SGI/Be/Haiku programmers calculator.
+`pc` is a substantially enhanced fork of the SGI/Be/Haiku programmers calculator.
 
 ## Syntax and operators
 

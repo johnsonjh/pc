@@ -19,6 +19,7 @@ core
 core-*
 *.err
 log.pvs
+myhatari/
 *.out
 pc
 pc2

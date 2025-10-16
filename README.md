@@ -57,6 +57,10 @@
 
 []()
 * **Explicit modes:**
+  * **Three calculation modes are available**:
+    * **`auto`**, **`signed`**, and **`unsigned`**.
+    * **All operations** ***except comparisons*** are performed using
+      ***unsigned integer*** calculations in the default **`auto`** mode.
   * Braces (*e.g.*, `{ ... }`) forces **signed** calculations (regardless of
     global calculation mode).
   * Brackets (*.e.g.*, `[ ... ]` forces **unsigned** calculations (regardless
@@ -119,10 +123,6 @@
 
 ## Usage
 
-* **All operations** ***except comparisons*** are performed using
-  ***unsigned integer*** calculations in the default **`auto`** mode.
-  * **Three calculation modes are available**: **`auto`**, **`signed`**, and
-    **`unsigned`**.
 * Supports **interactive**, **command-line** (`pc 1+1`), **file** (`take`
   command), and **piped**/**redirected** usage.
 []()

@@ -328,6 +328,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define DIVISION        '/'
 #define EQUAL           '='
 #define GREATER_THAN    '>'
+#define LBRACE          '{'
+#define LBRACKET        '['
 #define LESS_THAN       '<'
 #define LPAREN          '('
 #define MINUS           '-'
@@ -336,6 +338,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define NOTHING         '\0'
 #define OR              '|'
 #define PLUS            '+'
+#define RBRACE          '}'
+#define RBRACKET        ']'
 #define RPAREN          ')'
 #define SEMI_COLON      ';'
 #define SHIFT_L         '<'
@@ -1694,6 +1698,7 @@ is_reserved_name(const char *name)
    || strcmp(name, "help"    ) == 0
    || strcmp(name, "take"    ) == 0
    || strcmp(name, "mode"    ) == 0
+   || strcmp(name, "auto"    ) == 0
    || strcmp(name, "signed"  ) == 0
    || strcmp(name, "unsigned") == 0
    || strcmp(name, "quit"    ) == 0)
@@ -1722,7 +1727,7 @@ add_var(char *name, ULONG value)
   if (external_var_lookup)
     if (external_var_lookup(name, &tmp) != 0)
       {
-        (void)fprintf(stderr, "Can't assign/create '%s', it is a read-only variable\n", name);
+        (void)fprintf(stderr, "ERROR: Can't assign/create '%s', it is a read-only variable\n", name);
 
         return NULL;
       }
@@ -1731,7 +1736,7 @@ add_var(char *name, ULONG value)
 
   if (v == NULL)
     {
-      (void)fprintf(stderr, "No memory to add variable '%s'\n", name);
+      (void)fprintf(stderr, "ERROR: No memory to add variable '%s'\n", name);
 
       return NULL;
     }
@@ -2219,6 +2224,30 @@ editor_completion_function (const char *text, int start, int end)
 static void take_file(const char *filename);
 
 static void
+print_current_mode(void)
+{
+  switch (arithmetic_mode)
+    {
+      case MODE_AUTO:
+        (void)fprintf(stdout, "Current mode is 'auto'.\n");
+        break;
+
+      case MODE_SIGNED:
+        (void)fprintf(stdout, "Current mode is 'signed'.\n");
+        break;
+
+      case MODE_UNSIGNED:
+        (void)fprintf(stdout, "Current mode is 'unsigned'.\n");
+        break;
+
+      default:
+        (void)fprintf(stderr, "FATAL: Bugcheck: unknown arithmetic_mode at %s[%s:%d]\n",
+                               __FILE__, __func__, __LINE__);
+        abort();
+    }
+}
+
+static void
 process_statement(char *statement)
 {
   char *t_ptr = statement;
@@ -2281,24 +2310,14 @@ process_statement(char *statement)
     list_regs();
   else if (strcmp(t_ptr, "help") == 0)
     {
+      print_current_mode();
       list_builtin_vars();
       list_regs();
       list_user_vars();
     }
   else if (strcmp(t_ptr, "mode") == 0)
     {
-      switch (arithmetic_mode)
-        {
-          case MODE_AUTO:
-            (void)fprintf(stdout, "Current mode is 'auto'\n");
-            break;
-          case MODE_SIGNED:
-            (void)fprintf(stdout, "Current mode is 'signed'\n");
-            break;
-          case MODE_UNSIGNED:
-            (void)fprintf(stdout, "Current mode is 'unsigned'\n");
-            break;
-        }
+      print_current_mode();
     }
   else if (strcmp(t_ptr, "auto") == 0)
     {
@@ -2780,6 +2799,9 @@ parse_expression(char *str)
 
   val = assignment_expr(&ptr);
   last_result = val;
+
+  if (*ptr != '\0')
+    (void)fprintf(stderr, "Warning: extra characters found when parsing expression: '%s'\n", ptr);
 
   return val;
 }
@@ -3438,13 +3460,27 @@ term(char **str)
    * an error and we print a message.
    */
 
-  if (*str != NULL && (**str != TIMES && **str != DIVISION
-      && **str != MODULO && **str != PLUS /* //-V560 */
-      && **str != MINUS && **str != OR && **str != AND && **str != XOR
-      && **str != BANG && **str != NEGATIVE && **str != TWIDDLE /* //-V560 */
-      && **str != RPAREN && **str != LESS_THAN && **str != GREATER_THAN
-      && **str != SEMI_COLON && strncmp(*str, "<<", 2) != 0
-      && strncmp(*str, ">>", 2) && **str != EQUAL && **str != '\0')) /* //-V526 */
+  if (*str != NULL && (**str != TIMES
+                   &&  **str != DIVISION
+                   &&  **str != MODULO
+                   &&  **str != PLUS
+                   &&  **str != MINUS
+                   &&  **str != OR
+                   &&  **str != AND
+                   &&  **str != XOR
+                   &&  **str != BANG
+                   &&  **str != NEGATIVE /* //-V560 */
+                   &&  **str != TWIDDLE
+                   &&  **str != RPAREN
+                   &&  **str != RBRACE
+                   &&  **str != RBRACKET
+                   &&  **str != LESS_THAN
+                   &&  **str != GREATER_THAN
+                   &&  **str != SEMI_COLON
+                   &&  strncmp(*str, "<<", 2) != 0
+                   &&  strncmp(*str, ">>", 2) /* //-V526 */
+                   &&  **str != EQUAL &&
+                       **str != '\0'))
     {
       (void)fprintf(stderr, "Parsing stopped: unknown operator '%s'\n", *str);
 
@@ -3543,6 +3579,30 @@ factor(char **str)
   return val;
 }
 
+static char *
+find_matching_paren(char *str, char open_paren, char close_paren)
+{
+  int level = 1;
+  char *p = str;
+
+  while (*p)
+    {
+      if (*p == open_paren)
+        level++;
+      else if (*p == close_paren)
+        {
+          level--;
+
+          if (level == 0)
+            return p;
+        }
+
+      p++;
+    }
+
+  return NULL;
+}
+
 static ULONG
 get_value(char **str)
 {
@@ -3609,15 +3669,58 @@ get_value(char **str)
       val  = last_result;
       *str = skipwhite(*str + 1);
     }
-  else if (**str == LPAREN) /* A parenthesized expression */
+  else if (**str == LPAREN
+        || **str == LBRACE
+        || **str == LBRACKET)
     {
-      *str = skipwhite(*str + 1);
-      val  = assignment_expr(str); /* Start at top and come back down */
+      char open_paren = **str;
+      char close_paren;
+      arithmetic_mode_t old_mode = arithmetic_mode;
+      char *end_paren;
+      char *sub_expr_str;
+      size_t sub_expr_len;
 
-      if (**str == RPAREN)
-        *str = *str + 1;
+      if (open_paren == LPAREN)
+        close_paren = RPAREN;
+      else if (open_paren == LBRACE)
+        {
+          close_paren = RBRACE;
+          arithmetic_mode = MODE_UNSIGNED;
+        }
       else
-        (void)fprintf(stderr, "Mismatched paren's\n");
+        {
+          close_paren = RBRACKET;
+          arithmetic_mode = MODE_SIGNED;
+        }
+
+      end_paren = find_matching_paren(*str + 1, open_paren, close_paren);
+
+      if (end_paren == NULL)
+        {
+          (void)fprintf(stderr, "ERROR: Mismatched '%c'\n", open_paren);
+
+          return 0;
+        }
+
+      /*LINTED: E_PTRDIFF_OVERFLOW */
+      sub_expr_len = (size_t)(end_paren - (*str + 1));
+      sub_expr_str = malloc(sub_expr_len + 1);
+
+      if (sub_expr_str == NULL)
+        {
+          (void)fprintf(stderr, "ERROR: Out of memory\n");
+
+          return 0;
+        }
+
+      (void)strncpy(sub_expr_str, *str + 1, sub_expr_len);
+      sub_expr_str[sub_expr_len] = '\0';
+
+      val = parse_expression(sub_expr_str);
+
+      FREE(sub_expr_str);
+      *str = end_paren + 1;
+      arithmetic_mode = old_mode;
     }
   else if (isalpha((unsigned char)**str) || **str == '_') /* A variable name */
     {

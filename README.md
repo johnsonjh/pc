@@ -64,7 +64,7 @@
       ***unsigned integer*** calculations in the default **`auto`** mode.
   * Braces (*e.g.*, `{ … }`) force **signed** calculation (*regardless of
     global calculation mode*).
-  * Brackets (*.e.g.*, `[ … ]` force **unsigned** calculation.
+  * Brackets (*e.g.*, `[ … ]` force **unsigned** calculation.
 
 ## User variables, builtins, and registers
 

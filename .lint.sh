@@ -175,13 +175,13 @@ test "${CLANG:?}" != "true" && {
   xline
   printf '%s\n' "Clang -Weverything..."
   "${CLANG:?}" -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
-    -Wno-unsafe-buffer-usage -Wno-unused-macros \
+    -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
     -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
   "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
-    -Wno-unsafe-buffer-usage -Wno-unused-macros \
+    -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
     -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
   "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
-    -Wno-unsafe-buffer-usage -Wno-unused-macros \
+    -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
     -Wno-reserved-macro-identifier -Wno-date-time \
     -Wno-shift-count-overflow -Wno-tautological-type-limit-compare \
     -DWITHOUT_LONG_LONG pc.c -o pc

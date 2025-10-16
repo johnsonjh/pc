@@ -53,6 +53,14 @@
 
 []()
 * **Parentheses:** Full support for grouping and nesting.
+[]()
+
+[]()
+* **Explicit modes:**
+  * Braces (*e.g.*, `{ ... }`) forces **signed** calculations (regardless of
+    global calculation mode).
+  * Brackets (*.e.g.*, `[ ... ]` forces **unsigned** calculations (regardless
+    of global calculation mode).
 
 ## User variables, builtins, and registers
 
@@ -111,8 +119,10 @@
 
 ## Usage
 
-* All operations *except comparisons* are performed using *unsigned integer*
-  calculations.
+* **All operations** ***except comparisons*** are performed using
+  ***unsigned integer*** calculations in the default **`auto`** mode.
+  * **Three calculation modes are available**: **`auto`**, **`signed`**, and
+    **`unsigned`**.
 * Supports **interactive**, **command-line** (`pc 1+1`), **file** (`take`
   command), and **piped**/**redirected** usage.
 []()

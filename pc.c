@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 3
-#define PC_VERSION_PATCH 0
+#define PC_VERSION_PATCH 1
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -2240,10 +2240,22 @@ print_current_mode(void)
         (void)fprintf(stdout, "Current mode is 'unsigned'.\n");
         break;
 
+#if !defined (__func__)
+# define __func__ "print_current_mode" /* //-V1059 */
+# if defined (PC_FUNC)
+#  undef PC_FUNC
+# endif
+# define PC_FUNC
+#endif
       default:
         (void)fprintf(stderr, "FATAL: Bugcheck: unknown arithmetic_mode at %s[%s:%d]\n",
                                __FILE__, __func__, __LINE__);
         abort();
+
+#if defined (PC_FUNC)
+# undef __func__
+# undef PC_FUNC
+#endif
     }
 }
 

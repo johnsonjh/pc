@@ -57,8 +57,9 @@
 
 []()
 * **Explicit modes:**
-  * **Three calculation modes are available**:
-    * **`auto`**, **`signed`**, and **`unsigned`**.
+  * Three calculation modes are available, via named commands:
+    * **`auto`**, **`signed`**, and **`unsigned`**.  The `mode` command
+      can be used to query the current calculation mode.
     * **All operations** ***except comparisons*** are performed using
       ***unsigned integer*** calculations in the default **`auto`** mode.
   * Braces (*e.g.*, `{ … }`) force **signed** calculation (*regardless of

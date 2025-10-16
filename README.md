@@ -102,13 +102,13 @@
 * Currently developed on IBM **AIX**, and regularly tested on
   **PASE for IBM i** (OS/400), **macOS**, **FreeBSD**, **NetBSD**,
   **OpenBSD**, **Solaris**, **illumos**, **Haiku**, **Windows** (*MinGW-w64*),
-  **Atari ST** (**TOS** and **MINT**, *using*
-  [CrossMiNT](https://tho-otto.de/crossmint.php)), **Amiga 68K** (*using*
+  **Atari ST** (**TOS** and **MINT**, *built using*
+  [CrossMiNT](https://tho-otto.de/crossmint.php)), **Amiga 68K** (*built using*
   [Amiga-GCC](https://franke.ms/git/bebbo/amiga-gcc)),
-  [**ELKS**](https://github.com/ghaerr/elks) (*using*
+  [**ELKS**](https://github.com/ghaerr/elks) (*built using*
   [GCC-IA16](https://gitlab.com/tkchia/build-ia16)),
-  and **DOS** (*using* [DJGPP](https://www.delorie.com/djgpp/),
-  [GCC-IA16](https://gitlab.com/tkchia/build-ia16), *or*
+  and **DOS** (*built using* [DJGPP](https://www.delorie.com/djgpp/),
+  [GCC-IA16](https://gitlab.com/tkchia/build-ia16), *and*
   [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2)).
 
 ## Build

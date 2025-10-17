@@ -73,6 +73,14 @@ AMIGA_ARCH=m68k-amigaos
 
 ################################################################################
 
+RETRO68_DIR=$${HOME:-}/r68/Retro68-build/toolchain
+RETRO68_68K_ARCH=m68k-apple-macos
+RETRO68_PPC_ARCH=powerpc-apple-macos
+RETRO68_REZ=Rez
+RETRO68_MAKEPEF=MakePEF
+
+################################################################################
+
 pc: pc.c
 	@XCC="$(XCC)"; \
 	_CFLAGS="$(CFLAGS)"; \
@@ -149,7 +157,7 @@ all: pc
 ################################################################################
 
 clean:
-	@set -x; $(RM) ./pc ./pc.exe ./pc-djgpp.exe ./pc.tos ./pc-elks ./pc-dosg.exe ./pc-dosw.exe ./pc-dosw.obj ./pc-dosw.com ./pc-doswc.obj ./pc-amiga ./pc.o
+	@set -x; $(RM) ./pc ./pc.exe ./pc-djgpp.exe ./pc.tos ./pc-elks ./pc-dosg.exe ./pc-dosw.exe ./pc-dosw.obj ./pc-dosw.com ./pc-doswc.obj ./pc-amiga ./pc.o ./pc-mac68k ./pc-mac68k.bin ./pc-mac68k.o ./pc-mac68k.gdb ./pc-mac68k.dsk ./pc-macppc.dsk ./pc-macppc.pef ./pc-mac68k.bin.gdb ./dpsprintf.o ./pc-macppc.bin ./pc-macppc.pef ./pc-macppc.o ./extra.h ./rez.r
 
 ################################################################################
 
@@ -237,10 +245,102 @@ amiga: pc-amiga
 
 ################################################################################
 
-everything: pc djgpp atari elks watcom-dos watcom-doscom gcc-dosexe amiga
+# To build for Retro68, you need to clone https://github.com/johnsonjh/dpsprintf
+# in the top level of the source tree - I don't want to add git submodule to the
+# project and complicate things just for this.  We build our extra header files
+# and the Macintosh resource files here so we don't clutter the source tree up.
+
+# The absolute minimum memory required to launch pc on System 7.5.5 seems to
+# 1053K at this time - anything less and it won't open.  So we'll set the the
+# # minimum required memory to 1200K (1228800), should leave about ~147K free.
+
+# It will likely be necessary to periodically tweak these numbers for different
+# versions of the compiler and libraries or if any build flags are modified!
+
+pc-mac68k pc-mac68k.dsk: ./dpsprintf/dpsprintf.c ./dpsprintf/dpsprintf.h ./pc.c
+	$(RM) ./dpsprintf.o ./rez.r ./extra.h ./pc-mac68k.o ./pc-mac68k.bin ./pc-mac68k.dsk 2> /dev/null
+	printf '%s\n' "long double ldexpl (long double, int);" > ./extra.h
+	printf '%s\n' "#include \"Processes.r\"" "#include \"Retro68.r\"" \
+			"resource 'SIZE' (0) {" \
+			"  reserved," \
+			"  ignoreSuspendResumeEvents," \
+			"  reserved," \
+			"  cannotBackground," \
+			"  needsActivateOnFGSwitch," \
+			"  backgroundAndForeground," \
+			"  dontGetFrontClicks," \
+			"  ignoreChildDiedEvents," \
+			"  is32BitCompatible," \
+			"  notHighLevelEventAware," \
+			"  onlyLocalHLEvents," \
+			"  notStationeryAware," \
+			"  dontUseTextEditServices," \
+			"  reserved," \
+			"  reserved," \
+			"  reserved," \
+			"  1228800," \
+			"  1228800" \
+			"};" > ./rez.r
+	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-gcc -Oz $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./dpsprintf.o ./dpsprintf/dpsprintf.c -include math.h -include ./extra.h
+	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-gcc -Oz $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./pc-mac68k.o ./pc.c -include ./dpsprintf/dpsprintf.h $(EXTRA_LDFLAGS)
+	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-g++ ./dpsprintf.o ./pc-mac68k.o -o pc-mac68k.bin -lRetroConsole -lm
+	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_REZ) -I$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/RIncludes --copy "pc-mac68k.bin" $(RETRO68_DIR)/$(RETRO68_68K_ARCH)/RIncludes/Retro68APPL.r ./rez.r -t "APPL" -c "????" --cc pc-mac68k.dsk
+	$(RM) -r ./.finf/ ./.rsrc/ ./rez.output.rsrc
+
+mac68k: pc-mac68k
 
 ################################################################################
 
-.PHONY: all clean distclean lint djgpp atari elks watcom-dos watcom-doscom gcc-dosexe everything test
+# For the powerpc version, we ask for 2MB of memory.
+
+pc-macppc pc-macppc.dsk: ./dpsprintf/dpsprintf.c ./dpsprintf/dpsprintf.h ./pc.c
+	$(RM) ./dpsprintf.o ./rez.r ./extra.h ./pc-macppc.o ./pc-macppc.bin ./pc-macppc.dsk ./pc-macppc.pef 2> /dev/null
+	printf '%s\n' "long double ldexpl (long double, int);" > ./extra.h
+	printf '%s\n' "#include \"Processes.r\"" "#include \"Retro68.r\"" \
+			"resource 'SIZE' (0) {" \
+			"  reserved," \
+			"  ignoreSuspendResumeEvents," \
+			"  reserved," \
+			"  cannotBackground," \
+			"  needsActivateOnFGSwitch," \
+			"  backgroundAndForeground," \
+			"  dontGetFrontClicks," \
+			"  ignoreChildDiedEvents," \
+			"  is32BitCompatible," \
+			"  notHighLevelEventAware," \
+			"  onlyLocalHLEvents," \
+			"  notStationeryAware," \
+			"  dontUseTextEditServices," \
+			"  reserved," \
+			"  reserved," \
+			"  reserved," \
+			"  2097152," \
+			"  2097152" \
+			"};" > ./rez.r
+	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-gcc -Oz -Wno-overflow $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./dpsprintf.o ./dpsprintf/dpsprintf.c -include math.h -include ./extra.h
+	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-gcc -Oz $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./pc-macppc.o ./pc.c -include ./dpsprintf/dpsprintf.h $(EXTRA_LDFLAGS)
+	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-g++ ./dpsprintf.o ./pc-macppc.o -o pc-macppc.bin -lRetroConsole -lm
+	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_MAKEPEF) ./pc-macppc.bin -o pc-macppc.pef
+	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
+	$(RETRO68_DIR)/bin/$(RETRO68_REZ) -I$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/RIncludes --copy "pc-macppc.pef" $(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/RIncludes/Retro68APPL.r ./rez.r -t "APPL" -c "????" --cc pc-macppc.dsk
+	$(RM) -r ./.finf/ ./.rsrc/ ./rez.output.rsrc
+
+macppc: pc-macppc
+
+################################################################################
+
+everything: pc djgpp atari elks watcom-dos watcom-doscom gcc-dosexe mac68k macppc amiga
+
+################################################################################
+
+.PHONY: all clean distclean lint djgpp atari elks watcom-dos watcom-doscom gcc-dosexe mac68k pc-mac68k macppc pc-macppc everything test
 
 ################################################################################

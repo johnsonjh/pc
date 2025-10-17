@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 3
-#define PC_VERSION_PATCH 7
+#define PC_VERSION_PATCH 8
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -262,6 +262,20 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # if !defined (Retro68)
 #  define Retro68
 # endif
+# if defined (USING_DPSPRINTF)
+#  if defined (printf)   /* If we using dpsprintf with Retro68 we'll need to */
+#   undef printf         /* undefine printf/vprintf/vfprintf/fprintf to make */
+#  endif                 /* sure we are using the Retro68 versions of them!  */
+#  if defined (fprintf)  /* For some reasons unknown to me currently, using  */
+#   undef fprintf        /* dpsprintf to actually write to the R68 console   */
+#  endif                 /* is buggy (i.e., disappearing or invisible text)  */
+#  if defined (vprintf)  /* while the Retro68 functions are fine. This will  */
+#   undef vprintf        /* end up using dpsprintf to build the strings, as  */
+#  endif                 /* this avoids Retro68 long long formatting issues, */
+#  if defined (vfprintf) /* but still uses their fprintf for console writes. */
+#   undef vfprintf
+#  endif
+# endif
 #endif
 
 #if defined (Retro68)
@@ -276,6 +290,9 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 # if !defined (NO_SYSCONF)
 #  define NO_SYSCONF
+# endif
+# if !defined (NEED_RINTL)
+#  define NEED_RINTL
 # endif
 #endif
 
@@ -501,7 +518,7 @@ xstrerror_l (int errnum)
 # endif
 
       if (0 > n_buf || (size_t)n_buf >= sizeof (buf))
-        {
+        { /* cppcheck-suppress syntaxError */
           (void)fprintf (stderr, "FATAL: snprintf buffer overflow at %s[%s:%d]\n",
                          __func__, __FILE__, __LINE__);
           exit (EXIT_FAILURE);
@@ -2195,7 +2212,7 @@ print_herald(void)
 #if defined (__atarist__)
   (void)fprintf(stdout, "\033E"); /* VT52 clear screen */
 #elif defined (Retro68)
-  (void)fprintf(stdout, "\033]0;" PC_SOFTWARE_NAME "\07\033[0m");
+  (void)fprintf(stdout, "\033]0;" PC_SOFTWARE_NAME "\07\033[0m"); /* Title */
 #endif
 
   (void)fprintf(stdout, "%s v%d.%d.%d%s%s%s%s ready.\n", PC_SOFTWARE_NAME,
@@ -2553,7 +2570,7 @@ take_file(const char *filename)
 }
 
 #if defined (__atarist__)
-static inline char *
+static char *
 atarist_getline(char *buf, int size, int echo)
 {
   int i = 0;

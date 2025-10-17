@@ -114,11 +114,11 @@
   **Amiga 68K** (*built using*
   [Amiga-GCC](https://franke.ms/git/bebbo/amiga-gcc)),
   [**ELKS**](https://github.com/ghaerr/elks) (*built using*
-  [GCC-IA16](https://gitlab.com/tkchia/build-ia16)),
+  [IA16-GCC](https://gitlab.com/tkchia/build-ia16)),
   **Classic macOS** (**68K** and **PowerPC**, *built using*
   [Retro68](https://github.com/autc04/Retro68)),
   and **DOS** (*built using* [DJGPP](https://www.delorie.com/djgpp/),
-  [GCC-IA16](https://gitlab.com/tkchia/build-ia16), *and*
+  [IA16-GCC](https://gitlab.com/tkchia/build-ia16), *and*
   [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2)).
 
 ## Build

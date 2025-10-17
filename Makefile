@@ -286,7 +286,7 @@ pc-mac68k pc-mac68k.dsk: ./dpsprintf/dpsprintf.c ./dpsprintf/dpsprintf.h ./pc.c
 	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
 	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-gcc -Oz -fdata-sections -ffunction-sections $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./pc-mac68k.o ./pc.c -include ./dpsprintf/dpsprintf.h
 	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
-	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-g++ -s -Wl,--gc-sections ./dpsprintf.o ./pc-mac68k.o -o pc-mac68k.bin -lRetroConsole -lm $(EXTRA_LDFLAGS)
+	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-g++ -Wl,--gc-sections ./dpsprintf.o ./pc-mac68k.o -o pc-mac68k.bin -lRetroConsole -lm $(EXTRA_LDFLAGS)
 	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
 	$(RETRO68_DIR)/bin/$(RETRO68_REZ) -I$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/RIncludes --copy "pc-mac68k.bin" $(RETRO68_DIR)/$(RETRO68_68K_ARCH)/RIncludes/Retro68APPL.r ./rez.r -t "APPL" -c "????" --cc pc-mac68k.dsk
 	$(RM) -r ./.finf/ ./.rsrc/ ./rez.output.rsrc

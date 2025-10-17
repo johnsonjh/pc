@@ -465,6 +465,10 @@ xstrerror_l (int errnum)
     }
 # endif
 
+  if (! ret)
+    {
+      int n_buf = snprintf (buf, sizeof (buf), "Unknown error %d", errnum);
+
 # if !defined (__func__)
 #  define __func__ "xstrerror_l" /* //-V1059 */
 #  if defined (PC_FUNC)
@@ -472,10 +476,6 @@ xstrerror_l (int errnum)
 #  endif
 #  define PC_FUNC
 # endif
-
-  if (! ret)
-    {
-      int n_buf = snprintf (buf, sizeof (buf), "Unknown error %d", errnum);
 
       if (0 > n_buf || (size_t)n_buf >= sizeof (buf))
         {
@@ -1895,6 +1895,11 @@ list_vars(varquery_type type)
       abort();
     }
 
+#if defined (PC_FUNC)
+# undef __func__
+# undef PC_FUNC
+#endif
+
   qsort(entries, (size_t)count, sizeof(var_entry), compare_var_entries);
 
   if (type == USER_VARS)
@@ -1917,11 +1922,6 @@ list_vars(varquery_type type)
                     __FILE__, __func__, __LINE__);
       abort();
     }
-
-#if defined (PC_FUNC)
-# undef __func__
-# undef PC_FUNC
-#endif
 
   for (i = 0; i < count; i++)
     {
@@ -2248,6 +2248,7 @@ print_current_mode(void)
 # endif
 # define PC_FUNC
 #endif
+
       default:
         (void)fprintf(stderr, "FATAL: Bugcheck: unknown arithmetic_mode at %s[%s:%d]\n",
                                __FILE__, __func__, __LINE__);
@@ -2257,6 +2258,7 @@ print_current_mode(void)
 # undef __func__
 # undef PC_FUNC
 #endif
+
     }
 }
 
@@ -2949,14 +2951,6 @@ assignment_expr(char **str)
       *str = skipwhite(*str + 1); /* Skip the equal sign */
       peek = skipwhite(*str);
 
-#if !defined (__func__)
-# define __func__ "assignment_expr" /* //-V1059 */
-# if defined (PC_FUNC)
-#  undef PC_FUNC
-# endif
-# define PC_FUNC
-#endif
-
       if (peek != NULL && (*peek == '\0' || *peek == SEMI_COLON))
         {
           if (is_register(var_name))
@@ -3024,6 +3018,14 @@ assignment_expr(char **str)
       *str = orig_str;
       val  = logical_or_expr(str); /* No equal sign, get var value */
       *str = skipwhite(*str);
+
+#if !defined (__func__)
+# define __func__ "assignment_expr" /* //-V1059 */
+# if defined (PC_FUNC)
+#  undef PC_FUNC
+# endif
+# define PC_FUNC
+#endif
 
       if (*str == NULL)
         {

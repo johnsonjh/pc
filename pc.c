@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 3
-#define PC_VERSION_PATCH 5
+#define PC_VERSION_PATCH 7
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -377,7 +377,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # undef FREE
 #endif
 
-static const int never = 0;
+static const int always = 1;
+static const int never  = 0;
 
 #define FREE(p)   \
   do              \
@@ -2430,7 +2431,8 @@ take_file(const char *filename)
 
   if (fp == NULL)
     {
-      (void)fprintf(stderr, "ERROR: 'take': '%s': %s\n", filename, xstrerror_l(errno));
+      (void)fprintf(stderr, "ERROR: 'take': '%s': %s\n", filename,
+                    (errno ? xstrerror_l (errno) : "Failed"));
 
       return;
     }
@@ -2438,9 +2440,9 @@ take_file(const char *filename)
   if (fstat(fileno(fp), &st) == 0 && S_ISDIR(st.st_mode))
     {
 #if defined (EISDIR)
-      (void)fprintf(stderr, "ERROR: 'take': '%s': %s.\n", filename, xstrerror_l(EISDIR));
+      (void)fprintf(stderr, "ERROR: 'take': '%s': %s\n", filename, xstrerror_l(EISDIR));
 #else
-      (void)fprintf(stderr, "ERROR: 'take': '%s': Is a directory.\n", filename);
+      (void)fprintf(stderr, "ERROR: 'take': '%s': Is a directory\n", filename);
 #endif
       (void)fclose(fp);
 
@@ -2449,8 +2451,48 @@ take_file(const char *filename)
 
   take_nesting++;
 
-  while (fgets(buff, INPUT_BUFF, fp) != NULL)
+  while (always)
     {
+#if defined (Retro68)
+      char *p = buff;
+      int c;
+
+      if (feof(fp))
+        break;
+
+      while ((c = fgetc(fp)) != EOF && (p - buff < INPUT_BUFF - 1))
+        {
+          *p++ = c;
+
+          if (c == '\r')
+            {
+              c = fgetc(fp);
+
+              if (c == '\n')
+                {
+                  if (p - buff < INPUT_BUFF - 1)
+                    *p++ = c;
+                  else
+                    ungetc(c, fp);
+                }
+              else if (c != EOF)
+                ungetc(c, fp);
+              break;
+            }
+
+          if (c == '\n')
+            break;
+
+        }
+
+      *p = '\0';
+
+      if (p == buff && feof(fp))
+        break;
+#else
+      if (fgets(buff, INPUT_BUFF, fp) == NULL)
+        break;
+#endif
       if (take_nesting > 1)
         (void)fprintf(stdout, "[%s]> %s", filename, buff);
       else
@@ -2861,7 +2903,7 @@ parse_expression(char *str)
   last_result = val;
 
   if (*ptr != '\0')
-    (void)fprintf(stderr, "Warning: extra characters found when parsing expression: '%s'\n", ptr);
+    (void)fprintf(stderr, "Warning: extra characters found when parsing expression at: '%s'\n", ptr);
 
   return val;
 }

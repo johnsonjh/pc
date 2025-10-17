@@ -2194,6 +2194,8 @@ print_herald(void)
 
 #if defined (__atarist__)
   (void)fprintf(stdout, "\033E"); /* VT52 clear screen */
+#elif defined (Retro68)
+  (void)fprintf(stdout, "\033]0;" PC_SOFTWARE_NAME "\07\033[0m");
 #endif
 
   (void)fprintf(stdout, "%s v%d.%d.%d%s%s%s%s ready.\n", PC_SOFTWARE_NAME,

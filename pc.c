@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 3
-#define PC_VERSION_PATCH 3
+#define PC_VERSION_PATCH 4
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -555,9 +555,7 @@ parse_roman(char **s)
                     }
                 }
               else
-                {
-                  current_repetition_count = 1;
-                }
+                current_repetition_count = 1;
 
               result += (ULONG)map->value;
               p += len;
@@ -2358,9 +2356,7 @@ process_statement(char *statement)
       list_user_vars();
     }
   else if (strcmp(t_ptr, "mode") == 0)
-    {
-      print_current_mode();
-    }
+    print_current_mode();
   else if (strcmp(t_ptr, "auto") == 0)
     {
       arithmetic_mode = MODE_AUTO;

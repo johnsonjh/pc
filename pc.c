@@ -2123,12 +2123,12 @@ squash(const char *s)
   char *d = buf;
   int in_space = 0;
 
- if (s == NULL)
-   {
-     buf[0] = '\0';
+  if (s == NULL)
+    {
+      buf[0] = '\0';
 
-     return buf;
-   }
+      return buf;
+    }
 
   while (*s && d < (buf + (sizeof(buf) - 1)))
     {

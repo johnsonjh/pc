@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 0
 #define PC_VERSION_MINOR 3
-#define PC_VERSION_PATCH 4
+#define PC_VERSION_PATCH 5
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -257,6 +257,28 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+#if defined (Macintosh) && defined (macintosh) && defined (pascal) && \
+   (defined (__m68k__) || defined (__ppc__)) && !defined (unix)
+# if !defined (Retro68)
+#  define Retro68
+# endif
+#endif
+
+#if defined (Retro68)
+# if !defined (NO_GETGID)
+#  define NO_GETGID
+# endif
+# if !defined (NO_GETUID)
+#  define NO_GETUID
+# endif
+# if !defined (NO_PATHCONF)
+#  define NO_PATHCONF
+# endif
+# if !defined (NO_SYSCONF)
+#  define NO_SYSCONF
+# endif
+#endif
+
 #if defined (__ELKS__)
 # if !defined (NO_PATHCONF)
 #  define NO_PATHCONF
@@ -274,7 +296,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #if defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__atarist__) || \
     defined (__ELKS__) || defined (__DJGPP__) || defined (DOSLIKE) || \
-    defined (__amiga__)
+    defined (__amiga__) || defined (Retro68)
 # if !defined (NO_LOCALE)
 #  define NO_LOCALE
 # endif

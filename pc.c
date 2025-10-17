@@ -2484,26 +2484,26 @@ take_file(const char *filename)
 
           if (c == '\n')
             break;
+        }
 
-          if (p > buff)
+      if (p > buff)
+        {
+          char *q = p;
+
+          if (*(p-1) == '\n')
             {
-              char *q = p;
-
-              if (*(p-1) == '\n')
-                {
-                  if (p - buff >= 2 && *(p-2) == '\r')
-                    q = p - 2;
-                  else
-                    q = p - 1;
-                }
-              else if (*(p-1) == '\r')
-                {
-                  q = p - 1;
-                }
-
-              *q++ = '\n';
-              p = q;
+              if (p - buff >= 2 && *(p-2) == '\r')
+                q = p - 2;
+              else
+                q = p - 1;
             }
+          else if (*(p-1) == '\r')
+            {
+              q = p - 1;
+            }
+
+          *q++ = '\n';
+          p = q;
         }
 
       *p = '\0';

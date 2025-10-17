@@ -251,8 +251,8 @@ amiga: pc-amiga
 # and the Macintosh resource files here so we don't clutter the source tree up.
 
 # The absolute minimum memory required to launch pc on System 7.5.5 seems to
-# 1053K at this time - anything less and it won't open.  So we'll set the the
-# # minimum required memory to 1200K (1228800), should leave about ~147K free.
+# 802K at this time - anything less and it won't open.  So we'll set the the
+# # minimum required memory to 832K (851968), should leave about ~30K free.
 
 # It will likely be necessary to periodically tweak these numbers for different
 # versions of the compiler and libraries or if any build flags are modified!
@@ -278,15 +278,15 @@ pc-mac68k pc-mac68k.dsk: ./dpsprintf/dpsprintf.c ./dpsprintf/dpsprintf.h ./pc.c
 			"  reserved," \
 			"  reserved," \
 			"  reserved," \
-			"  1228800," \
-			"  1228800" \
+			"  851968," \
+			"  851968" \
 			"};" > ./rez.r
 	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
-	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-gcc -Oz $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./dpsprintf.o ./dpsprintf/dpsprintf.c -include math.h -include ./extra.h
+	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-gcc -Oz -fdata-sections -ffunction-sections $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./dpsprintf.o ./dpsprintf/dpsprintf.c -include math.h -include ./extra.h
 	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
-	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-gcc -Oz $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./pc-mac68k.o ./pc.c -include ./dpsprintf/dpsprintf.h $(EXTRA_LDFLAGS)
+	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-gcc -Oz -fdata-sections -ffunction-sections $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./pc-mac68k.o ./pc.c -include ./dpsprintf/dpsprintf.h
 	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
-	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-g++ ./dpsprintf.o ./pc-mac68k.o -o pc-mac68k.bin -lRetroConsole -lm
+	$(RETRO68_DIR)/bin/$(RETRO68_68K_ARCH)-g++ -s -Wl,--gc-sections ./dpsprintf.o ./pc-mac68k.o -o pc-mac68k.bin -lRetroConsole -lm $(EXTRA_LDFLAGS)
 	env PATH="$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
 	$(RETRO68_DIR)/bin/$(RETRO68_REZ) -I$(RETRO68_DIR)/$(RETRO68_68K_ARCH)/RIncludes --copy "pc-mac68k.bin" $(RETRO68_DIR)/$(RETRO68_68K_ARCH)/RIncludes/Retro68APPL.r ./rez.r -t "APPL" -c "????" --cc pc-mac68k.dsk
 	$(RM) -r ./.finf/ ./.rsrc/ ./rez.output.rsrc
@@ -295,7 +295,7 @@ mac68k: pc-mac68k
 
 ################################################################################
 
-# For the powerpc version, we ask for 2MB of memory.
+# For the PowerPC version, we'll ask for 1.5MB of memory.
 
 pc-macppc pc-macppc.dsk: ./dpsprintf/dpsprintf.c ./dpsprintf/dpsprintf.h ./pc.c
 	$(RM) ./dpsprintf.o ./rez.r ./extra.h ./pc-macppc.o ./pc-macppc.bin ./pc-macppc.dsk ./pc-macppc.pef 2> /dev/null
@@ -318,15 +318,15 @@ pc-macppc pc-macppc.dsk: ./dpsprintf/dpsprintf.c ./dpsprintf/dpsprintf.h ./pc.c
 			"  reserved," \
 			"  reserved," \
 			"  reserved," \
-			"  2097152," \
-			"  2097152" \
+			"  1572864," \
+			"  1572864" \
 			"};" > ./rez.r
 	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
-	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-gcc -Oz -Wno-overflow $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./dpsprintf.o ./dpsprintf/dpsprintf.c -include math.h -include ./extra.h
+	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-gcc -Oz -fdata-sections -ffunction-sections -Wno-overflow $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./dpsprintf.o ./dpsprintf/dpsprintf.c -include math.h -include ./extra.h
 	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
-	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-gcc -Oz $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./pc-macppc.o ./pc.c -include ./dpsprintf/dpsprintf.h $(EXTRA_LDFLAGS)
+	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-gcc -Oz -fdata-sections -ffunction-sections $(EXTRA_CFLAGS) -I./dpsprintf -c -o ./pc-macppc.o ./pc.c -include ./dpsprintf/dpsprintf.h
 	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
-	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-g++ ./dpsprintf.o ./pc-macppc.o -o pc-macppc.bin -lRetroConsole -lm
+	$(RETRO68_DIR)/bin/$(RETRO68_PPC_ARCH)-g++ -s -Wl,--gc-sections ./dpsprintf.o ./pc-macppc.o -o pc-macppc.bin -lRetroConsole -lm $(EXTRA_LDFLAGS)
 	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \
 	$(RETRO68_DIR)/bin/$(RETRO68_MAKEPEF) ./pc-macppc.bin -o pc-macppc.pef
 	env PATH="$(RETRO68_DIR)/$(RETRO68_PPC_ARCH)/bin:$(RETRO68_DIR)/bin:$${PATH:-}" \

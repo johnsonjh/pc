@@ -263,16 +263,16 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #  define Retro68
 # endif
 # if defined (USING_DPSPRINTF)
-#  if defined (printf)   /* If we using dpsprintf with Retro68 we'll need to */
-#   undef printf         /* undefine printf/vprintf/vfprintf/fprintf to make */
-#  endif                 /* sure we are using the Retro68 versions of them!  */
-#  if defined (fprintf)  /* For some reasons unknown to me currently, using  */
-#   undef fprintf        /* dpsprintf to actually write to the R68 console   */
-#  endif                 /* is buggy (i.e., disappearing or invisible text)  */
-#  if defined (vprintf)  /* while the Retro68 functions are fine. This will  */
-#   undef vprintf        /* end up using dpsprintf to build the strings, as  */
-#  endif                 /* this avoids Retro68 long long formatting issues, */
-#  if defined (vfprintf) /* but still uses their fprintf for console writes. */
+#  if defined (printf)   /* If we are using dpsprintf on Retro68 we need to */
+#   undef printf         /* undefine printf/vprintf/vfprintf/fprintf making */
+#  endif                 /* sure we are using the Retro68 versions of them! */
+#  if defined (fprintf)  /* For some reasons unknown to me currently, using */
+#   undef fprintf        /* dpsprintf to actually write to the R68 console  */
+#  endif                 /* is buggy (i.e., disappearing or invisible text) */
+#  if defined (vprintf)  /* while the Retro68 functions are fine. This will */
+#   undef vprintf        /* end up using dpsprintf to build the strings, as */
+#  endif                 /* this avoids Retro68 long long formatting issues */
+#  if defined (vfprintf) /* but still uses their printf for console writes. */
 #   undef vfprintf
 #  endif
 # endif

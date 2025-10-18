@@ -115,7 +115,7 @@
   [Amiga-GCC](https://franke.ms/git/bebbo/amiga-gcc)),
   [**ELKS**](https://github.com/ghaerr/elks) (*built using*
   [IA16-GCC](https://gitlab.com/tkchia/build-ia16)),
-  **Classic macOS** (**68K** and **PowerPC**, *built using*
+  **Mac OS 68K** (*built using*
   [Retro68](https://github.com/autc04/Retro68)),
   and **DOS** (*built using* [DJGPP](https://www.delorie.com/djgpp/),
   [IA16-GCC](https://gitlab.com/tkchia/build-ia16), *and*

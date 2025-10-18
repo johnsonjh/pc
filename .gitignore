@@ -43,13 +43,6 @@ pc-mac68k.bin.gdb
 pc-mac68k.dsk
 pc-mac68k.gdb
 pc-mac68k.o
-pc-macppc
-pc-macppc.bin
-pc-macppc.bin.gdb
-pc-macppc.dsk
-pc-macppc.gdb
-pc-macppc.o
-pc-macppc.pef
 pc.tos
 pvs.log
 pvsreport/

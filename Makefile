@@ -148,7 +148,7 @@ pc: pc.c
 	test "$$(command -v "$${CC:-}" 2> /dev/null)" && { XCC="$${CC:-}"; }; \
 	test "$${OM:-}" && case "$${XCC:?}" in *gcc*) _CFLAGS="$${_CFLAGS:-} -maix64"; ;; esac; \
 	set -x; \
-	env $${OM:-} $${XCC:?} $${_CFLAGS:-} $(EXTRA_CFLAGS) $${_LDFLAGS} $(EXTRA_LDFLAGS) pc.c -o pc
+	env $${OM:-} $${XCC:?} $${_CFLAGS:-} $(EXTRA_CFLAGS) pc.c -o pc $${_LDFLAGS} $(EXTRA_LDFLAGS)
 
 ################################################################################
 

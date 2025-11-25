@@ -176,14 +176,19 @@ test "${CLANG:?}" != "true" && {
   printf '%s\n' "Clang -Weverything..."
   "${CLANG:?}" -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
     -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
-    -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+    -Wno-reserved-macro-identifier -Wno-date-time \
+    -Wno-implicit-void-ptr-cast -Wno-c++-keyword \
+    pc.c -o pc
   "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
     -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
-    -Wno-reserved-macro-identifier -Wno-date-time pc.c -o pc
+    -Wno-reserved-macro-identifier -Wno-date-time \
+    -Wno-implicit-void-ptr-cast -Wno-c++-keyword \
+    pc.c -o pc
   "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
     -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
     -Wno-reserved-macro-identifier -Wno-date-time \
     -Wno-shift-count-overflow -Wno-tautological-type-limit-compare \
+    -Wno-implicit-void-ptr-cast -Wno-c++-keyword \
     -DWITHOUT_LONG_LONG pc.c -o pc
   rm -f ./pc > /dev/null 2>&1
 }

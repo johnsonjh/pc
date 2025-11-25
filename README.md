@@ -154,21 +154,22 @@
     [`faketime`](https://github.com/wolfcw/libfaketime)
     (*i.e.*, `faketime -m '2025-04-20 12:00:00'`) if you want to test
     arbitrary dates.  You can see the
-    [full output of this program here](examples/easter.txt) (with all optional
+    [full output of this program here](examples/.out/easter.txt) (with all
+    optional
     base conversions enabled).
 []()
 
 []()
 * [`sqrt.pc`](examples/sqrt.pc) is a program that calculates the square root
   of `n` (where `n` is, by default, a large random number).  You can see the
-  [full output of this program here](examples/sqrt.txt).
+  [full output of this program here](examples/.out/sqrt.txt).
 []()
 
 []()
 * [`weekday.pc`](examples/weekday.pc) is a program that calculates the day of
   the week.  The formatted date is also displayed (via a store to the `GT`
   register) for confirmation.  You can see the
-  [full output of this program here](examples/weekday.txt).
+  [full output of this program here](examples/.out/weekday.txt).
 
 ## Testing
 

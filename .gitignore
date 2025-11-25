@@ -24,7 +24,7 @@ extra.h
 .finf/
 log.pvs
 myhatari/
-*.out
+/*.out
 pc
 pc2
 pc-amiga

@@ -16,7 +16,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * Copyright (c) 2009 Oliver Tappe <zooey@hirschkaefer.de>
  * Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
  * Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
- * Copyright (c) 2022-2025 Jeffrey H. Johnson <trnsz@pobox.com>
+ * Copyright (c) 2022-2025 Jeffrey H. Johnson <johnsonjh.dev@gmail.com>
  * Copyright (c) 2022-2025 The DPS8M Development Team
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

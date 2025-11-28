@@ -9,7 +9,7 @@
 # Copyright (c) 2009 Oliver Tappe <zooey@hirschkaefer.de>
 # Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
 # Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
-# Copyright (c) 2022-2025 Jeffrey H. Johnson <trnsz@pobox.com>
+# Copyright (c) 2022-2025 Jeffrey H. Johnson <johnsonjh.dev@gmail.com>
 # Copyright (c) 2022-2025 The DPS8M Development Team
 # scspell-id: a91f10f2-a39e-11f0-a871-80ee73e9b8e7
 

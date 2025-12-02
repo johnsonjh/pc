@@ -99,7 +99,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 0
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 0
+#define PC_VERSION_OSHIT 1
 
 /*****************************************************************************/
 
@@ -1979,6 +1979,7 @@ static size_t
 xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 {
   char *asc;
+  size_t len;
 
   if (!s || !format || !tm)
     {
@@ -2007,7 +2008,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
       return 0;
     }
 
-  size_t len = strlen(asc);
+  len = strlen(asc);
 
   if (len && asc[len-1] == '\n')
     len--;

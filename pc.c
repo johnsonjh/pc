@@ -98,8 +98,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 0
-#define PC_VERSION_PATCH 0
-#define PC_VERSION_OSHIT 1
+#define PC_VERSION_PATCH 1
+#define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
 
@@ -1975,10 +1975,11 @@ list_vars(varquery_type type)
  * Extended to set errno in case we expand our usage of strftime later.
  */
 
-#if defined (NEED_STRFTIME)
 static size_t
 xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 {
+  char *asc;
+
   if (!s || !format || !tm)
     {
       errno = EINVAL;
@@ -1988,16 +1989,16 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 
   if (strcmp(format, "%c") != 0)
     {
-# if defined (ENOTSUP)
+#if defined (ENOTSUP)
       errno = ENOTSUP;
-# else
+#else
       errno = EINVAL;
-# endif
+#endif
 
       return 0;
     }
 
-  const char *asc = asctime(tm);
+  asc = asctime(tm);
 
   if (!asc)
     {
@@ -2018,11 +2019,12 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
       return 0;
     }
 
-  memcpy(s, asc, len);
+  (void)memcpy(s, asc, len);
   s[len] = '\0';
 
   return len;
 }
+#if defined (NEED_STRFTIME)
 # define strftime xstrftime /* //-V1059 */
 #endif
 
@@ -2033,16 +2035,18 @@ print_time_reg(const char *name, ULONG value)
 {
   time_t time_val = (time_t)value;
   struct tm *tm_info = localtime(&time_val);
-  size_t size = 64;
+  size_t size = 32;
   char *buf = NULL;
   char *new_buf = NULL;
   size_t len;
+  int retries = 0;
 
   /* xstrftime has errno extensions */
   errno = 0;
 
   do
     {
+      size *= 2;
       new_buf = realloc(buf, size);
 
       if (new_buf == NULL)
@@ -2057,7 +2061,12 @@ print_time_reg(const char *name, ULONG value)
 
       buf = new_buf;
       len = strftime(buf, size, "%c", tm_info);
-      size *= 2;
+
+      if (retries++ > 8)
+        {
+          errno = 0;
+          len = xstrftime(buf, size, "%c", tm_info);
+        }
     }
   while (len == 0 && errno == 0);
 

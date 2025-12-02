@@ -97,9 +97,9 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 1
-#define PC_VERSION_MINOR 0
-#define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 1
+#define PC_VERSION_MINOR 1
+#define PC_VERSION_PATCH 0
+#define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
 
@@ -222,7 +222,14 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #include <string.h>   /* strncmp, strlen, strcmp, strdup, strncat ...    */
 #include <sys/stat.h> /* S_ISDIR ...                                     */
 #include <time.h>     /* time ...                                        */
-#include <unistd.h>   /* getpid, getuid, getgid ...                      */
+#if !defined (_MSC_VER)
+# include <unistd.h>  /* getpid, getuid, getgid ...                      */
+#else
+# include <io.h>      /* _S_IFDIR, isatty ...                            */
+# ifndef S_ISDIR
+#  define S_ISDIR(mode) (((mode) & _S_IFDIR) == _S_IFDIR)
+# endif
+#endif
 
 /* cppcheck-suppress preprocessorErrorDirective */
 #if defined (__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
@@ -254,6 +261,24 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 # if !defined (NO_SYSCONF)
 #  define NO_SYSCONF
+# endif
+#endif
+
+#if defined (_MSC_VER)
+# if !defined (NO_PATHCONF)
+#  define NO_PATHCONF
+# endif
+# if !defined (NO_GETPID)
+#  define NO_GETPID
+# endif
+# if !defined (NO_GETUID)
+#  define NO_GETUID
+# endif
+# if !defined (NO_GETGID)
+#  define NO_GETGID
+# endif
+# if !defined (WITH_STRTOK)
+#  define WITH_STRTOK
 # endif
 #endif
 
@@ -313,7 +338,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #if defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__atarist__) || \
     defined (__ELKS__) || defined (__DJGPP__) || defined (DOSLIKE) || \
-    defined (__amiga__) || defined (Retro68)
+    defined (__amiga__) || defined (Retro68) || defined (_MSC_VER)
 # if !defined (NO_LOCALE)
 #  define NO_LOCALE
 # endif
@@ -1482,15 +1507,15 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)INT_MIN;
   else if (strcmp(name, "INPUT_BUFF") == 0)
     *val = (ULONG)INPUT_BUFF;
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) && !defined (_MSC_VER)
   else if (strcmp(name, "ARG_MAX") == 0)
     *val = (ULONG)sysconf(_SC_ARG_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) && !defined (_MSC_VER)
   else if (strcmp(name, "CHILD_MAX") == 0)
     *val = (ULONG)sysconf(_SC_CHILD_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) && !defined (_MSC_VER)
   else if (strcmp(name, "OPEN_MAX") == 0)
     *val = (ULONG)sysconf(_SC_OPEN_MAX);
 #endif
@@ -1556,12 +1581,14 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)RAND_MAX;
   else if (strcmp(name, "EOF") == 0)
     *val = (ULONG)EOF;
+#if !defined (_MSC_VER)
   else if (strcmp(name, "STDIN_FILENO") == 0)
     *val = (ULONG)STDIN_FILENO;
   else if (strcmp(name, "STDOUT_FILENO") == 0)
     *val = (ULONG)STDOUT_FILENO;
   else if (strcmp(name, "STDERR_FILENO") == 0)
     *val = (ULONG)STDERR_FILENO;
+#endif
   else if (strcmp(name, "sizeof_char") == 0)
     *val = (ULONG)sizeof(char);
   else if (strcmp(name, "sizeof_short") == 0)
@@ -1650,9 +1677,11 @@ builtin_var_names [] =
   "sizeof_long",
   "sizeof_short",
   "sizeof_void",
+#if !defined (_MSC_VER)
   "STDERR_FILENO",
   "STDIN_FILENO",
   "STDOUT_FILENO",
+#endif
   "time",
   "UCHAR_MAX",
 #if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETUID)
@@ -2885,7 +2914,11 @@ main(int argc, char *argv[])
     parse_args(argc, argv);
   else
     {
+#if !defined (_MSC_VER)
       if (isatty(STDIN_FILENO))
+#else
+      if (isatty(0))
+#endif
         {
 #if defined (__atarist__)
           if (!is_mint())
@@ -2897,7 +2930,11 @@ main(int argc, char *argv[])
           print_herald();
         }
 
+#if !defined (_MSC_VER)
       do_input(!isatty(STDIN_FILENO));
+#else
+      do_input(!isatty(0));
+#endif
     }
 
   return EXIT_SUCCESS;

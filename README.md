@@ -108,7 +108,7 @@
   **Solaris**,
   **illumos**,
   **Haiku**,
-  **Windows** (*MinGW-w64*),
+  **Windows** (*MSVC*, *MinGW-w64*),
   **Atari ST** (**TOS** and **MINT**, *built using*
   [CrossMiNT](https://tho-otto.de/crossmint.php)),
   **Amiga 68K** (*built using*
@@ -127,6 +127,7 @@
   and it should *just run* (using *shell* *magic*), or,
 * Build it with `make`.  Standard environment variables (*e.g.*, `CC`,
   `CFLAGS`, `LDFLAGS`) are respected.
+* Build with Microsoft Visual C/C++ using: `cl pc.c /Ob3 /Oi /O2 /W4 /wd4996`
 * Common line editing packages (`libedit`, `editline`, `readline`, and
   `linenoise`) are supported and usually automatically configured (via
   *`pkg-config`* *magic*).

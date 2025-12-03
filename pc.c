@@ -98,7 +98,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
-#define PC_VERSION_PATCH 0
+#define PC_VERSION_PATCH 1
 #define PC_VERSION_OSHIT 0
 
 /*****************************************************************************/
@@ -229,6 +229,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # ifndef S_ISDIR
 #  define S_ISDIR(mode) (((mode) & _S_IFDIR) == _S_IFDIR)
 # endif
+# pragma warning( disable : 4996 )
 #endif
 
 /* cppcheck-suppress preprocessorErrorDirective */
@@ -1144,8 +1145,14 @@ print_result(ULONG value)
   char *fields[8];
   int field_index = 0;
 
+#if defined (_MSC_VER)
+# pragma warning( disable : 4127 )
+#endif
   /*LINTED: E_CONSTANT_CONDITION*/
   if (sizeof(ULONG) == 8)
+#if defined (_MSC_VER)
+# pragma warning( default : 4127 )
+#endif
 #if defined (USE_LONG_LONG)
 # if defined (__ELKS__)
     {
@@ -1185,8 +1192,15 @@ print_result(ULONG value)
     (void)snprintf(dec_str, sizeof(dec_str), "dec: %lu", (unsigned long)value);
 
   if ((LONG)value < 0)
-    { /*LINTED: E_CONSTANT_CONDITION*/
+    {
+#if defined (_MSC_VER)
+# pragma warning( disable : 4127 )
+#endif
+      /*LINTED: E_CONSTANT_CONDITION*/
       if (sizeof(ULONG) == 8)
+#if defined (_MSC_VER)
+# pragma warning( default : 4127 )
+#endif
 #if defined (USE_LONG_LONG)
 # if defined (__ELKS__)
         {
@@ -2242,11 +2256,17 @@ print_herald(void)
 # pragma clang diagnostic ignored "-Wunreachable-code"
 #endif
 
+#if defined (_MSC_VER)
+# pragma warning( disable : 4127 )
+#endif
   /*LINTED: E_CONSTANT_CONDITION*/
   if (PC_VERSION_OSHIT > 0) /*NOTREACHED*/ /* unreachable */
     (void)snprintf(oshitbuf, sizeof(oshitbuf), "-%d", PC_VERSION_OSHIT);
   else /*NOTREACHED*/ /* unreachable */
     oshitbuf[0] = '\0';
+#if defined (_MSC_VER)
+# pragma warning( default : 4127 )
+#endif
 
 #if defined (__atarist__)
   (void)fprintf(stdout, "\033E"); /* VT52 clear screen */
@@ -3744,10 +3764,16 @@ factor(char **str)
     switch (op)
       {
         case NEGATIVE:
+#if defined (_MSC_VER)
+# pragma warning( disable : 4146 )
+#endif
 #if defined (USE_LONG_LONG)
           val *= -(ULONG)1LL;
 #else
           val *= -(ULONG)1L;
+#endif
+#if defined (_MSC_VER)
+# pragma warning( default : 4146 )
 #endif
           break;
 

@@ -58,12 +58,12 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * in floating point and only deals with integers.
  *
  * I wrote this because the standard unix calculator (bc) doesn't offer a
- * useful modulo, it doesn't have left and right shifts and sometimes it is
+ * useful modulo, it doesn't have left and right shifts, and sometimes it is
  * a pain in the ass to use (but I still use bc for things that require any
  * kind of floating point).  This program is great when you have to do address
  * calculations and bit-wise masking/shifting as you do when working on kernel
  * type code.  It's also handy for doing quick conversions between roman,
- * octal, decimal, binary, hex and ascii.  Ternary and Base36 support can be
+ * octal, decimal, binary, hex and, ascii.  Ternary and Base36 support can be
  * enabled as well.
  *
  * This isn't the world's best parser or anything, but it works and suits my
@@ -76,7 +76,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * Note: The ! unary operator is a logical negation, not a bitwise negation
  * (if you want bitwise negation, use ~).
  *
- * Now you can have variables (no restrictions on length) and assign to them
+ * Now you can have variables (no restrictions on length), assign to them,
  * and use them in expressions.  Variable names have the usual C rules
  * (i.e. alpha or underscore followed by alphanumeric and underscore).
  * Variables are initialized to zero and created as needed.  You can have any
@@ -99,7 +99,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 0
+#define PC_VERSION_OSHIT 1
 
 /*****************************************************************************/
 

@@ -99,7 +99,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 1
+#define PC_VERSION_OSHIT 2
 
 /*****************************************************************************/
 
@@ -1976,11 +1976,6 @@ list_vars(varquery_type type)
       abort();
     }
 
-#if defined (PC_FUNC)
-# undef __func__
-# undef PC_FUNC
-#endif
-
   qsort(entries, (size_t)count, sizeof(var_entry), compare_var_entries);
 
   if (type == USER_VARS)
@@ -2003,6 +1998,11 @@ list_vars(varquery_type type)
                     __FILE__, __func__, __LINE__);
       abort();
     }
+
+#if defined (PC_FUNC)
+# undef __func__
+# undef PC_FUNC
+#endif
 
   for (i = 0; i < count; i++)
     {

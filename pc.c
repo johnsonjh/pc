@@ -99,7 +99,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 2
+#define PC_VERSION_OSHIT 3
 
 /*****************************************************************************/
 
@@ -947,7 +947,8 @@ typedef struct variable
   struct variable *next;
 } variable;
 
-typedef enum {
+typedef enum
+{
   MODE_AUTO,
   MODE_SIGNED,
   MODE_UNSIGNED
@@ -2168,7 +2169,7 @@ list_regs(void)
   variable *v;
   int i;
   int count = 0;
-  var_entry entries[6] = {0};
+  var_entry entries[6] = { 0 };
 
   for (v = vars; v; v = v->next)
     if (v->name && is_register(v->name))

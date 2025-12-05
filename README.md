@@ -114,6 +114,7 @@
   [CrossMINT](https://tho-otto.de/crossmint.php)),
   **Amiga 68K** (*built using*
   [Amiga-GCC](https://franke.ms/git/bebbo/amiga-gcc)),
+  **Linux**,
   [**ELKS**](https://github.com/ghaerr/elks) (*built using*
   [IA16-GCC](https://gitlab.com/tkchia/build-ia16)),
   **Mac OS 68K** (*built using*

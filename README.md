@@ -62,9 +62,10 @@
       can be used to query the current calculation mode.
     * **All operations** ***except comparisons*** are performed using
       ***unsigned integer*** calculations in the default **`auto`** mode.
-  * Braces (*e.g.*, `{ … }`) force **signed** calculation (*regardless of
-    global calculation mode*).
-  * Brackets (*e.g.*, `[ … ]` force **unsigned** calculation.
+  * Braces (*e.g.*, `{ … }`) force **signed** calculation (*overriding
+    global mode*).
+  * Brackets (*e.g.*, `[ … ]`) force **unsigned** calculation (*overriding
+    global mode*).
 
 ## User variables, builtins, and registers
 
@@ -110,7 +111,7 @@
   **Haiku**,
   **Windows** (*MSVC*, *MinGW-w64*),
   **Atari ST** (**TOS** and **MINT**, *built using*
-  [CrossMiNT](https://tho-otto.de/crossmint.php)),
+  [CrossMINT](https://tho-otto.de/crossmint.php)),
   **Amiga 68K** (*built using*
   [Amiga-GCC](https://franke.ms/git/bebbo/amiga-gcc)),
   [**ELKS**](https://github.com/ghaerr/elks) (*built using*

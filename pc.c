@@ -99,7 +99,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 4
+#define PC_VERSION_OSHIT 5
 
 /*****************************************************************************/
 
@@ -1810,7 +1810,7 @@ add_var(char *name, ULONG value)
   if (external_var_lookup)
     if (external_var_lookup(name, &tmp) != 0)
       {
-        (void)fprintf(stderr, "ERROR: Can't assign/create '%s', it is a read-only variable\n", name);
+        (void)fprintf(stderr, "ERROR: can't assign/create '%s', it is a read-only variable\n", name);
 
         return NULL;
       }
@@ -1819,7 +1819,7 @@ add_var(char *name, ULONG value)
 
   if (v == NULL)
     {
-      (void)fprintf(stderr, "ERROR: No memory to add variable '%s'\n", name);
+      (void)fprintf(stderr, "ERROR: no memory to add variable '%s'\n", name);
 
       return NULL;
     }
@@ -2118,7 +2118,7 @@ print_time_reg(const char *name, ULONG value)
   if (len == 0)
     {
       (void)fprintf(stderr, "Warning: strftime error: %s\n",
-                    (errno ? xstrerror_l (errno) : "Unspecified trouble!"));
+                    (errno ? xstrerror_l (errno) : "unspecified trouble!"));
       FREE(buf);
 
       return;
@@ -3121,7 +3121,7 @@ assignment_expr(char **str)
         {
           if (is_register(var_name))
             {
-              (void)fprintf(stderr, "ERROR: Cannot unset register '%s'.\n", var_name);
+              (void)fprintf(stderr, "ERROR: cannot unset register '%s'.\n", var_name);
               val  = 0;
               *str = peek;
               unset_mode = 1;
@@ -3136,7 +3136,7 @@ assignment_expr(char **str)
               if (existed && !unset_silent)
                 (void)fprintf(stdout, "Variable '%s' unset.\n", var_name);
               else if (!existed && !unset_silent)
-                (void)fprintf(stderr, "Warning: No such variable '%s'.\n", var_name);
+                (void)fprintf(stderr, "Warning: no such variable '%s'.\n", var_name);
 
               val  = 0;
               *str = peek;
@@ -3911,7 +3911,7 @@ get_value(char **str)
 
       if (end_paren == NULL)
         {
-          (void)fprintf(stderr, "ERROR: Mismatched '%c'\n", open_paren);
+          (void)fprintf(stderr, "ERROR: mismatched '%c'\n", open_paren);
 
           return 0;
         }
@@ -3922,7 +3922,7 @@ get_value(char **str)
 
       if (sub_expr_str == NULL)
         {
-          (void)fprintf(stderr, "ERROR: Out of memory\n");
+          (void)fprintf(stderr, "ERROR: out of memory\n");
 
           return 0;
         }

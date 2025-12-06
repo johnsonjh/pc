@@ -228,7 +228,7 @@ pc-dosw.com:
 	export PATH="$(WATCOM_DIR)/binl64:$${PATH:-}" && \
 	export WATCOM="$(WATCOM_DIR)" && \
 	export INCLUDE="$(WATCOM_DIR)/h" && \
-	$(WATCOM_DIR)/binl64/owcc -c -bt=dos -bcom -march=i86 -fsigned-char -mcmodel=t -g0 -frerun-optimizer -Os -fno-stack-check -o ./pc-doswc.obj ./pc.c && \
+	$(WATCOM_DIR)/binl64/owcc -c -bcom -march=i86 -fsigned-char -mcmodel=t -g0 -frerun-optimizer -Os -fno-stack-check -o ./pc-doswc.obj ./pc.c && \
 	$(WATCOM_DIR)/binl64/owcc -bcom -s -o ./pc-dosw.com ./pc-doswc.obj && \
 	$(RM) ./pc-doswc.obj
 

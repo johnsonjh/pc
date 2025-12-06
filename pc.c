@@ -99,7 +99,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 3
+#define PC_VERSION_OSHIT 4
 
 /*****************************************************************************/
 

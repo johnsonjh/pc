@@ -16,8 +16,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * Copyright (c) 2009 Oliver Tappe <zooey@hirschkaefer.de>
  * Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
  * Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
- * Copyright (c) 2022-2025 Jeffrey H. Johnson <johnsonjh.dev@gmail.com>
- * Copyright (c) 2022-2025 The DPS8M Development Team
+ * Copyright (c) 2022-2026 Jeffrey H. Johnson <johnsonjh.dev@gmail.com>
+ * Copyright (c) 2022-2026 The DPS8M Development Team
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -99,7 +99,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 5
+#define PC_VERSION_OSHIT 6
 
 /*****************************************************************************/
 
@@ -232,9 +232,13 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # pragma warning( disable : 4996 )
 #endif
 
+#if defined __CPPCHECK__
+# include <sys/param.h>
+#else
 /* cppcheck-suppress preprocessorErrorDirective */
-#if defined (__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
-# include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
+# if defined (__OpenBSD__) || HAS_INCLUDE (<sys/param.h>)
+#  include <sys/param.h> /* PAGESIZE, PAGE_SIZE ... */
+# endif
 #endif
 
 /* Disable things not available on DOS-like platforms */

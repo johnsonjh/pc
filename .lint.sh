@@ -9,8 +9,8 @@
 # Copyright (c) 2009 Oliver Tappe <zooey@hirschkaefer.de>
 # Copyright (c) 2017 Tuan Kiet Ho <tuankiet65@gmail.com>
 # Copyright (c) 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
-# Copyright (c) 2022-2025 Jeffrey H. Johnson <johnsonjh.dev@gmail.com>
-# Copyright (c) 2022-2025 The DPS8M Development Team
+# Copyright (c) 2022-2026 Jeffrey H. Johnson <johnsonjh.dev@gmail.com>
+# Copyright (c) 2022-2026 The DPS8M Development Team
 # scspell-id: a91f10f2-a39e-11f0-a871-80ee73e9b8e7
 
 # shellcheck disable=SC2015,SC3040
@@ -167,7 +167,8 @@ test "${CPPCHECK:?}" != "true" && {
   -DFREE=free -DHAS_INCLUDE=0 -D_DARWIN_C_SOURCE -D_GNU_SOURCE \
   -D_NETBSD_SOURCE -D_OPENBSD_SOURCE -D_POSIX_C_SOURCE=200809L \
   -D__BSD_VISIBLE=1 -UPAGESIZE -UPAGE_SIZE -U_PC_FILESIZEBITS \
-  -D__EXTENSIONS__ -DWITH_TERNARY=1 -DWITH_BASE36=1 --quiet pc.c
+  -D__EXTENSIONS__ -DWITH_TERNARY=1 -DWITH_BASE36=1 -D__CPPCHECK__ \
+  --quiet pc.c
 
 # Clang -Weverything
 CLANG="$(command -v clang 2> /dev/null || printf '%s\n' true)"

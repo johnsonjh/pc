@@ -1,6 +1,6 @@
 <!-- vim: set nocp expandtab ft=markdown cc=80 : -->
 <!-- SPDX-License-Identifier: MIT -->
-<!-- Copyright (c) 2025 Jeffrey H. Johnson -->
+<!-- Copyright (c) 2025-2026 Jeffrey H. Johnson -->
 <!-- scspell-id: 498fb4ee-a43d-11f0-aae1-80ee73e9b8e7 -->
 # `pc`: programmers calculator
 

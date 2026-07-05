@@ -179,18 +179,22 @@ test "${CLANG:?}" != "true" && {
     -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
     -Wno-reserved-macro-identifier -Wno-date-time \
     -Wno-implicit-void-ptr-cast -Wno-c++-keyword \
+    -Wno-disabled-macro-expansion -Wno-pre-c11-compat \
     pc.c -o pc
   "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
     -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
     -Wno-reserved-macro-identifier -Wno-date-time \
     -Wno-implicit-void-ptr-cast -Wno-c++-keyword \
+    -Wno-disabled-macro-expansion -Wno-pre-c11-compat \
     pc.c -o pc
   "${CLANG:?}" -m32 -DWITH_TERNARY=1 -DWITH_BASE36=1 -Weverything \
     -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-covered-switch-default \
     -Wno-reserved-macro-identifier -Wno-date-time \
     -Wno-shift-count-overflow -Wno-tautological-type-limit-compare \
     -Wno-implicit-void-ptr-cast -Wno-c++-keyword \
-    -DWITHOUT_LONG_LONG pc.c -o pc
+    -DWITHOUT_LONG_LONG -Wno-pre-c11-compat \
+    -Wno-disabled-macro-expansion \
+    pc.c -o pc
   rm -f ./pc > /dev/null 2>&1
 }
 

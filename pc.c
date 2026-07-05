@@ -2,11 +2,15 @@
 PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v gcc 2>/dev/null || command -v clang 2>/dev/null || command -v c99 2>/dev/null || command -v ibm-clang 2>/dev/null || :)"; case "$(uname -s 2>/dev/null || :)" in AIX) export OBJECT_MODE=64; case "${cc:-cc}" in *gcc*) CFLAGS="${CFLAGS:-} -maix64" ;; esac ;; esac; if "${cc:-cc}" ${CFLAGS:-} ${LDFLAGS-} -o "${p:?}.out.${PID:?}" "${p:?}"; then case "${p:?}" in *"/"*) dir=${0%"/"*} ;; *) dir=. ;; esac; PATH="${dir:?}:${PATH:-.}"; "${rlwrap:-env}" "${p:?}.out.${PID:?}" "$@"; rm -f "${p:?}.out.${PID:?}" > /dev/null 2>&1; exit 0;fi;exit 1
 #*/ /* Remove from this line to the top of the file for SoftIntegration Ch. */
 
+/**************************************************************************************************/
+
 /*
  * pc2: programmer's calculator
  * SPDX-License-Identifier: MIT
  * scspell-id: db65bb93-4b7b-11ed-bd13-80ee73e9b8e7
  */
+
+/**************************************************************************************************/
 
 /*
  * Copyright (c) 1993 Dominic Giampaolo <dbg@be.com>
@@ -37,6 +41,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**************************************************************************************************/
 
 /*
  * This program implements a simple recursive descent parser that understands
@@ -93,26 +99,28 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
  *      +=, -=, *=, /=, %=, &=, ^=, |=, <<=, and >>=
  */
 
-/*****************************************************************************/
+/**************************************************************************************************/
 
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 6
+#define PC_VERSION_OSHIT 7
 
-/*****************************************************************************/
+/**************************************************************************************************/
 
 /* Do you want to see output in ternary or base 36? */
 
 /* #define WITH_TERNARY */
 /* #define WITH_BASE36 */
 
+/**************************************************************************************************/
+
 /* Don't like Roman numeral output? */
 
 /* #define WITHOUT_ROMAN */
 
-/*****************************************************************************/
+/**************************************************************************************************/
 
 /*
  * Define 'WITHOUT_LONG_LONG' if your compiler is lacking support for the
@@ -131,15 +139,19 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
-/*****************************************************************************/
+/**************************************************************************************************/
 
 /* Hopefully no user servicable parts below! */
+
+/**************************************************************************************************/
 
 #if !defined (WITHOUT_ROMAN)
 # if !defined (WITH_ROMAN)
 #  define WITH_ROMAN
 # endif
 #endif
+
+/**************************************************************************************************/
 
 #if defined (STR_HELPER)
 # undef STR_HELPER
@@ -153,6 +165,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #define STR(x) STR_HELPER(x)
 
+/**************************************************************************************************/
+
 #if !defined (PC_SOFTWARE_DATE)
 # if defined (__TIMESTAMP__)
 #  define PC_SOFTWARE_DATE STR(__TIMESTAMP__)
@@ -163,6 +177,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+/**************************************************************************************************/
+
 #if defined (__MVS__) || defined (_AIX)
 # if defined (_ALL_SOURCE)
 #  undef _ALL_SOURCE
@@ -170,37 +186,55 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # define _ALL_SOURCE
 #endif
 
+/**************************************************************************************************/
+
 #if defined (_POSIX_C_SOURCE)
 # undef _POSIX_C_SOURCE
 #endif
+
+/**************************************************************************************************/
 
 #if !defined (__OpenBSD__)
 # define _POSIX_C_SOURCE 200809L
 #endif
 
+/**************************************************************************************************/
+
 #if !defined (_GNU_SOURCE)
 # define _GNU_SOURCE
 #endif
+
+/**************************************************************************************************/
 
 #if !defined (_NETBSD_SOURCE)
 # define _NETBSD_SOURCE
 #endif
 
+/**************************************************************************************************/
+
 #if !defined (_OPENBSD_SOURCE)
 # define _OPENBSD_SOURCE
 #endif
+
+/**************************************************************************************************/
 
 #if !defined (_DARWIN_C_SOURCE)
 # define _DARWIN_C_SOURCE
 #endif
 
+/**************************************************************************************************/
+
 #if !defined (__BSD_VISIBLE)
 # define __BSD_VISIBLE 1
 #endif
 
+/**************************************************************************************************/
+
 #if !defined (__EXTENSIONS__)
 # define __EXTENSIONS__
 #endif
+
+/**************************************************************************************************/
 
 #if defined (HAS_INCLUDE)
 # undef HAS_INCLUDE
@@ -211,6 +245,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #else
 # define HAS_INCLUDE(inc) 0
 #endif
+
+/**************************************************************************************************/
 
 #include <ctype.h>    /* isalnum, isalpha, isdigit, isspace ...          */
 #include <errno.h>    /* errno ...                                       */
@@ -232,6 +268,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # pragma warning( disable : 4996 )
 #endif
 
+/**************************************************************************************************/
+
 #if defined __CPPCHECK__
 # include <sys/param.h>
 #else
@@ -241,6 +279,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+/**************************************************************************************************/
+
 /* Disable things not available on DOS-like platforms */
 
 #if defined (__MSDOS__) || defined (__DOS__)
@@ -248,6 +288,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #  define DOSLIKE
 # endif
 #endif
+
+/**************************************************************************************************/
 
 /* DJGPP provides stubs for these so we'll leave them enabled */
 
@@ -269,6 +311,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+/**************************************************************************************************/
+
 #if defined (_MSC_VER)
 # if !defined (NO_PATHCONF)
 #  define NO_PATHCONF
@@ -286,6 +330,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #  define WITH_STRTOK
 # endif
 #endif
+
+/**************************************************************************************************/
 
 #if defined (Macintosh) && defined (macintosh) && defined (pascal) && \
    (defined (__m68k__) || defined (__ppc__)) && !defined (unix)
@@ -308,6 +354,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+/**************************************************************************************************/
+
 #if defined (Retro68)
 # if !defined (NO_GETGID)
 #  define NO_GETGID
@@ -326,6 +374,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+/**************************************************************************************************/
+
 #if defined (__ELKS__)
 # if !defined (NO_PATHCONF)
 #  define NO_PATHCONF
@@ -341,6 +391,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+/**************************************************************************************************/
+
 #if defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__atarist__) || \
     defined (__ELKS__) || defined (__DJGPP__) || defined (DOSLIKE) || \
     defined (__amiga__) || defined (Retro68) || defined (_MSC_VER)
@@ -349,12 +401,16 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # endif
 #endif
 
+/**************************************************************************************************/
+
 #if !defined (NO_LOCALE)
 # include <locale.h>
 # if defined (__APPLE__)
 #  include <xlocale.h>
 # endif
 #endif
+
+/**************************************************************************************************/
 
 #if (defined (WITH_LIBEDIT) + \
      defined (WITH_EDITLINE) + \
@@ -363,23 +419,33 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # error "Only one of WITH_LIBEDIT, WITH_EDITLINE, WITH_READLINE, or WITH_LINENOISE can be defined."
 #endif
 
+/**************************************************************************************************/
+
 #if defined (WITH_READLINE) || defined (WITH_EDITLINE)
 # include <readline/readline.h>
 # include <readline/history.h>
 #endif
 
+/**************************************************************************************************/
+
 #if defined (WITH_LIBEDIT)
 # include <editline/readline.h>
 #endif
+
+/**************************************************************************************************/
 
 #if defined (WITH_LINENOISE)
 # include <linenoise.h>
 #endif
 
+/**************************************************************************************************/
+
 #if defined (__atarist__)
 # include <gem.h>
 # include <osbind.h>
 #endif
+
+/**************************************************************************************************/
 
 #if defined (__amiga__)
 # include <exec/types.h>
@@ -388,9 +454,13 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 # include <proto/exec.h>
 #endif
 
+/**************************************************************************************************/
+
 #if defined (PC_FUNC)
 # undef PC_FUNC
 #endif
+
+/**************************************************************************************************/
 
 #define AND             '&'
 #define BANG            '!'
@@ -420,12 +490,18 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define USE_LAST_RESULT '.'
 #define XOR             '^'
 
+/**************************************************************************************************/
+
 #if defined (FREE)
 # undef FREE
 #endif
 
+/**************************************************************************************************/
+
 static const int always = 1;
 static const int never  = 0;
+
+/**************************************************************************************************/
 
 #define FREE(p)   \
   do              \
@@ -435,9 +511,13 @@ static const int never  = 0;
     }             \
   while (never)
 
+/**************************************************************************************************/
+
 /* Default target line length for output */
 
 static size_t target_line_len = 80;
+
+/**************************************************************************************************/
 
 /* Determine sane size for input buffers */
 
@@ -465,6 +545,8 @@ static size_t target_line_len = 80;
 # define INPUT_BUFF INPUT_BUFF_FB
 #endif
 
+/**************************************************************************************************/
+
 #if defined (USE_LONG_LONG)
 # define LONG  long long
 # define ULONG unsigned long long
@@ -472,6 +554,8 @@ static size_t target_line_len = 80;
 # define LONG  long
 # define ULONG unsigned long
 #endif
+
+/**************************************************************************************************/
 
 #define PFC_INT8 "%c%c%c%c%c%c%c%c"
 
@@ -492,6 +576,8 @@ static size_t target_line_len = 80;
 #define PBI_16(i) PBI_8((i)  >>  8), PBI_8(i)
 #define PBI_32(i) PBI_16((i) >> 16), PBI_16(i)
 #define PBI_64(i) PBI_32((i) >> 32), PBI_32(i)
+
+/**************************************************************************************************/
 
 #if !defined (NO_LOCALE)
 # define XSTR_EMAXLEN 32767
@@ -570,6 +656,8 @@ xstrerror_l (int errnum)
 # define xstrerror_l strerror
 #endif
 
+/**************************************************************************************************/
+
 static const struct
 roman_map
 {
@@ -577,6 +665,9 @@ roman_map
   int value;
   int max_repetitions;
 }
+
+/**************************************************************************************************/
+
 roman_table[] =
 {
   { "M", 1000, 3 }, { "CM", 900, 1 }, { "D", 500, 1 }, { "CD", 400, 1 },
@@ -584,6 +675,8 @@ roman_table[] =
   { "X",   10, 3 }, { "IX",   9, 1 }, { "V",   5, 1 }, { "IV",   4, 1 },
   { "I",    1, 3 }, { NULL,   0, 0 }
 };
+
+/**************************************************************************************************/
 
 static ULONG
 parse_roman(char **s)
@@ -644,6 +737,8 @@ parse_roman(char **s)
 
   return result;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 xstrtoUL (char *nptr, char **endptr, int base)
@@ -921,6 +1016,8 @@ end_parsing:
   return result;
 }
 
+/**************************************************************************************************/
+
 static ULONG do_assignment_operator(char **str, char *var_name);
 static ULONG parse_expression(char *str);  /* Top-level interface to parser */
 static ULONG assignment_expr(char **str);  /* Assignments =, +=, *=, etc    */
@@ -937,6 +1034,8 @@ static ULONG term(char **str);             /* Multiplication/Division *,%,/ */
 static ULONG factor(char **str);           /* Negation, Logical NOT ~, !    */
 static ULONG get_value(char **str);
 
+/**************************************************************************************************/
+
 /*
  * Variables are kept in a simple singly-linked list. Not high performance,
  * but it's also an extremely small implementation.  New variables get added
@@ -951,6 +1050,8 @@ typedef struct variable
   struct variable *next;
 } variable;
 
+/**************************************************************************************************/
+
 typedef enum
 {
   MODE_AUTO,
@@ -958,12 +1059,19 @@ typedef enum
   MODE_UNSIGNED
 } arithmetic_mode_t;
 
+/**************************************************************************************************/
+
 static arithmetic_mode_t arithmetic_mode = MODE_AUTO;
+
+/**************************************************************************************************/
 
 static variable dummy =
 {
   NULL, 0L, NULL
 };
+
+/**************************************************************************************************/
+
 static variable *vars = &dummy;
 
 /*
@@ -975,6 +1083,8 @@ static variable *vars = &dummy;
 
 static int (*external_var_lookup)
   (const char *name, ULONG *val) = (int (*)(const char *, ULONG *))NULL;
+
+/**************************************************************************************************/
 
 /*
  * This very ugly function declaration is for the function set_var_lookup_hook
@@ -1004,6 +1114,8 @@ static int(
   return old_func;
 }
 
+/**************************************************************************************************/
+
 /*
  * last_result is equal to the result of the last expression and expressions
  * can refer to it as '.' (just like bc).
@@ -1012,6 +1124,8 @@ static int(
 static ULONG last_result = 0;
 static int unset_mode    = 0;
 static int unset_silent  = 0;
+
+/**************************************************************************************************/
 
 #if defined (WITH_BASE36) || defined (WITH_TERNARY)
 static char *
@@ -1038,6 +1152,8 @@ convert_base_string(ULONG value, int base, char *buf, int buf_size)
   return ptr;
 }
 #endif
+
+/**************************************************************************************************/
 
 #if defined (WITH_ROMAN)
 static char *
@@ -1081,6 +1197,8 @@ convert_to_roman(ULONG value)
 }
 #endif
 
+/**************************************************************************************************/
+
 static char *
 get_binary_string(ULONG value)
 {
@@ -1095,6 +1213,8 @@ get_binary_string(ULONG value)
 
   return ptr;
 }
+
+/**************************************************************************************************/
 
 #if defined (__ELKS__) && defined (USE_LONG_LONG)
 static void
@@ -1118,6 +1238,8 @@ u64_to_octal(char *buf, size_t bufsz, unsigned long long value)
   (void)snprintf(buf, bufsz, "oct: %s", &tmp[i]);
 }
 #endif
+
+/**************************************************************************************************/
 
 static void
 print_result(ULONG value)
@@ -1375,6 +1497,8 @@ print_result(ULONG value)
   (void)fprintf(stdout, "\n");
 }
 
+/**************************************************************************************************/
+
 #if defined (__atarist__)
 typedef struct
 {
@@ -1382,7 +1506,11 @@ typedef struct
   unsigned long value;
 } COOKIE;
 
+/**************************************************************************************************/
+
 static volatile int mint_present_super = 0;
+
+/**************************************************************************************************/
 
 static void
 probe_mint_super(void)
@@ -1407,6 +1535,8 @@ probe_mint_super(void)
     }
 }
 
+/**************************************************************************************************/
+
 static int
 is_mint(void)
 {
@@ -1415,6 +1545,8 @@ is_mint(void)
 
   return mint_present_super;
 }
+
+/**************************************************************************************************/
 
 static time_t
 civil_to_unix(int year, int month, int day, int hour, int min, int sec)
@@ -1435,6 +1567,8 @@ civil_to_unix(int year, int month, int day, int hour, int min, int sec)
   return (time_t)secs;
 }
 
+/**************************************************************************************************/
+
 static time_t
 tos_now_unix(void)
 {
@@ -1452,6 +1586,8 @@ tos_now_unix(void)
   return civil_to_unix(year, month, day, hour, min, sec);
 }
 
+/**************************************************************************************************/
+
 static unsigned long
 tos_time_now(void)
 {
@@ -1461,6 +1597,8 @@ tos_time_now(void)
     return (unsigned long)tos_now_unix();
 }
 #endif
+
+/**************************************************************************************************/
 
 static int
 builtin_vars(const char *name, ULONG *val)
@@ -1626,6 +1764,8 @@ builtin_vars(const char *name, ULONG *val)
   return 1;
 }
 
+/**************************************************************************************************/
+
 static const char *
 builtin_var_names [] =
 {
@@ -1718,17 +1858,23 @@ builtin_var_names [] =
   NULL
 };
 
+/**************************************************************************************************/
+
 typedef struct
 {
   const char *name;
   ULONG value;
 } var_entry;
 
+/**************************************************************************************************/
+
 typedef enum
 {
   USER_VARS,
   BUILTIN_VARS
 } varquery_type;
+
+/**************************************************************************************************/
 
 static int
 compare_var_entries(const void *a, const void *b)
@@ -1738,6 +1884,8 @@ compare_var_entries(const void *a, const void *b)
 
   return strcmp(var_a->name, var_b->name);
 }
+
+/**************************************************************************************************/
 
 static var_entry *
 resize_var_entries(var_entry *entries, int count, int *capacity)
@@ -1762,6 +1910,8 @@ resize_var_entries(var_entry *entries, int count, int *capacity)
   return entries;
 }
 
+/**************************************************************************************************/
+
 static variable *
 lookup_var(const char *name)
 {
@@ -1773,6 +1923,8 @@ lookup_var(const char *name)
 
   return NULL;
 }
+
+/**************************************************************************************************/
 
 static int
 is_reserved_name(const char *name)
@@ -1794,6 +1946,8 @@ is_reserved_name(const char *name)
   return 0;
 }
 
+/**************************************************************************************************/
+
 static variable *
 add_var(char *name, ULONG value)
 {
@@ -1814,7 +1968,8 @@ add_var(char *name, ULONG value)
   if (external_var_lookup)
     if (external_var_lookup(name, &tmp) != 0)
       {
-        (void)fprintf(stderr, "ERROR: can't assign/create '%s', it is a read-only variable\n", name);
+        (void)fprintf(stderr,
+            "ERROR: can't assign/create '%s', it is a read-only variable\n", name);
 
         return NULL;
       }
@@ -1837,6 +1992,8 @@ add_var(char *name, ULONG value)
   return v;
 }
 
+/**************************************************************************************************/
+
 /*
  * This routine and the companion get_var() are external interfaces to the
  * variable manipulation routines.
@@ -1856,6 +2013,8 @@ set_var(char *name, ULONG val)
     (void)add_var(name, val);
 }
 #endif
+
+/**************************************************************************************************/
 
 /*
  * This function returns 1 on success of finding a variable and 0 on failure
@@ -1881,6 +2040,8 @@ get_var(const char *name, ULONG *val)
   return 0;
 }
 
+/**************************************************************************************************/
+
 static int
 is_register(const char *name)
 {
@@ -1897,6 +2058,8 @@ is_register(const char *name)
 
   return 0;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 truncate_register(const char *name, ULONG value)
@@ -1915,6 +2078,8 @@ truncate_register(const char *name, ULONG value)
 
   return value;
 }
+
+/**************************************************************************************************/
 
 static void
 list_vars(varquery_type type)
@@ -2018,6 +2183,8 @@ list_vars(varquery_type type)
   FREE(entries);
 }
 
+/**************************************************************************************************/
+
 /*
  * Drop-in replacement for strftime ('%c' only) for platforms like ELKS.
  * Extended to set errno in case we expand our usage of strftime later.
@@ -2077,6 +2244,8 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 # define strftime xstrftime /* //-V1059 */
 #endif
 
+/**************************************************************************************************/
+
 /* Special formatting of GT time register */
 
 static void
@@ -2132,6 +2301,8 @@ print_time_reg(const char *name, ULONG value)
   FREE(buf);
 }
 
+/**************************************************************************************************/
+
 /* Custom sort order for registers */
 
 static int
@@ -2158,6 +2329,8 @@ get_reg_order(const char *name)
   return 6;
 }
 
+/**************************************************************************************************/
+
 static int
 compare_reg_entries(const void *a, const void *b)
 {
@@ -2166,6 +2339,8 @@ compare_reg_entries(const void *a, const void *b)
 
   return get_reg_order(var_a->name) - get_reg_order(var_b->name);
 }
+
+/**************************************************************************************************/
 
 static void
 list_regs(void)
@@ -2200,17 +2375,23 @@ list_regs(void)
     }
 }
 
+/**************************************************************************************************/
+
 static void
 list_user_vars(void)
 {
   list_vars(USER_VARS);
 }
 
+/**************************************************************************************************/
+
 static void
 list_builtin_vars(void)
 {
   list_vars(BUILTIN_VARS);
 }
+
+/**************************************************************************************************/
 
 static const char *
 squash(const char *s)
@@ -2251,6 +2432,8 @@ squash(const char *s)
   return buf;
 }
 
+/**************************************************************************************************/
+
 static void
 print_herald(void)
 {
@@ -2290,6 +2473,8 @@ print_herald(void)
 #endif
 }
 
+/**************************************************************************************************/
+
 #if defined (WITH_READLINE) || \
     defined (WITH_EDITLINE) || \
     defined (WITH_LIBEDIT)
@@ -2312,6 +2497,8 @@ editor_completion(const char *text, int state)
 }
 #endif
 
+/**************************************************************************************************/
+
 #if defined (WITH_READLINE) || \
     defined (WITH_EDITLINE) || \
     defined (WITH_LIBEDIT)
@@ -2326,7 +2513,11 @@ editor_completion_function (const char *text, int start, int end)
 }
 #endif
 
+/**************************************************************************************************/
+
 static void take_file(const char *filename);
+
+/**************************************************************************************************/
 
 static void
 print_current_mode(void)
@@ -2366,8 +2557,15 @@ print_current_mode(void)
     }
 }
 
+/**************************************************************************************************/
+
 static void print_current_mode(void);
+
+/**************************************************************************************************/
+
 static char *skipwhite(char *str);
+
+/**************************************************************************************************/
 
 static void
 process_statement(char *statement)
@@ -2488,6 +2686,8 @@ process_statement(char *statement)
         print_result(value);
     }
 }
+
+/**************************************************************************************************/
 
 static void
 take_file(const char *filename)
@@ -2633,6 +2833,8 @@ take_file(const char *filename)
   take_nesting--;
 }
 
+/**************************************************************************************************/
+
 #if defined (__atarist__)
 static char *
 atarist_getline(char *buf, int size, int echo)
@@ -2707,6 +2909,8 @@ atarist_getline(char *buf, int size, int echo)
     }
 }
 #endif
+
+/**************************************************************************************************/
 
 static void
 do_input(int echo)
@@ -2824,6 +3028,8 @@ do_input(int echo)
     }
 }
 
+/**************************************************************************************************/
+
 static void
 parse_args(int argc, char *argv[])
 {
@@ -2872,6 +3078,8 @@ parse_args(int argc, char *argv[])
   FREE(buff);
 }
 
+/**************************************************************************************************/
+
 #if !(defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811))
 static uint32_t
 hash32s(const void *buf, size_t len, uint32_t h)
@@ -2893,6 +3101,8 @@ hash32s(const void *buf, size_t len, uint32_t h)
   return h;
 }
 #endif
+
+/**************************************************************************************************/
 
 int
 main(int argc, char *argv[])
@@ -2965,6 +3175,8 @@ main(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
+/**************************************************************************************************/
+
 #if defined (__amiga__)
 int
 WBmain(struct WBStartup *wbmsg)
@@ -2987,6 +3199,8 @@ WBmain(struct WBStartup *wbmsg)
   return rc;
 }
 #endif
+
+/**************************************************************************************************/
 
 static ULONG
 parse_expression(char *str)
@@ -3013,10 +3227,13 @@ parse_expression(char *str)
   last_result = val;
 
   if (*ptr != '\0')
-    (void)fprintf(stderr, "Warning: extra characters found when parsing expression at: '%s'\n", ptr);
+    (void)fprintf(stderr,
+        "Warning: extra characters found when parsing expression at: '%s'\n", ptr);
 
   return val;
 }
+
+/**************************************************************************************************/
 
 static int
 remove_var(char *name)
@@ -3042,6 +3259,8 @@ remove_var(char *name)
 
   return 0;
 }
+
+/**************************************************************************************************/
 
 #define DEFAULT_LEN 32
 
@@ -3092,6 +3311,8 @@ get_var_name(char **str)
 
   return buff;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 assignment_expr(char **str)
@@ -3219,6 +3440,8 @@ assignment_expr(char **str)
   return val;
 }
 
+/**************************************************************************************************/
+
 static ULONG
 do_assignment_operator(char **str, char *var_name)
 {
@@ -3338,6 +3561,8 @@ do_assignment_operator(char **str, char *var_name)
   return v->value;
 }
 
+/**************************************************************************************************/
+
 static ULONG
 logical_or_expr(char **str)
 {
@@ -3356,6 +3581,8 @@ logical_or_expr(char **str)
 
   return sum;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 logical_and_expr(char **str)
@@ -3376,6 +3603,8 @@ logical_and_expr(char **str)
   return sum;
 }
 
+/**************************************************************************************************/
+
 static ULONG
 or_expr(char **str)
 {
@@ -3394,6 +3623,8 @@ or_expr(char **str)
 
   return sum;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 xor_expr(char **str)
@@ -3414,6 +3645,8 @@ xor_expr(char **str)
   return sum;
 }
 
+/**************************************************************************************************/
+
 static ULONG
 and_expr(char **str)
 {
@@ -3432,6 +3665,8 @@ and_expr(char **str)
 
   return sum;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 equality_expr(char **str)
@@ -3459,6 +3694,8 @@ equality_expr(char **str)
 
   return sum;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 relational_expr(char **str)
@@ -3518,6 +3755,8 @@ relational_expr(char **str)
   return sum;
 }
 
+/**************************************************************************************************/
+
 static ULONG
 shift_expr(char **str)
 {
@@ -3550,6 +3789,8 @@ shift_expr(char **str)
 
   return sum;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 add_expression(char **str)
@@ -3602,6 +3843,8 @@ add_expression(char **str)
 
   return sum;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 term(char **str)
@@ -3702,6 +3945,8 @@ term(char **str)
   return sum;
 }
 
+/**************************************************************************************************/
+
 static ULONG
 factor(char **str)
 {
@@ -3797,6 +4042,8 @@ factor(char **str)
   return val;
 }
 
+/**************************************************************************************************/
+
 static char *
 find_matching_paren(char *str, char open_paren, char close_paren)
 {
@@ -3820,6 +4067,8 @@ find_matching_paren(char *str, char open_paren, char close_paren)
 
   return NULL;
 }
+
+/**************************************************************************************************/
 
 static ULONG
 get_value(char **str)
@@ -3855,7 +4104,8 @@ get_value(char **str)
 
       if (**str != SINGLE_QUOTE) /* Constant must have been too long */
         {
-          (void)fprintf(stderr, "Warning: character constant not terminated or too long (max len == %ld bytes)\n",
+          (void)fprintf(stderr,
+              "Warning: character constant not terminated or too long (max len == %ld bytes)\n",
                         (long)sizeof ( LONG ));
 
           while (**str && **str != SINGLE_QUOTE)
@@ -3962,7 +4212,8 @@ get_value(char **str)
         {
           if (is_reserved_name(var_name))
             {
-              (void)fprintf(stderr, "ERROR: can't assign/create '%s', is a reserved name.\n", var_name);
+              (void)fprintf(stderr,
+                  "ERROR: can't assign/create '%s', is a reserved name.\n", var_name);
               val = 0;
             }
           else
@@ -4007,7 +4258,8 @@ get_value(char **str)
     }
   else
     {
-      (void)fprintf(stderr, "Expecting left paren, brace, bracket, unary op, constant, or variable.");
+      (void)fprintf(stderr,
+          "Expecting left paren, brace, bracket, unary op, constant, or variable.");
       (void)fprintf(stderr, "  Got: '%s'\n", *str);
 
       return 0;
@@ -4015,6 +4267,8 @@ get_value(char **str)
 
   return val;
 }
+
+/**************************************************************************************************/
 
 static char *
 skipwhite(char *str)
@@ -4029,4 +4283,6 @@ skipwhite(char *str)
   return str;
 }
 
-/* vim: set ts=2 sw=2 tw=0 ai expandtab : */
+/**************************************************************************************************/
+/* vim: set ts=2 sw=2 tw=0 ai expandtab cc=100 : */
+/**************************************************************************************************/

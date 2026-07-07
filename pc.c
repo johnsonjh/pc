@@ -105,7 +105,7 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
 #define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 7
+#define PC_VERSION_OSHIT 8
 
 /**************************************************************************************************/
 
@@ -635,7 +635,7 @@ xstrerror_l (int errnum)
 
       if (0 > n_buf || (size_t)n_buf >= sizeof (buf))
         { /* cppcheck-suppress syntaxError */
-          (void)fprintf (stderr, "FATAL: snprintf buffer overflow at %s[%s:%d]\n",
+          (void)fprintf (stderr, "FATAL: snprintf buffer overflow at %s [%s:%d]\n",
                          __func__, __FILE__, __LINE__);
           exit (EXIT_FAILURE);
         }
@@ -668,7 +668,7 @@ roman_map
 
 /**************************************************************************************************/
 
-roman_table[] =
+roman_table [] =
 {
   { "M", 1000, 3 }, { "CM", 900, 1 }, { "D", 500, 1 }, { "CD", 400, 1 },
   { "C",  100, 3 }, { "XC",  90, 1 }, { "L",  50, 1 }, { "XL",  40, 1 },
@@ -692,13 +692,13 @@ parse_roman(char **s)
     {
       int found = 0;
 
-      for (map = roman_table; map->symbol != NULL; map++)
+      for (map = roman_table; map -> symbol != NULL; map++)
         {
-          size_t len = strlen(map->symbol);
+          size_t len = strlen(map -> symbol);
 
-          if (strncmp(p, map->symbol, len) == 0)
+          if (strncmp(p, map -> symbol, len) == 0)
             {
-              if (map->value > last_value)
+              if (map -> value > last_value)
                 {
                    errno = EINVAL;
 
@@ -706,11 +706,11 @@ parse_roman(char **s)
                 }
 
               if (prev_map_entry != NULL &&
-                  strcmp(map->symbol, prev_map_entry->symbol) == 0)
+                  strcmp(map -> symbol, prev_map_entry -> symbol) == 0)
                 {
                   current_repetition_count++;
 
-                  if (current_repetition_count > map->max_repetitions)
+                  if (current_repetition_count > map -> max_repetitions)
                     {
                       errno = EINVAL;
 
@@ -720,9 +720,9 @@ parse_roman(char **s)
               else
                 current_repetition_count = 1;
 
-              result += (ULONG)map->value;
+              result += (ULONG)map -> value;
               p += len;
-              last_value = map->value;
+              last_value = map -> value;
               prev_map_entry = map;
               found = 1;
               break;
@@ -772,16 +772,16 @@ xstrtoUL (char *nptr, char **endptr, int base)
     {
       if (*p == '0')
         {
-          if ((p[1] == 'z' || p[1] == 'Z'))
+          if ((p [1] == 'z' || p [1] == 'Z'))
             {
               int next;
 
-              if (p[2] >= '0' && p[2] <= '9')
-                next = p[2] - '0';
-              else if (p[2] >= 'a' && p[2] <= 'z')
-                next = p[2] - 'a' + 10;
-              else if (p[2] >= 'A' && p[2] <= 'Z')
-                next = p[2] - 'A' + 10;
+              if (p [2] >= '0' && p [2] <= '9')
+                next = p [2] - '0';
+              else if (p [2] >= 'a' && p [2] <= 'z')
+                next = p [2] - 'a' + 10;
+              else if (p [2] >= 'A' && p [2] <= 'Z')
+                next = p [2] - 'A' + 10;
               else
                 next = -1;
 
@@ -793,16 +793,16 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 base = 0; /* //-V1048 */
             }
-          else if ((p[1] == 'x' || p[1] == 'X'))
+          else if ((p [1] == 'x' || p [1] == 'X'))
             {
               int next;
 
-              if (p[2] >= '0' && p[2] <= '9')
-                next = p[2] - '0';
-              else if (p[2] >= 'a' && p[2] <= 'z')
-                next = p[2] - 'a' + 10;
-              else if (p[2] >= 'A' && p[2] <= 'Z')
-                next = p[2] - 'A' + 10;
+              if (p [2] >= '0' && p [2] <= '9')
+                next = p [2] - '0';
+              else if (p [2] >= 'a' && p [2] <= 'z')
+                next = p [2] - 'a' + 10;
+              else if (p [2] >= 'A' && p [2] <= 'Z')
+                next = p [2] - 'A' + 10;
               else
                 next = -1;
 
@@ -814,12 +814,12 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 base = 0; /* //-V1048 */
             }
-          else if ((p[1] == 'b' || p[1] == 'B'))
+          else if ((p [1] == 'b' || p [1] == 'B'))
             {
               int next;
 
-              if (p[2] >= '0' && p[2] <= '1')
-                next = p[2] - '0';
+              if (p [2] >= '0' && p [2] <= '1')
+                next = p [2] - '0';
               else
                 next = -1;
 
@@ -831,12 +831,12 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 base = 0; /* //-V1048 */
             }
-          else if ((p[1] == 't' || p[1] == 'T'))
+          else if ((p [1] == 't' || p [1] == 'T'))
             {
               int next;
 
-              if (p[2] >= '0' && p[2] <= '2')
-                next = p[2] - '0';
+              if (p [2] >= '0' && p [2] <= '2')
+                next = p [2] - '0';
               else
                 next = -1;
 
@@ -849,12 +849,12 @@ xstrtoUL (char *nptr, char **endptr, int base)
                 base = 0; /* //-V1048 */
             }
 
-          else if ((p[1] == 'o' || p[1] == 'O'))
+          else if ((p [1] == 'o' || p [1] == 'O'))
             {
               int next;
 
-              if (p[2] >= '0' && p[2] <= '7')
-                next = p[2] - '0';
+              if (p [2] >= '0' && p [2] <= '7')
+                next = p [2] - '0';
               else
                 next = -1;
 
@@ -866,7 +866,7 @@ xstrtoUL (char *nptr, char **endptr, int base)
               else
                 base = 0; /* //-V1048 */
             }
-          else if ((p[1] == 'r' || p[1] == 'R'))
+          else if ((p [1] == 'r' || p [1] == 'R'))
             {
               p += 2;
               start_p = p;
@@ -886,12 +886,12 @@ xstrtoUL (char *nptr, char **endptr, int base)
     }
   else if (base == 2)
     {
-      if (p[0] == '0' && (p[1] == 'b' || p[1] == 'B'))
+      if (p [0] == '0' && (p [1] == 'b' || p [1] == 'B'))
         {
           int next;
 
-          if (p[2] >= '0' && p[2] <= '1')
-            next = p[2] - '0';
+          if (p [2] >= '0' && p [2] <= '1')
+            next = p [2] - '0';
           else
             next = -1;
 
@@ -901,12 +901,12 @@ xstrtoUL (char *nptr, char **endptr, int base)
     }
   else if (base == 3)
     {
-      if (p[0] == '0' && (p[1] == 't' || p[1] == 'T'))
+      if (p [0] == '0' && (p [1] == 't' || p [1] == 'T'))
         {
           int next;
 
-          if (p[2] >= '0' && p[2] <= '2')
-            next = p[2] - '0';
+          if (p [2] >= '0' && p [2] <= '2')
+            next = p [2] - '0';
           else
             next = -1;
 
@@ -916,16 +916,16 @@ xstrtoUL (char *nptr, char **endptr, int base)
     }
   else if (base == 16)
     {
-      if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X'))
+      if (p [0] == '0' && (p [1] == 'x' || p [1] == 'X'))
         {
           int next;
 
-          if (p[2] >= '0' && p[2] <= '9')
-            next = p[2] - '0';
-          else if (p[2] >= 'a' && p[2] <= 'z')
-            next = p[2] - 'a' + 10;
-          else if (p[2] >= 'A' && p[2] <= 'Z')
-            next = p[2] - 'A' + 10;
+          if (p [2] >= '0' && p [2] <= '9')
+            next = p [2] - '0';
+          else if (p [2] >= 'a' && p [2] <= 'z')
+            next = p [2] - 'a' + 10;
+          else if (p [2] >= 'A' && p [2] <= 'Z')
+            next = p [2] - 'A' + 10;
           else
             next = -1;
 
@@ -1132,7 +1132,7 @@ static char *
 convert_base_string(ULONG value, int base, char *buf, int buf_size)
 {
   const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  char *ptr = &buf[(size_t)buf_size - 1];
+  char *ptr = &buf [(size_t)buf_size - 1];
 
   *ptr = '\0';
 
@@ -1145,7 +1145,7 @@ convert_base_string(ULONG value, int base, char *buf, int buf_size)
 
   while (value > 0 && ptr > buf)
     {
-      *(--ptr) = digits[(unsigned char)(value % (ULONG)base)];
+      *(--ptr) = digits [(unsigned char)(value % (ULONG)base)];
       value /= (ULONG)base;
     }
 
@@ -1159,19 +1159,19 @@ convert_base_string(ULONG value, int base, char *buf, int buf_size)
 static char *
 convert_to_roman(ULONG value)
 {
-  static char roman_buf[16];
+  static char roman_buf [16];
   char *ptr = roman_buf;
 
-  const char *m[] =
+  const char *m [] =
     { "", "M", "MM", "MMM" };
 
-  const char *c[] =
+  const char *c [] =
     { "", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM" };
 
-  const char *x[] =
+  const char *x [] =
     { "", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC" };
 
-  const char *i[] =
+  const char *i [] =
     { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" };
 
   if (value == 0 || value > 3999)
@@ -1186,10 +1186,10 @@ convert_to_roman(ULONG value)
     }                               \
   while (never)
 
-  APPEND(ptr, m[value / 1000]);
-  APPEND(ptr, c[(value % 1000) / 100]);
-  APPEND(ptr, x[(value % 100) / 10]);
-  APPEND(ptr, i[value % 10]);
+  APPEND(ptr, m [value / 1000]);
+  APPEND(ptr, c [(value % 1000) / 100]);
+  APPEND(ptr, x [(value % 100) / 10]);
+  APPEND(ptr, i [value % 10]);
 
   *ptr = '\0';
 
@@ -1202,7 +1202,7 @@ convert_to_roman(ULONG value)
 static char *
 get_binary_string(ULONG value)
 {
-  static char bin_buf[65];
+  static char bin_buf [65];
   char *ptr = bin_buf;
 
   /* Flawfinder: ignore */
@@ -1220,22 +1220,22 @@ get_binary_string(ULONG value)
 static void
 u64_to_octal(char *buf, size_t bufsz, unsigned long long value)
 {
-  char tmp[30];
+  char tmp [30];
   int i = sizeof(tmp);
 
-  tmp[--i] = '\0';
+  tmp [--i] = '\0';
 
   do
     {
-      tmp[--i] = '0' + (value & 7ull);
+      tmp [--i] = '0' + (value & 7ull);
       value >>= 3;
     }
   while (value != 0);
 
-  tmp[--i] = 'o';
-  tmp[--i] = '0';
+  tmp [--i] = 'o';
+  tmp [--i] = '0';
 
-  (void)snprintf(buf, bufsz, "oct: %s", &tmp[i]);
+  (void)snprintf(buf, bufsz, "oct: %s", &tmp [i]);
 }
 #endif
 
@@ -1244,24 +1244,24 @@ u64_to_octal(char *buf, size_t bufsz, unsigned long long value)
 static void
 print_result(ULONG value)
 {
-  char dec_str[128];
-  char oct_str[30];
-  char hex_str[25];
-  char bin_str[80];
+  char dec_str [128];
+  char oct_str [30];
+  char hex_str [25];
+  char bin_str [80];
 #if defined (WITH_ROMAN)
-  char roman_str[23];
+  char roman_str [23];
   char *roman_value_converted;
 #endif
 #if defined (WITH_TERNARY)
-  char ter_str[50];
-  char ternary_str_buf[45];
+  char ter_str [50];
+  char ternary_str_buf [45];
 #endif
 #if defined (WITH_BASE36)
-  char b36_str[20];
-  char base36_str_buf[16];
+  char b36_str [20];
+  char base36_str_buf [16];
 #endif
-  char extra_info[100] = "";
-  char char_repr[sizeof(ULONG) + 1];
+  char extra_info [100] = "";
+  char char_repr [sizeof(ULONG) + 1];
   int i;
   int has_signed_info = 0;
   int printable_chars_count = 0;
@@ -1269,7 +1269,7 @@ print_result(ULONG value)
 #if !defined (_CH_)
   const
 #endif
-  char *fields[8];
+  char *fields [8];
   int field_index = 0;
 
 #if defined (_MSC_VER)
@@ -1283,16 +1283,16 @@ print_result(ULONG value)
 #if defined (USE_LONG_LONG)
 # if defined (__ELKS__)
     {
-      char decbuf[32];
+      char decbuf [32];
 
       {
-        char tmp[32];
+        char tmp [32];
         int i = 0;
         unsigned long long v = value;
 
         do
           {
-            tmp[i++] = (char)('0' + (int)(v % 10ull));
+            tmp [i++] = (char)('0' + (int)(v % 10ull));
             v /= 10ull;
           }
         while (v && i < (int)sizeof(tmp));
@@ -1301,9 +1301,9 @@ print_result(ULONG value)
           int j = 0;
 
           while (i > 0 && j < (int)sizeof(decbuf) - 1)
-            decbuf[j++] = tmp[--i];
+            decbuf [j++] = tmp [--i];
 
-          decbuf[j] = '\0';
+          decbuf [j] = '\0';
         }
       }
 
@@ -1332,7 +1332,7 @@ print_result(ULONG value)
 # if defined (__ELKS__)
         {
           long long sval = (long long)value;
-          char tmp[32];
+          char tmp [32];
           char *p = tmp + sizeof(tmp);
           uint64_t mag;
 
@@ -1376,14 +1376,14 @@ print_result(ULONG value)
 
       if (ch >= 32 && ch <= 126) /* ASCII printable range */
         {
-          char_repr[sizeof(ULONG) - 1 - (size_t)i] = (char)ch;
+          char_repr [sizeof(ULONG) - 1 - (size_t)i] = (char)ch;
           printable_chars_count++;
         }
       else
-        char_repr[sizeof(ULONG) - 1 - (size_t)i] = '.';
+        char_repr [sizeof(ULONG) - 1 - (size_t)i] = '.';
     }
 
-  char_repr[sizeof(ULONG)] = '\0';
+  char_repr [sizeof(ULONG)] = '\0';
 
   if (printable_chars_count > 0)
     {
@@ -1434,9 +1434,9 @@ print_result(ULONG value)
                    "hex: 0x%lx", value);
 #endif
 
-  fields[field_index++] = dec_str;
-  fields[field_index++] = oct_str;
-  fields[field_index++] = hex_str;
+  fields [field_index++] = dec_str;
+  fields [field_index++] = oct_str;
+  fields [field_index++] = hex_str;
 
 #if defined (WITH_ROMAN)
   if (value > 0 && value < 4000)
@@ -1447,7 +1447,7 @@ print_result(ULONG value)
         {
           (void)snprintf(roman_str, sizeof(roman_str),
                          "rom: 0r%s", roman_value_converted);
-          fields[field_index++] = roman_str;
+          fields [field_index++] = roman_str;
         }
     }
 #endif
@@ -1456,26 +1456,26 @@ print_result(ULONG value)
   (void)snprintf(ter_str, sizeof(ter_str), "ter: 0t%s",
                  convert_base_string(value, 3, ternary_str_buf,
                                      sizeof(ternary_str_buf)));
-  fields[field_index++] = ter_str;
+  fields [field_index++] = ter_str;
 #endif
 
 #if defined (WITH_BASE36)
   (void)snprintf(b36_str, sizeof(b36_str), "b36: 0z%s",
                  convert_base_string(value, 36, base36_str_buf,
                                      sizeof(base36_str_buf)));
-  fields[field_index++] = b36_str;
+  fields [field_index++] = b36_str;
 #endif
 
   (void)snprintf(bin_str, sizeof(bin_str), "bin: 0b%s",
                  get_binary_string(value));
-  fields[field_index++] = bin_str;
-  fields[field_index] = NULL;
+  fields [field_index++] = bin_str;
+  fields [field_index] = NULL;
 
   (void)fprintf(stdout, "    ");
 
-  for (i = 0; fields[i] != NULL; i++)
+  for (i = 0; fields [i] != NULL; i++)
     {
-      size_t field_len = strlen(fields[i]);
+      size_t field_len = strlen(fields [i]);
 
       if (line_len > 4 && line_len + field_len > target_line_len)
         {
@@ -1483,11 +1483,11 @@ print_result(ULONG value)
           line_len = 5;
         }
 
-      (void)fprintf(stdout, "%s", fields[i]);
+      (void)fprintf(stdout, "%s", fields [i]);
 
       line_len += field_len;
 
-      if (fields[(long)i+1] != NULL)
+      if (fields [(long)i+1] != NULL)
         {
           (void)fprintf(stdout, " ");
           line_len++;
@@ -1522,9 +1522,9 @@ probe_mint_super(void)
   if (!cookies)
     return;
 
-  while (cookies->tag)
+  while (cookies -> tag)
     {
-      if (cookies->tag == 0x4d694e54ul)
+      if (cookies -> tag == 0x4d694e54ul)
         {
           mint_present_super = 1;
 
@@ -1882,7 +1882,7 @@ compare_var_entries(const void *a, const void *b)
   const var_entry *var_a = (const var_entry *)a;
   const var_entry *var_b = (const var_entry *)b;
 
-  return strcmp(var_a->name, var_b->name);
+  return strcmp(var_a -> name, var_b -> name);
 }
 
 /**************************************************************************************************/
@@ -1917,8 +1917,8 @@ lookup_var(const char *name)
 {
   variable *v;
 
-  for (v = vars; v; v = v->next)
-    if (v->name && strcmp(v->name, name) == 0)
+  for (v = vars; v; v = v -> next)
+    if (v -> name && strcmp(v -> name, name) == 0)
       return v;
 
   return NULL;
@@ -1983,9 +1983,9 @@ add_var(char *name, ULONG value)
       return NULL;
     }
 
-  v->name  = strdup(name);
-  v->value = value;
-  v->next  = vars;
+  v -> name  = strdup(name);
+  v -> value = value;
+  v -> next  = vars;
 
   vars = v; /* Set head of list to the new guy */
 
@@ -2008,7 +2008,7 @@ set_var(char *name, ULONG val)
   v = lookup_var(name);
 
   if (v != NULL)
-    v->value = val;
+    v -> value = val;
   else
     (void)add_var(name, val);
 }
@@ -2030,7 +2030,7 @@ get_var(const char *name, ULONG *val)
 
   if (v != NULL)
     {
-      *val = v->value;
+      *val = v -> value;
 
       return 1;
     }
@@ -2109,39 +2109,39 @@ list_vars(varquery_type type)
 
   if (type == USER_VARS)
     {
-      for (v = vars; v; v = v->next)
-        if (v->name && !is_register(v->name))
+      for (v = vars; v; v = v -> next)
+        if (v -> name && !is_register(v -> name))
           {
             entries = resize_var_entries(entries, count, &capacity);
 
             if (entries == NULL)
               return;
 
-            entries[count].name = v->name;
-            entries[count].value = v->value;
+            entries [count].name = v -> name;
+            entries [count].value = v -> value;
 
             count++;
           }
     }
   else if (type == BUILTIN_VARS)
     {
-      for (i = 0; builtin_var_names[i] != NULL; i++)
-        if (get_var(builtin_var_names[i], &val))
+      for (i = 0; builtin_var_names [i] != NULL; i++)
+        if (get_var(builtin_var_names [i], &val))
           {
             entries = resize_var_entries(entries, count, &capacity);
 
             if (entries == NULL)
               return;
 
-            entries[count].name = builtin_var_names[i];
-            entries[count].value = val;
+            entries [count].name = builtin_var_names [i];
+            entries [count].value = val;
 
             count++;
           }
     }
   else
     {
-      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s [%s:%d]\n",
                     __FILE__, __func__, __LINE__);
       abort();
     }
@@ -2164,7 +2164,7 @@ list_vars(varquery_type type)
     (void)fprintf(stdout, "The following read-only builtin variables are defined:\n");
   else
     {
-      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s[%s:%d]\n",
+      (void)fprintf(stderr, "FATAL: Bugcheck: unknown varquery_type at %s [%s:%d]\n",
                     __FILE__, __func__, __LINE__);
       abort();
     }
@@ -2176,8 +2176,8 @@ list_vars(varquery_type type)
 
   for (i = 0; i < count; i++)
     {
-      (void)fprintf(stdout, "  %s:\n", entries[i].name);
-      print_result(entries[i].value);
+      (void)fprintf(stdout, "  %s:\n", entries [i].name);
+      print_result(entries [i].value);
     }
 
   FREE(entries);
@@ -2225,7 +2225,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
 
   len = strlen(asc);
 
-  if (len && asc[len-1] == '\n')
+  if (len && asc [len-1] == '\n')
     len--;
 
   if (len + 1 > maxsize)
@@ -2236,7 +2236,7 @@ xstrftime(char *s, size_t maxsize, const char *format, const struct tm *tm)
     }
 
   (void)memcpy(s, asc, len);
-  s[len] = '\0';
+  s [len] = '\0';
 
   return len;
 }
@@ -2337,7 +2337,7 @@ compare_reg_entries(const void *a, const void *b)
   const var_entry *var_a = (const var_entry *)a;
   const var_entry *var_b = (const var_entry *)b;
 
-  return get_reg_order(var_a->name) - get_reg_order(var_b->name);
+  return get_reg_order(var_a -> name) - get_reg_order(var_b -> name);
 }
 
 /**************************************************************************************************/
@@ -2348,14 +2348,14 @@ list_regs(void)
   variable *v;
   int i;
   int count = 0;
-  var_entry entries[6] = { 0 };
+  var_entry entries [6] = { 0 };
 
-  for (v = vars; v; v = v->next)
-    if (v->name && is_register(v->name))
+  for (v = vars; v; v = v -> next)
+    if (v -> name && is_register(v -> name))
       if (count < 6)
         {
-          entries[count].name = v->name;
-          entries[count].value = v->value;
+          entries [count].name = v -> name;
+          entries [count].value = v -> value;
           count++;
         }
 
@@ -2365,12 +2365,12 @@ list_regs(void)
 
   for (i = 0; i < count; i++)
     {
-      if (strcmp(entries[i].name, "GT") == 0)
-        print_time_reg(entries[i].name, entries[i].value);
+      if (strcmp(entries [i].name, "GT") == 0)
+        print_time_reg(entries [i].name, entries [i].value);
       else
         {
-          (void)fprintf(stdout, "  %s:\n", entries[i].name);
-          print_result(entries[i].value);
+          (void)fprintf(stdout, "  %s:\n", entries [i].name);
+          print_result(entries [i].value);
         }
     }
 }
@@ -2396,13 +2396,13 @@ list_builtin_vars(void)
 static const char *
 squash(const char *s)
 {
-  static char buf[INPUT_BUFF];
+  static char buf [INPUT_BUFF];
   char *d = buf;
   int in_space = 0;
 
   if (s == NULL)
     {
-      buf[0] = '\0';
+      buf [0] = '\0';
 
       return buf;
     }
@@ -2437,7 +2437,7 @@ squash(const char *s)
 static void
 print_herald(void)
 {
-  char oshitbuf[6];
+  char oshitbuf [6];
 
 #if defined (__clang_version__)
 # pragma clang diagnostic push
@@ -2451,7 +2451,7 @@ print_herald(void)
   if (PC_VERSION_OSHIT > 0) /*NOTREACHED*/ /* unreachable */
     (void)snprintf(oshitbuf, sizeof(oshitbuf), "-%d", PC_VERSION_OSHIT);
   else /*NOTREACHED*/ /* unreachable */
-    oshitbuf[0] = '\0';
+    oshitbuf [0] = '\0';
 #if defined (_MSC_VER)
 # pragma warning( default : 4127 )
 #endif
@@ -2545,7 +2545,7 @@ print_current_mode(void)
 #endif
 
       default:
-        (void)fprintf(stderr, "FATAL: Bugcheck: unknown arithmetic_mode at %s[%s:%d]\n",
+        (void)fprintf(stderr, "FATAL: Bugcheck: unknown arithmetic_mode at %s [%s:%d]\n",
                                __FILE__, __func__, __LINE__);
         abort();
 
@@ -2693,7 +2693,7 @@ static void
 take_file(const char *filename)
 {
   static int take_nesting = 0;
-  char buff[INPUT_BUFF];
+  char buff [INPUT_BUFF];
   char *input_line;
 #if !defined (WITH_STRTOK)
   char *saveptr;
@@ -2843,7 +2843,7 @@ atarist_getline(char *buf, int size, int echo)
 
   if (size <= 1)
     {
-      buf[0] = '\0';
+      buf [0] = '\0';
 
       return buf;
     }
@@ -2860,8 +2860,8 @@ atarist_getline(char *buf, int size, int echo)
               Cconout('\n');
             }
 
-          buf[i++] = '\n';
-          buf[i] = '\0';
+          buf [i++] = '\n';
+          buf [i] = '\0';
 
           return buf;
         }
@@ -2871,7 +2871,7 @@ atarist_getline(char *buf, int size, int echo)
           if (i == 0)
             return NULL;
 
-          buf[i] = '\0';
+          buf [i] = '\0';
 
           return buf;
         }
@@ -2895,14 +2895,14 @@ atarist_getline(char *buf, int size, int echo)
 
       if (i < size - 1)
         {
-          buf[i++] = (char)c;
+          buf [i++] = (char)c;
 
           if (echo)
             Cconout(c);
         }
       else
         {
-          buf[i] = '\0';
+          buf [i] = '\0';
 
           return buf;
         }
@@ -2921,7 +2921,7 @@ do_input(int echo)
     defined (WITH_LINENOISE)
   char *line;
 #else
-  char buff[INPUT_BUFF];
+  char buff [INPUT_BUFF];
   char *line = buff;
 #endif
   char *input_line;
@@ -2957,16 +2957,16 @@ do_input(int echo)
           size_t len = strlen(line);
 
           while (len > 0 &&
-                 (line[len - 1] == '\n' || line[len - 1] == '\r'))
-            line[--len] = '\0';
+                 (line [len - 1] == '\n' || line [len - 1] == '\r'))
+            line [--len] = '\0';
 
           (void)fprintf(stdout, "%s\n", line);
         }
 
 #if !defined (WITH_READLINE) && !defined (WITH_EDITLINE) && \
     !defined (WITH_LIBEDIT) && !defined (WITH_LINENOISE)
-      if (strlen(line) > 0 && line[strlen(line) - 1] == '\n')
-        line[strlen(line) - 1] = '\0';
+      if (strlen(line) > 0 && line [strlen(line) - 1] == '\n')
+        line [strlen(line) - 1] = '\0';
 #endif
 
       input_line = strdup(line);
@@ -3031,7 +3031,7 @@ do_input(int echo)
 /**************************************************************************************************/
 
 static void
-parse_args(int argc, char *argv[])
+parse_args(int argc, char *argv [])
 {
   size_t i, len;
   char *buff;
@@ -3041,7 +3041,7 @@ parse_args(int argc, char *argv[])
   char *token;
 
   for (i = 1, len = 0; i < (size_t)argc; i++)
-    len += strlen(argv[i]) + 1;
+    len += strlen(argv [i]) + 1;
 
   len++;
 
@@ -3050,11 +3050,11 @@ parse_args(int argc, char *argv[])
   if (buff == NULL)
     return;
 
-  buff[0] = '\0';
+  buff [0] = '\0';
 
   for (i = 1; i < (size_t)argc; i++)
     {
-      (void)strncat(buff, argv[i], len - strlen(buff) - 1);
+      (void)strncat(buff, argv [i], len - strlen(buff) - 1);
       (void)strncat(buff, " ", len - strlen(buff) - 1);
     }
 
@@ -3088,7 +3088,7 @@ hash32s(const void *buf, size_t len, uint32_t h)
   size_t i;
 
   for (i = 0; i < len; i++)
-    h = h * 31 + p[i];
+    h = h * 31 + p [i];
 
   h ^= h >> 17;
   h *= UINT32_C(0xed5ad4bb);
@@ -3105,12 +3105,12 @@ hash32s(const void *buf, size_t len, uint32_t h)
 /**************************************************************************************************/
 
 int
-main(int argc, char *argv[])
+main(int argc, char *argv [])
 {
 #if !(defined (__OpenBSD__) && defined (OpenBSD) && (OpenBSD >= 200811))
   FILE *f;
   uint32_t h;
-  unsigned char rnd[4];
+  unsigned char rnd [4];
 #endif
 
 #if !defined (NO_LOCALE)
@@ -3190,7 +3190,7 @@ WBmain(struct WBStartup *wbmsg)
       SelectError(con);
     }
 
-  char *argv[] = { "pc", NULL };
+  char *argv [] = { "pc", NULL };
   int rc = main(1, argv);
 
   if (con)
@@ -3243,15 +3243,15 @@ remove_var(char *name)
   if (name == NULL)
     return 0;
 
-  for (v = vars; v; prev = v, v = v->next)
-    if (v->name && strcmp(v->name, name) == 0)
+  for (v = vars; v; prev = v, v = v -> next)
+    if (v -> name && strcmp(v -> name, name) == 0)
       {
         if (prev)
-          prev->next = v->next;
+          prev -> next = v -> next;
         else
-          vars = v->next;
+          vars = v -> next;
 
-        FREE(v->name);
+        FREE(v -> name);
         FREE(v);
 
         return 1;
@@ -3299,11 +3299,11 @@ get_var_name(char **str)
           buff = tmpbuff;
         }
 
-      buff[i++] = **str;
+      buff [i++] = **str;
       *str      = *str + 1;
     }
 
-  buff[i] = '\0'; /* NULL terminate */
+  buff [i] = '\0'; /* NULL terminate */
 
   /* Skip over any remaining junk */
   while (isalnum((unsigned char)**str) || **str == '_')
@@ -3388,12 +3388,12 @@ assignment_expr(char **str)
               else
                 {
                   if (is_register(var_name))
-                    v->value = truncate_register(var_name, val);
+                    v -> value = truncate_register(var_name, val);
                   else
-                    v->value = val;
+                    v -> value = val;
 
                   if (strcmp(var_name, "GT") == 0)
-                    print_time_reg(var_name, v->value);
+                    print_time_reg(var_name, v -> value);
                 }
             }
         }
@@ -3420,7 +3420,7 @@ assignment_expr(char **str)
 
       if (*str == NULL)
         {
-          (void)fprintf(stderr, "FATAL: Bugcheck: str == NULL %s[%s:%d]\n",
+          (void)fprintf(stderr, "FATAL: Bugcheck: str == NULL %s [%s:%d]\n",
                         __FILE__, __func__, __LINE__);
           abort();
         }
@@ -3469,33 +3469,33 @@ do_assignment_operator(char **str, char *var_name)
 
   if (operator == PLUS)
     {
-      if (v->value > (ULONG)-1 - val)
+      if (v -> value > (ULONG)-1 - val)
         errno = ERANGE;
 
-      v->value += val;
+      v -> value += val;
     }
   else if (operator == MINUS)
     {
 #if defined (USE_LONG_LONG)
-      if ((LONG)val > 0 && (LONG)v->value < LLONG_MIN + (LONG)val)
+      if ((LONG)val > 0 && (LONG)v -> value < LLONG_MIN + (LONG)val)
         errno = ERANGE;
-      else if ((LONG)val < 0 && (LONG)v->value > LLONG_MAX + (LONG)val)
+      else if ((LONG)val < 0 && (LONG)v -> value > LLONG_MAX + (LONG)val)
         errno = ERANGE;
 #else
-      if ((LONG)val > 0 && (LONG)v->value < LONG_MIN + (LONG)val)
+      if ((LONG)val > 0 && (LONG)v -> value < LONG_MIN + (LONG)val)
         errno = ERANGE;
-      else if ((LONG)val < 0 && (LONG)v->value > LONG_MAX + (LONG)val)
+      else if ((LONG)val < 0 && (LONG)v -> value > LONG_MAX + (LONG)val)
         errno = ERANGE;
 #endif
 
-      v->value -= val;
+      v -> value -= val;
     }
   else if (operator == AND)
-    v->value &= val;
+    v -> value &= val;
   else if (operator == XOR)
-    v->value ^= val;
+    v -> value ^= val;
   else if (operator == OR)
-    v->value |= val;
+    v -> value |= val;
   else if (operator == SHIFT_L)
     {
       if (val >= sizeof(ULONG) * CHAR_BIT)
@@ -3505,7 +3505,7 @@ do_assignment_operator(char **str, char *var_name)
                         xstrerror_l(errno));
         }
 
-      v->value <<= val;
+      v -> value <<= val;
     }
   else if (operator == SHIFT_R)
     {
@@ -3515,14 +3515,14 @@ do_assignment_operator(char **str, char *var_name)
           (void)fprintf(stderr, "Warning: %s (Shift too many bits)\n", xstrerror_l(errno));
         }
 
-      v->value >>= val;
+      v -> value >>= val;
     }
   else if (operator == TIMES)
     {
-      if (val != 0 && v->value > (ULONG)-1 / val)
+      if (val != 0 && v -> value > (ULONG)-1 / val)
         errno = ERANGE;
 
-      v->value *= val;
+      v -> value *= val;
     }
   else if (operator == DIVISION)
     {
@@ -3530,10 +3530,10 @@ do_assignment_operator(char **str, char *var_name)
         {
           errno = EDOM;
           (void)fprintf(stderr, "Warning: %s (Division by zero)\n", xstrerror_l(errno));
-          v->value = 0;
+          v -> value = 0;
         }
       else
-        v->value /= val;
+        v -> value /= val;
     }
   else if (operator == MODULO)
     {
@@ -3541,24 +3541,24 @@ do_assignment_operator(char **str, char *var_name)
         {
           errno = EDOM;
           (void)fprintf(stderr, "Warning: %s (Modulo by zero)\n", xstrerror_l(errno));
-          v->value = 0;
+          v -> value = 0;
         }
       else
-        v->value %= val;
+        v -> value %= val;
     }
   else
     {
       (void)fprintf(stderr, "Unknown operator: %c\n", operator);
-      v->value = 0;
+      v -> value = 0;
     }
 
   if (is_register(var_name))
-    v->value = truncate_register(var_name, v->value);
+    v -> value = truncate_register(var_name, v -> value);
 
   if (strcmp(var_name, "GT") == 0)
-    print_time_reg(var_name, v->value);
+    print_time_reg(var_name, v -> value);
 
-  return v->value;
+  return v -> value;
 }
 
 /**************************************************************************************************/
@@ -3999,14 +3999,14 @@ factor(char **str)
         }
 
       if (op == PLUS)
-        v->value++;
+        v -> value++;
       else
-        v->value--;
+        v -> value--;
 
       if (is_register(var_name))
-        v->value = truncate_register(var_name, v->value);
+        v -> value = truncate_register(var_name, v -> value);
 
-      val = v->value;
+      val = v -> value;
 
       FREE(var_name);
     }
@@ -4182,7 +4182,7 @@ get_value(char **str)
         }
 
       (void)strncpy(sub_expr_str, *str + 1, sub_expr_len);
-      sub_expr_str[sub_expr_len] = '\0';
+      sub_expr_str [sub_expr_len] = '\0';
 
       val = parse_expression(sub_expr_str);
 
@@ -4239,14 +4239,14 @@ get_value(char **str)
           if ((v = lookup_var(var_name)) != NULL)
             {
               if (**str == '+')
-                v->value++;
+                v -> value++;
               else
-                v->value--;
+                v -> value--;
 
               if (is_register(var_name))
-                v->value = truncate_register(var_name, v->value);
+                v -> value = truncate_register(var_name, v -> value);
 
-              val = v->value;
+              val = v -> value;
 
               *str = *str + 2;
             }

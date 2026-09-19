@@ -157,7 +157,7 @@ all: pc
 ################################################################################
 
 clean:
-	@set -x; $(RM) ./pc ./pc.exe ./pc-djgpp.exe ./pc.tos ./pc-elks ./pc-dosg.exe ./pc-dosw.exe ./pc-dosw.obj ./pc-dosw.com ./pc-doswc.obj ./pc-amiga ./pc.o ./pc-mac68k ./pc-mac68k.bin ./pc-mac68k.o ./pc-mac68k.gdb ./pc-mac68k.dsk ./pc-mac68k.bin.gdb ./dpsprintf.o ./extra.h ./rez.r
+	@set -x; $(RM) ./pc ./pc.exe ./pc-djgpp.exe ./pc.tos ./pc-elks ./pc-dosg.exe ./pc-dosw.exe ./pc-dosw.obj ./pc-dosw.com ./pc-doswc.obj ./pc-amiga ./pc-os216.exe ./pc-os232.exe ./pc.o ./pc-mac68k ./pc-mac68k.bin ./pc-mac68k.o ./pc-mac68k.gdb ./pc-mac68k.dsk ./pc-mac68k.bin.gdb ./dpsprintf.o ./extra.h ./rez.r
 
 ################################################################################
 
@@ -221,6 +221,26 @@ pc-dosw.exe:
 	$(RM) ./pc-dosw.obj
 
 watcom-dos: pc-dosw.exe
+
+################################################################################
+
+pc-os216.exe:
+	export PATH="$(WATCOM_DIR)/binl64:$${PATH:-}" && \
+	export WATCOM="$(WATCOM_DIR)" && export LIBPATH=$(WATCOM_DIR)/binp/dll:$$LIBPATH && \
+	export INCLUDE="$(WATCOM_DIR)/h:$(WATCOM_DIR)/h/os21x" && \
+	$(WATCOM_DIR)/binl64/owcc -bos2 -march=i86 -fsigned-char -g0 -frerun-optimizer -Os -fno-stack-check -o ./pc-os216.exe pc.c
+
+watcom-os216: pc-os216.exe
+
+################################################################################
+
+pc-os232.exe:
+	export PATH="$(WATCOM_DIR)/binl64:$${PATH:-}" && \
+	export WATCOM="$(WATCOM_DIR)" && export LIBPATH=$(WATCOM_DIR)/binp/dll:$$LIBPATH && \
+	export INCLUDE="$(WATCOM_DIR)/h:$(WATCOM_DIR)/h/os2" && \
+	$(WATCOM_DIR)/binl64/owcc -bos2v2 -march=i386 -fsigned-char -g0 -frerun-optimizer -Os -fno-stack-check -o ./pc-os232.exe pc.c
+
+watcom-os232: pc-os232.exe
 
 ################################################################################
 
@@ -295,10 +315,11 @@ mac68k: pc-mac68k
 
 ################################################################################
 
-everything: pc djgpp atari elks watcom-dos watcom-doscom gcc-dosexe mac68k amiga
+everything: pc djgpp atari elks watcom-dos watcom-doscom gcc-dosexe mac68k \
+ amiga watcom-os232 watcom-os216
 
 ################################################################################
 
-.PHONY: all clean distclean lint djgpp atari elks watcom-dos watcom-doscom gcc-dosexe mac68k pc-mac68k everything test
+.PHONY: all clean distclean lint djgpp atari elks watcom-dos watcom-doscom gcc-dosexe mac68k pc-mac68k everything test watcom-os232 watcom-os216
 
 ################################################################################

@@ -119,6 +119,8 @@
   [IA16-GCC](https://gitlab.com/tkchia/build-ia16)),
   **Mac OS 68K** (*built using*
   [Retro68](https://github.com/autc04/Retro68)),
+  **OS/2** (*built using*
+  [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2)),
   and **DOS** (*built using* [DJGPP](https://www.delorie.com/djgpp/),
   [IA16-GCC](https://gitlab.com/tkchia/build-ia16), *and*
   [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2)).

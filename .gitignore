@@ -43,6 +43,9 @@ pc-mac68k.bin.gdb
 pc-mac68k.dsk
 pc-mac68k.gdb
 pc-mac68k.o
+pc.o
+pc-os216.exe
+pc-os232.exe
 pc.tos
 pvs.log
 pvsreport/

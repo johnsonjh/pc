@@ -104,8 +104,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 #define PC_SOFTWARE_NAME "pc2"
 #define PC_VERSION_MAJOR 1
 #define PC_VERSION_MINOR 1
-#define PC_VERSION_PATCH 1
-#define PC_VERSION_OSHIT 8
+#define PC_VERSION_PATCH 2
+#define PC_VERSION_OSHIT 0
 
 /**************************************************************************************************/
 
@@ -395,7 +395,8 @@ PID=$$; p=$0; rlwrap="$(command -v rlwrap 2> /dev/null || :)"; cc="$( command -v
 
 #if defined (WITHOUT_LOCALE) || defined (_CH_) || defined (__atarist__) || \
     defined (__ELKS__) || defined (__DJGPP__) || defined (DOSLIKE) || \
-    defined (__amiga__) || defined (Retro68) || defined (_MSC_VER)
+    defined (__amiga__) || defined (Retro68) || defined (_MSC_VER) || \
+    defined (__OS2__)
 # if !defined (NO_LOCALE)
 #  define NO_LOCALE
 # endif
@@ -1636,11 +1637,11 @@ builtin_vars(const char *name, ULONG *val)
   else if (strcmp(name, "pid") == 0)
     *val = (ULONG)getpid();
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETUID)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETUID) && !defined (__OS2__)
   else if (strcmp(name, "uid") == 0)
     *val = (ULONG)getuid();
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETGID)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_GETGID) && !defined (__OS2__)
   else if (strcmp(name, "gid") == 0)
     *val = (ULONG)getgid();
 #endif
@@ -1664,23 +1665,28 @@ builtin_vars(const char *name, ULONG *val)
     *val = (ULONG)INT_MIN;
   else if (strcmp(name, "INPUT_BUFF") == 0)
     *val = (ULONG)INPUT_BUFF;
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) && !defined (_MSC_VER)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) \
+ && !defined (_MSC_VER) && !defined (__OS2__)
   else if (strcmp(name, "ARG_MAX") == 0)
     *val = (ULONG)sysconf(_SC_ARG_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) && !defined (_MSC_VER)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) \
+ && !defined (_MSC_VER) && !defined (__OS2__)
   else if (strcmp(name, "CHILD_MAX") == 0)
     *val = (ULONG)sysconf(_SC_CHILD_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) && !defined (_MSC_VER)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_SYSCONF) \
+ && !defined (_MSC_VER) && !defined (__OS2__)
   else if (strcmp(name, "OPEN_MAX") == 0)
     *val = (ULONG)sysconf(_SC_OPEN_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF) \
+ && !defined (__OS2__)
   else if (strcmp(name, "PATH_MAX") == 0)
     *val = (ULONG)pathconf("/", _PC_PATH_MAX);
 #endif
-#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF)
+#if !defined (__MINGW32__) && !defined (__MINGW64__) && !defined (NO_PATHCONF) \
+ && !defined (__OS2__)
   else if (strcmp(name, "NAME_MAX") == 0)
     *val = (ULONG)pathconf(".", _PC_NAME_MAX);
 #endif

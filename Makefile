@@ -46,7 +46,7 @@ XCC=$$(\
 
 DJGPP_DIR=/opt/djgpp
 DJGPP_ARCH=i586-pc-msdosdjgpp
-CWSDSTUB=/opt/cwspdmi/cwsdstub.exe
+CWSDSTUB=/opt/cwsdpmi/cwsdstub.exe
 
 ################################################################################
 # CrossMiNT:
